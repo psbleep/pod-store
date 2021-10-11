@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools >= 40.6.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.isort]
+profile = "black"
+src_paths = ["pod_store", "tests"]
+skip_gitignore = true
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py37,py38,py39
+
+[gh-actions]
+python =
+    3.9: py39
+    3.8: py38
+    3.7: py37
+
+[testenv]
+deps = -rrequirements.txt
+commands = pytest
+"""
