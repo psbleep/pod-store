@@ -1,5 +1,5 @@
 import functools
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 import click
 
@@ -42,14 +42,79 @@ def catch_pod_store_errors(f):
     return catch_pod_store_errors_inner
 
 
-def git_add_and_commit(msg: str):
-    def git_add_and_commit_wrapper(f: callable):
+def _default_commit_message_builder(
+    ctx_params: dict, commit_message_template: str, *param_names
+) -> str:
+    """Helper to build `git` commit messages from the Click command context.
+
+    See the `git_add_and_commit` decorator for more information.
+    """
+    template_args = [ctx_params[p] for p in param_names]
+    return commit_message_template.format(*template_args)
+
+
+def _optional_podcast_commit_message_builder(
+    ctx_params: dict, commit_message_template: str
+) -> str:
+    """Helper to build `git` commit messages for Click commands that
+    have an optional `podcast` argument.
+
+    See the `git_add_and_commit` decorator for more information.
+    """
+    podcast_name = ctx_params.get("podcast") or "all"
+    return commit_message_template.format(podcast_name)
+
+
+def git_add_and_commit(
+    *builder_args,
+    commit_message_builder: Callable = _default_commit_message_builder,
+):
+    """Decorator for checking in and commiting changes made after running a command.
+    Requires the `click.Context` object as a first argument to the decorated function.
+    (see `click.pass_context`)
+
+    By default, pass in a template str for building the commit message and a list of
+    param names to grab from the `click.Context.params` dict to populate it.
+
+        @click.pass_context
+        @git_add_and_commit("Hello {}.", "recepient")
+        def cmd(ctx):
+            ...
+
+    Assuming the `click.Context.params` dict had a key `recepient` with the value
+    "world", the resulting commit message would be:
+
+        "Hello world."
+
+    Pass in a callable as a keyword arugment for `commit_message_builder` to get custom
+    behavior when building commit messages.
+
+    The message builder callable will receive a `ctx_params` dict
+    (passed in from `click.Context.params`), and any positional `builder_args`
+    provided to the decorator. It should return the commit message as a string.
+
+
+        def commit_message_builder(_, value):
+            return "This commit message is {}.".format(value)
+
+        @click.pass_context
+        @git_add_and_commit("arbitrary", commit_message_builder=custom_builder)
+        def cmd(ctx):
+            ...
+
+    Here the resulting commit message would be:
+
+        "This commit message is arbitrary."
+    """
+
+    def git_add_and_commit_wrapper(f: Callable):
         @functools.wraps(f)
-        def git_add_and_commit_inner(*args, **kwargs):
-            resp = f(*args, **kwargs)
+        def git_add_and_commit_inner(ctx: click.Context, *args, **kwargs):
+            resp = f(ctx, *args, **kwargs)
             run_git_command("add .")
+            commit_msg = commit_message_builder(ctx.params, *builder_args)
             try:
-                run_git_command(f"commit -m {msg!r}")
+                run_git_command(f"commit -m {commit_msg!r}")
             except GitCommandError:
                 pass
             return resp
@@ -90,11 +155,12 @@ def init(git: bool, git_url: Optional[str]) -> None:
 
 
 @cli.command()
+@click.pass_context
 @click.argument("title")
 @click.argument("feed")
-@git_add_and_commit("Added podcast")
+@git_add_and_commit("Added podcast: {}.", "title")
 @catch_pod_store_errors
-def add(title: str, feed: str) -> None:
+def add(ctx: click.Context, title: str, feed: str) -> None:
     """Add a podcast to the store.
 
     TITLE: title that will be used for tracking in the store
@@ -104,15 +170,19 @@ def add(title: str, feed: str) -> None:
 
 
 @cli.command()
+@click.pass_context
 @click.option(
     "-p",
     "--podcast",
     default=None,
     help="(podcast title) Download only episodes for the specified podcast.",
 )
-@git_add_and_commit("Downloaded podcast episodes")
+@git_add_and_commit(
+    "Downloaded {} new episodes.",
+    commit_message_builder=_optional_podcast_commit_message_builder,
+)
 @catch_pod_store_errors
-def download(podcast: Optional[str]) -> None:
+def download(ctx: click.Context, podcast: Optional[str]) -> None:
     """Download podcast episode(s)"""
     if podcast:
         podcasts = [store.get_podcast(podcast)]
@@ -130,8 +200,8 @@ def _download_podcast_episodes(podcasts: List[Podcast]) -> None:
 
 
 @cli.command()
-@catch_pod_store_errors
 @click.argument("cmd", nargs=-1)
+@catch_pod_store_errors
 def git(cmd: str) -> None:
     """Run arbitrary git commands in the `pod-store` repo."""
     output = run_git_command(" ".join(cmd))
@@ -207,6 +277,7 @@ def _ls_podcast_episodes(podcast: str, new: bool = True) -> str:
 
 
 @cli.command()
+@click.pass_context
 @click.option(
     "-p",
     "--podcast",
@@ -218,9 +289,12 @@ def _ls_podcast_episodes(podcast: str, new: bool = True) -> str:
     default=True,
     help="Run the command in interactive mode to select which episodes to mark",
 )
-@git_add_and_commit("Marked podcast episodes")
+@git_add_and_commit(
+    "Marked {} podcast episodes.",
+    commit_message_builder=_optional_podcast_commit_message_builder,
+)
 @catch_pod_store_errors
-def mark(podcast: Optional[str], interactive: bool) -> None:
+def mark(ctx: click.Context, podcast: Optional[str], interactive: bool) -> None:
     """Mark 'new' episodes as old."""
     if podcast:
         podcasts = [store.get_podcast(podcast)]
@@ -269,22 +343,27 @@ def _mark_episode_interactively(podcast: Podcast, episode: Episode) -> (bool, bo
 
 
 @cli.command()
+@click.pass_context
 @click.argument("old")
 @click.argument("new")
-@git_add_and_commit("Renamed podcast")
+@git_add_and_commit("Renamed podcast: {} -> {}", "old", "new")
 @catch_pod_store_errors
-def mv(old: str, new: str) -> None:
+def mv(ctx: click.Context, old: str, new: str) -> None:
     """Rename a podcast in the store."""
     store.rename_podcast(old, new)
 
 
 @cli.command()
+@click.pass_context
 @click.option(
     "-p", "--podcast", default=None, help="Refresh only the specified podcast."
 )
-@git_add_and_commit("Refreshed podcast feed")
+@git_add_and_commit(
+    "Refreshed {} podcast feed.",
+    commit_message_builder=_optional_podcast_commit_message_builder,
+)
 @catch_pod_store_errors
-def refresh(podcast: Optional[str]) -> None:
+def refresh(ctx: click.Context, podcast: Optional[str]) -> None:
     """Refresh podcast data from RSS feeds."""
     if podcast:
         podcasts = [store.get_podcast(podcast)]
@@ -297,10 +376,11 @@ def refresh(podcast: Optional[str]) -> None:
 
 
 @cli.command()
+@click.pass_context
 @click.argument("title")
-@git_add_and_commit("Removed podcast")
+@git_add_and_commit("Removed podcast: {}.", "title")
 @catch_pod_store_errors
-def rm(title: str) -> None:
+def rm(ctx: click.Context, title: str) -> None:
     """Remove specified podcast from the store."""
     store.remove_podcast(title)
 
