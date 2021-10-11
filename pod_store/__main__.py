@@ -94,11 +94,11 @@ def git_add_and_commit(
     provided to the decorator. It should return the commit message as a string.
 
 
-        def commit_message_builder(_, value):
+        def custom_message_builder(_, value):
             return "This commit message is {}.".format(value)
 
         @click.pass_context
-        @git_add_and_commit("arbitrary", commit_message_builder=custom_builder)
+        @git_add_and_commit("arbitrary", commit_message_builder=custom_message_builder)
         def cmd(ctx):
             ...
 
