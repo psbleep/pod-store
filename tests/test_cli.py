@@ -42,11 +42,17 @@ def test_init_with_git(start_with_no_store, runner):
 
 
 def test_init_with_git_url(start_with_no_store, runner):
-    result = runner.invoke(cli, ["init", "-g", "https://git.foo.bar/pypod-store.git"])
+    result = runner.invoke(cli, ["init", "-u", "https://git.foo.bar/pypod-store.git"])
     assert result.exit_code == 0
     assert result.output.endswith(
         "Git tracking enabled: https://git.foo.bar/pypod-store.git\n"
     )
+
+
+def test_init_with_gpg_id(start_with_no_store, runner):
+    result = runner.invoke(cli, ["init", "--no-git", "-g", "foo@bar.com"])
+    assert result.exit_code == 0
+    assert result.output.endswith("GPG ID set for store encryption.\n")
 
 
 def test_add(mocked_run_git_command, runner):
