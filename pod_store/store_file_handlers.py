@@ -44,6 +44,7 @@ class EncryptedStoreFileHandler(StoreFileHandler):
         try:
             with open(self._store_file_path, "rb") as f:
                 existing_data = f.read()
+            os.remove(self._store_file_path)
         except FileNotFoundError:
             existing_data = b""
 
