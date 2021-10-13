@@ -24,7 +24,7 @@ class StoreFileHandler(ABC):
 
 
 class UnencryptedStoreFileHandler(StoreFileHandler):
-    """Class for reading/writing data from the store file.
+    """Class for reading/writing data from an unencrypted store file.
 
     _store_file_path (str): file system location of the json file that holds store data.
     """
@@ -36,11 +36,11 @@ class UnencryptedStoreFileHandler(StoreFileHandler):
         return "<UnencryptedStoreFileHandler({self._store_file_path!r})>"
 
     def read_data(self):
-        """Return json data from the store file."""
+        """Retrieve unencrypted json data from the store file."""
         with open(self._store_file_path) as f:
             return json.load(f)
 
     def write_data(self, data: dict):
-        """Write json data to the store file."""
+        """Write encrypted json data to the store file."""
         with open(self._store_file_path, "w") as f:
             json.dump(data, f, indent=2)
