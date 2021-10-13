@@ -1,132 +1,31 @@
-import functools
-from typing import Callable, List, Optional
+import os
+from typing import List, Optional
 
 import click
 
-from . import DOWNLOADS_PATH, STORE_PATH, store
-from .episode import Episode
-from .exc import (
-    EpisodeDoesNotExistError,
-    GitCommandError,
-    PodcastDoesNotExistError,
-    PodcastExistsError,
-    StoreExistsError,
+from . import PODCAST_DOWNLOADS_PATH, STORE_FILE_PATH, STORE_PATH
+from .cmd_decorators import (
+    catch_pod_store_errors,
+    git_add_and_commit,
+    optional_podcast_commit_message_builder,
+    save_store_changes,
 )
-from .podcast import Podcast
+from .episodes import Episode
+from .exc import PodcastDoesNotExistError
+from .podcasts import Podcast
+from .store import Store, StoreFileHandler
 from .util import run_git_command
 
 
-def catch_pod_store_errors(f):
-    @functools.wraps(f)
-    def catch_pod_store_errors_inner(*args, **kwargs):
-        try:
-            return f(*args, **kwargs)
-        except EpisodeDoesNotExistError as err:
-            msg = str(err)
-            click.secho(f"Episode not found: {msg}", fg="red")
-        except GitCommandError as err:
-            msg = str(err)
-            click.secho(f"Error running git command: {msg}", fg="red")
-        except PodcastDoesNotExistError as err:
-            msg = str(err)
-            if msg == "None":
-                msg = "not specified"
-            click.secho(f"Podcast not found: {msg}", fg="red")
-        except PodcastExistsError as err:
-            msg = str(err)
-            click.secho(f"Podcast with title already exists: {msg}", fg="red")
-        except StoreExistsError as err:
-            msg = str(err)
-            click.secho(f"Store already initialized: {msg}", fg="red")
-
-    return catch_pod_store_errors_inner
-
-
-def _default_commit_message_builder(
-    ctx_params: dict, commit_message_template: str, *param_names
-) -> str:
-    """Helper to build `git` commit messages from the Click command context.
-
-    See the `git_add_and_commit` decorator for more information.
-    """
-    template_args = [ctx_params[p] for p in param_names]
-    return commit_message_template.format(*template_args)
-
-
-def _optional_podcast_commit_message_builder(
-    ctx_params: dict, commit_message_template: str
-) -> str:
-    """Helper to build `git` commit messages for Click commands that
-    have an optional `podcast` argument.
-
-    See the `git_add_and_commit` decorator for more information.
-    """
-    podcast_name = ctx_params.get("podcast") or "all"
-    return commit_message_template.format(podcast_name)
-
-
-def git_add_and_commit(
-    *builder_args,
-    commit_message_builder: Callable = _default_commit_message_builder,
-):
-    """Decorator for checking in and commiting changes made after running a command.
-    Requires the `click.Context` object as a first argument to the decorated function.
-    (see `click.pass_context`)
-
-    By default, pass in a template str for building the commit message and a list of
-    param names to grab from the `click.Context.params` dict to populate it.
-
-        @click.pass_context
-        @git_add_and_commit("Hello {}.", "recepient")
-        def cmd(ctx):
-            ...
-
-    Assuming the `click.Context.params` dict had a key `recepient` with the value
-    "world", the resulting commit message would be:
-
-        "Hello world."
-
-    Pass in a callable as a keyword arugment for `commit_message_builder` to get custom
-    behavior when building commit messages.
-
-    The message builder callable will receive a `ctx_params` dict
-    (passed in from `click.Context.params`), and any positional `builder_args`
-    provided to the decorator. It should return the commit message as a string.
-
-
-        def custom_message_builder(_, value):
-            return "This commit message is {}.".format(value)
-
-        @click.pass_context
-        @git_add_and_commit("arbitrary", commit_message_builder=custom_message_builder)
-        def cmd(ctx):
-            ...
-
-    Here the resulting commit message would be:
-
-        "This commit message is arbitrary."
-    """
-
-    def git_add_and_commit_wrapper(f: Callable):
-        @functools.wraps(f)
-        def git_add_and_commit_inner(ctx: click.Context, *args, **kwargs):
-            resp = f(ctx, *args, **kwargs)
-            run_git_command("add .")
-            commit_msg = commit_message_builder(ctx.params, *builder_args)
-            try:
-                run_git_command(f"commit -m {commit_msg!r}")
-            except GitCommandError:
-                pass
-            return resp
-
-        return git_add_and_commit_inner
-
-    return git_add_and_commit_wrapper
-
-
 @click.group()
-def cli() -> None:
-    pass
+@click.pass_context
+def cli(ctx) -> None:
+    if os.path.exists(STORE_FILE_PATH):
+        ctx.obj = Store(
+            store_path=STORE_PATH,
+            podcast_downloads_path=PODCAST_DOWNLOADS_PATH,
+            file_handler=StoreFileHandler(STORE_FILE_PATH),
+        )
 
 
 @cli.command()
@@ -141,12 +40,17 @@ def init(git: bool, git_url: Optional[str]) -> None:
     `pod-store` tracks changes using `git`.
     """
     git = git or git_url
-    store.init_store(setup_git=git, git_url=git_url)
+    Store.create(
+        store_path=STORE_PATH,
+        store_file_path=STORE_FILE_PATH,
+        podcast_downloads_path=PODCAST_DOWNLOADS_PATH,
+        setup_git=git,
+        git_url=git_url,
+    )
     click.echo(f"Store created: {STORE_PATH}")
-    click.echo(f"Podcast episodes will be downloaded to {DOWNLOADS_PATH}")
+    click.echo(f"Podcast episodes will be downloaded to {PODCAST_DOWNLOADS_PATH}")
 
     if git:
-        git_msg = "Git tracking enabled: "
         if git_url:
             git_msg = git_url
         else:
@@ -159,6 +63,7 @@ def init(git: bool, git_url: Optional[str]) -> None:
 @click.argument("title")
 @click.argument("feed")
 @git_add_and_commit("Added podcast: {}.", "title")
+@save_store_changes
 @catch_pod_store_errors
 def add(ctx: click.Context, title: str, feed: str) -> None:
     """Add a podcast to the store.
@@ -166,7 +71,7 @@ def add(ctx: click.Context, title: str, feed: str) -> None:
     TITLE: title that will be used for tracking in the store
     FEED: rss feed url for updating podcast info
     """
-    store.add_podcast(title=title, feed=feed)
+    ctx.obj.podcasts.add(title=title, feed=feed)
 
 
 @cli.command()
@@ -179,22 +84,24 @@ def add(ctx: click.Context, title: str, feed: str) -> None:
 )
 @git_add_and_commit(
     "Downloaded {} new episodes.",
-    commit_message_builder=_optional_podcast_commit_message_builder,
+    commit_message_builder=optional_podcast_commit_message_builder,
 )
+@save_store_changes
 @catch_pod_store_errors
 def download(ctx: click.Context, podcast: Optional[str]) -> None:
     """Download podcast episode(s)"""
+    podcast_filters = {"has_new_episodes": True}
     if podcast:
-        podcasts = [store.get_podcast(podcast)]
-    else:
-        podcasts = store.list_podcasts_with_new_episodes()
+        podcast_filters["title"] = podcast
+
+    podcasts = ctx.obj.podcasts.list(**podcast_filters)
     _download_podcast_episodes(podcasts)
 
 
 def _download_podcast_episodes(podcasts: List[Podcast]) -> None:
     """Helper method for downloading all new episodes for a batch of podcasts."""
     for pod in podcasts:
-        for episode in pod.list_new_episodes():
+        for episode in pod.episodes.list(downloaded_at=None):
             click.echo(f"Downloading {pod.title} -> {episode.title}")
             episode.download()
 
@@ -209,6 +116,7 @@ def git(cmd: str) -> None:
 
 
 @cli.command()
+@click.pass_context
 @click.option(
     "--new/--all", default=True, help="look for new episodes or include all episodes"
 )
@@ -220,60 +128,44 @@ def git(cmd: str) -> None:
     help="(podcast title) if listing episodes, limit results to the specified podcast",
 )
 @catch_pod_store_errors
-def ls(new: bool, episodes: bool, podcast: Optional[str]) -> None:
+def ls(ctx, new: bool, episodes: bool, podcast: Optional[str]) -> None:
     """List store entries.
 
     By default, this will list podcasts that have new episodes. Adjust the output using
     the provided flags and command options.
     """
     if episodes:
-        output = _ls_episodes(new=new)
-    elif podcast:
-        podcast = store.get_podcast(podcast)
-        output = _ls_podcast_episodes(podcast, new=new)
-    else:
-        output = _ls_podcasts(new=new)
-    click.echo(output)
-
-
-def _ls_episodes(new: bool) -> str:
-    """Helper method for listing episodes."""
-    if new:
-        podcasts = store.list_podcasts_with_new_episodes()
-    else:
-        podcasts = store.list_podcasts()
-
-    output = []
-
-    for pod in podcasts:
-        if new:
-            episodes = pod.list_new_episodes()
+        if podcast:
+            podcasts = [ctx.obj.podcasts.get(podcast)]
         else:
-            episodes = pod.list_episodes()
+            podcasts = ctx.obj.podcasts.list()
 
-        output.extend(
-            [f"{pod.title} -> [{e.episode_number}] {e.title}" for e in episodes]
-        )
+        episode_filters = {}
+        if new:
+            episode_filters["downloaded_at"] = None
 
-    return "\n".join(output)
+        entries = []
+        for pod in podcasts:
+            pod_episodes = pod.episodes.list(**episode_filters)
+            if not pod_episodes:
+                continue
+            entries.append(f"{pod.title}\n")
+            entries.extend([str(e) for e in pod_episodes])
+            entries.append("\n")
+        entries = entries[:-1]
 
-
-def _ls_podcasts(new: bool = True) -> str:
-    """Helper method for listing podcasts."""
-    if new:
-        podcasts = store.list_podcasts_with_new_episodes()
     else:
-        podcasts = store.list_podcasts()
-    return "\n".join([p.title for p in podcasts])
+        podcast_filters = {}
+        if podcast:
+            podcast_filters["title"] = podcast
+        if new:
+            podcast_filters["has_new_episodes"] = True
+        entries = [str(p) for p in ctx.obj.podcasts.list(**podcast_filters)]
 
+        if podcast and not entries:
+            raise PodcastDoesNotExistError(podcast)
 
-def _ls_podcast_episodes(podcast: str, new: bool = True) -> str:
-    """Helper method for listing podcast episodes."""
-    if new:
-        episodes = podcast.list_new_episodes()
-    else:
-        episodes = podcast.list_episodes()
-    return "\n".join([f"[{e.episode_number}] {e.title}" for e in episodes])
+    click.echo("\n".join(entries))
 
 
 @cli.command()
@@ -291,15 +183,17 @@ def _ls_podcast_episodes(podcast: str, new: bool = True) -> str:
 )
 @git_add_and_commit(
     "Marked {} podcast episodes.",
-    commit_message_builder=_optional_podcast_commit_message_builder,
+    commit_message_builder=optional_podcast_commit_message_builder,
 )
+@save_store_changes
 @catch_pod_store_errors
 def mark(ctx: click.Context, podcast: Optional[str], interactive: bool) -> None:
     """Mark 'new' episodes as old."""
+    podcast_filters = {"has_new_episodes": True}
     if podcast:
-        podcasts = [store.get_podcast(podcast)]
-    else:
-        podcasts = store.list_podcasts_with_new_episodes()
+        podcast_filters["title"] = podcast
+
+    podcasts = ctx.obj.podcasts.list(**podcast_filters)
 
     if interactive:
         click.echo(
@@ -310,7 +204,7 @@ def mark(ctx: click.Context, podcast: Optional[str], interactive: bool) -> None:
         )
 
     for pod in podcasts:
-        for episode in pod.list_new_episodes():
+        for episode in pod.episodes.list(downloaded_at=None):
             if interactive:
                 confirm, interactive = _mark_episode_interactively(pod, episode)
             else:
@@ -347,10 +241,11 @@ def _mark_episode_interactively(podcast: Podcast, episode: Episode) -> (bool, bo
 @click.argument("old")
 @click.argument("new")
 @git_add_and_commit("Renamed podcast: {} -> {}", "old", "new")
+@save_store_changes
 @catch_pod_store_errors
 def mv(ctx: click.Context, old: str, new: str) -> None:
     """Rename a podcast in the store."""
-    store.rename_podcast(old, new)
+    ctx.obj.podcasts.rename(old, new)
 
 
 @cli.command()
@@ -360,15 +255,16 @@ def mv(ctx: click.Context, old: str, new: str) -> None:
 )
 @git_add_and_commit(
     "Refreshed {} podcast feed.",
-    commit_message_builder=_optional_podcast_commit_message_builder,
+    commit_message_builder=optional_podcast_commit_message_builder,
 )
+@save_store_changes
 @catch_pod_store_errors
 def refresh(ctx: click.Context, podcast: Optional[str]) -> None:
     """Refresh podcast data from RSS feeds."""
     if podcast:
-        podcasts = [store.get_podcast(podcast)]
+        podcasts = [ctx.obj.podcasts.get(podcast)]
     else:
-        podcasts = store.list_podcasts()
+        podcasts = ctx.obj.podcasts.list()
 
     for podcast in podcasts:
         click.echo(f"Refreshing {podcast.title}")
@@ -379,10 +275,11 @@ def refresh(ctx: click.Context, podcast: Optional[str]) -> None:
 @click.pass_context
 @click.argument("title")
 @git_add_and_commit("Removed podcast: {}.", "title")
+@save_store_changes
 @catch_pod_store_errors
 def rm(ctx: click.Context, title: str) -> None:
     """Remove specified podcast from the store."""
-    store.remove_podcast(title)
+    ctx.obj.podcasts.delete(title)
 
 
 def main() -> None:

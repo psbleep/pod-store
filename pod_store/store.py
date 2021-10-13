@@ -1,128 +1,215 @@
+import json
 import os
-import shutil
-from datetime import datetime
 from typing import List, Optional
 
-from . import DOWNLOADS_PATH, STORE_PATH, STORE_PODCAST_FILE_EXTENSION
 from .exc import PodcastDoesNotExistError, PodcastExistsError, StoreExistsError
-from .podcast import Podcast
+from .podcasts import Podcast
 from .util import run_git_command
 
 
-def init_store(setup_git: bool = True, git_url: Optional[str] = None):
-    try:
-        os.makedirs(STORE_PATH)
-    except FileExistsError:
-        raise StoreExistsError(STORE_PATH)
-    os.makedirs(DOWNLOADS_PATH, exist_ok=True)
+class StoreFileHandler:
+    """Class for reading/writing data from the store file.
 
-    if setup_git:
-        run_git_command("init")
-        if git_url:
-            run_git_command(f"remote add origin {git_url}")
-
-
-def list_podcasts() -> List[Podcast]:
-    """Lists all podcasts tracked in the pypod store."""
-    return sorted(list(_gather_podcasts()), key=lambda p: p.title)
-
-
-def list_podcasts_with_new_episodes() -> List[Podcast]:
-    """List only podcasts tracked in the store with new episodes."""
-    return [p for p in list_podcasts() if p.has_new_episodes]
-
-
-def search_podcasts(term: str) -> List[Podcast]:
-    """Search the store for podcasts with the search term in the title."""
-    return [p for p in list_podcasts() if term in p.title]
-
-
-def get_podcast(title: str) -> Podcast:
-    """Find a podcast in the store by title."""
-    return Podcast.from_store_file(_get_podcast_file_path_from_title(title))
-
-
-def add_podcast(
-    title: str,
-    feed: str,
-    created_at: Optional[datetime] = None,
-    updated_at: Optional[datetime] = None,
-) -> None:
-    """Add a podcast to the store with the data provided.
-
-    `created_at` and `updated_at` will be set to the current datetime if not provided.
+    _store_file_path (str): file system location of the json file that holds store data.
     """
-    created_at = created_at or datetime.utcnow()
-    updated_at = updated_at or datetime.utcnow()
 
-    store_file_path = _get_podcast_file_path_from_title(title)
-    if os.path.exists(store_file_path):
-        raise PodcastExistsError(title)
-    os.makedirs(os.path.dirname(store_file_path), exist_ok=True)
+    def __init__(self, store_file_path):
+        self._store_file_path = store_file_path
 
-    podcast = Podcast(
-        store_file_path=store_file_path,
-        title=title,
-        feed=feed,
-        created_at=created_at,
-        updated_at=updated_at,
-    )
-    podcast.save()
-    podcast.refresh()
+    @classmethod
+    def create_with_file(cls, store_file_path: str):
+        """Creates an empty store file while constructing the class."""
+        file_handler = cls(store_file_path)
+        file_handler.write_data({})
+        return file_handler
 
+    def __repr__(self):
+        return "<StoreFileHandler({self._store_file_path!r})>"
 
-def remove_podcast(title: str) -> None:
-    """Remove podcast from the store by title."""
-    store_file_path = _get_podcast_file_path_from_title(title)
-    podcast = Podcast.from_store_file(store_file_path)
+    def read_data(self):
+        """Return json data from the store file."""
+        with open(self._store_file_path) as f:
+            return json.load(f)
 
-    try:
-        shutil.rmtree(podcast.store_episodes_path)
-    except FileNotFoundError:
-        pass
-    os.remove(store_file_path)
+    def write_data(self, data: dict):
+        """Write json data to the store file."""
+        with open(self._store_file_path, "w") as f:
+            json.dump(data, f, indent=2)
 
 
-def rename_podcast(old_title: str, new_title: str) -> None:
-    """Rename a podcast in the store."""
-    old_path = _get_podcast_file_path_from_title(old_title)
-    old_podcast_episodes_path = get_podcast(old_title).store_episodes_path
+class Store:
+    """Podcast store coordinating class.
 
-    new_path = _get_podcast_file_path_from_title(new_title)
-    if os.path.exists(new_path):
-        raise PodcastExistsError(new_title)
-    os.makedirs(os.path.dirname(new_path), exist_ok=True)
-    try:
-        os.rename(old_path, new_path)
-    except FileNotFoundError:
-        raise PodcastDoesNotExistError(old_title)
+    podcasts (StorePodcasts): tracks all the podcasts kept in the store
 
-    podcast = get_podcast(new_title)
-    podcast.title = new_title
-    podcast.save()
+    _store_path (str): location of pod store directory
 
-    if os.path.exists(old_podcast_episodes_path):
-        shutil.move(old_podcast_episodes_path, podcast.store_episodes_path)
+    _podcast_downloads_path (str): file system directory for podcasts to download
+        episodes into
 
-
-def _gather_podcasts() -> Podcast:
-    """Traverses the file system to locate podcasts tracked in the pypod store.
-
-    Any file that ends with the appropriate file extension (`.podcast.json`) will be
-    treated as a podcast file and loaded into a `pypod.podcast.Podcast` object.
-
-    Note that this is a generator function. It can be consumed lazily or cast into a
-    list to get a complete listing.
+    _file_handler (StoreFileHandler): class that handles reading/writing from the store
+        json file
     """
-    for parent, _, files in os.walk(STORE_PATH):
-        for file_name in files:
-            if not file_name.endswith(STORE_PODCAST_FILE_EXTENSION):
-                continue
-            store_file_path = os.path.abspath(os.path.join(parent, file_name))
-            yield Podcast.from_store_file(store_file_path)
+
+    def __init__(
+        self,
+        store_path: str,
+        podcast_downloads_path: str,
+        file_handler: StoreFileHandler,
+    ) -> None:
+        self._store_path = store_path
+        self._podcast_downloads_path = podcast_downloads_path
+
+        self._file_handler = file_handler
+
+        podcast_data = file_handler.read_data()
+        self.podcasts = StorePodcasts(
+            podcast_data=podcast_data, podcast_downloads_path=podcast_downloads_path
+        )
+
+    @classmethod
+    def create(
+        cls,
+        store_path: str,
+        store_file_path: str,
+        podcast_downloads_path: str,
+        setup_git: bool,
+        git_url: Optional[str] = None,
+        store_file_handler_cls: StoreFileHandler = StoreFileHandler,
+    ):
+        """Initialize a new pod store.
+
+        Optionally set up the `git` repo for the store.
+        """
+        try:
+            os.makedirs(store_path)
+        except FileExistsError:
+            raise StoreExistsError(store_path)
+        os.makedirs(podcast_downloads_path, exist_ok=True)
+
+        file_handler = store_file_handler_cls.create_with_file(store_file_path)
+
+        if setup_git:
+            run_git_command("init")
+            if git_url:
+                run_git_command(f"remote add origin {git_url}")
+
+        return cls(
+            store_path=store_path,
+            podcast_downloads_path=podcast_downloads_path,
+            file_handler=file_handler,
+        )
+
+    def __repr__(self):
+        return f"<Store({self._store_path!r})>"
+
+    def save(self):
+        """Save data to the store json file."""
+        podcast_data = self.podcasts.to_json()
+        self._file_handler.write_data(podcast_data)
 
 
-def _get_podcast_file_path_from_title(title: str) -> str:
-    """Determine the file path in the pypod store for a podcast
-    based on podcast title."""
-    return os.path.join(STORE_PATH, f"{title}{STORE_PODCAST_FILE_EXTENSION}")
+class StorePodcasts:
+    """Class for tracking all the podcasts in the store.
+
+    _podcast_downloads_path (str): file system location for podcasts to download
+        episodes to
+
+    _podcasts (dict):
+        {title: `pod_store.podcasts.Podcast`}
+    """
+
+    def __init__(self, podcast_downloads_path: str, podcast_data: dict):
+        self._podcast_downloads_path = podcast_downloads_path
+
+        self._podcasts = {
+            title: Podcast.from_json(**podcast)
+            for title, podcast in podcast_data.items()
+        }
+
+    def __repr__(self):
+        return "<StorePodcasts>"
+
+    def add(
+        self,
+        title: str,
+        episode_downloads_path: Optional[str] = None,
+        episode_data: Optional[dict] = None,
+        **kwargs,
+    ) -> None:
+        """Add a podcast to the store.
+
+        An `episodes_download_path` for the podcast object  will be constructed from the
+        `_podcast_downloads_path` attribute and the title passed in, if none is
+        provided.
+        """
+        if title in self._podcasts:
+            raise PodcastExistsError(title)
+
+        episode_downloads_path = episode_downloads_path or os.path.join(
+            self._podcast_downloads_path, title
+        )
+        episode_data = episode_data or {}
+        podcast = Podcast(
+            title=title,
+            episode_downloads_path=episode_downloads_path,
+            episode_data=episode_data,
+            **kwargs,
+        )
+        podcast.refresh()
+        self._podcasts[title] = podcast
+        return podcast
+
+    def delete(self, title: str) -> None:
+        """Delete a podcast from the store.
+
+        Looks up podcast by title.
+        """
+        try:
+            del self._podcasts[title]
+        except KeyError:
+            raise PodcastDoesNotExistError(title)
+
+    def get(self, title: str) -> Podcast:
+        """Retrieve a podcast from the store.
+
+        Looks up podcast by title.
+        """
+        try:
+            return self._podcasts[title]
+        except KeyError:
+            raise PodcastDoesNotExistError(title)
+
+    def list(self, **filters) -> List[Podcast]:
+        """Return a list of podcasts, sorted by time created (oldest first).
+
+        Optionally provide a list of keyword arguments to filter results by.
+
+            list(foo="bar")
+
+        will check for a `foo` attribute on the `pod_store.podcasts.Podcast` object and
+        check if the value matches "bar".
+        """
+        podcasts = [p for p in self._podcasts.values()]
+        for key, value in filters.items():
+            podcasts = [p for p in podcasts if getattr(p, key) == value]
+        return sorted(podcasts, key=lambda p: p.created_at)
+
+    def rename(self, old_title: str, new_title: str) -> None:
+        """Rename a podcast in the store.
+
+        Will change the podcast's episode download path in accordance with the new title
+        """
+        if new_title in self._podcasts:
+            raise PodcastExistsError(new_title)
+
+        podcast = self.get(old_title)
+        podcast.episode_downloads_path = os.path.join(
+            self._podcast_downloads_path, new_title
+        )
+        self._podcasts[new_title] = podcast
+        del self._podcasts[old_title]
+
+    def to_json(self):
+        """Convert store podcasts to json data for writing to the store file."""
+        return {title: podcast.to_json() for title, podcast in self._podcasts.items()}

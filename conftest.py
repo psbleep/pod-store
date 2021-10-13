@@ -1,107 +1,121 @@
 import json
 import os
 import shutil
+from datetime import datetime, timedelta
 
 import pytest
 
-from tests import TEST_DOWNLOAD_PATH, TEST_STORE_PATH
-
-TEST_STORE_DATA = {
-    "a/1.podcast.json": {
-        "title": "a/1",
-        "feed": "https://www.good.bye/rss",
-        "created_at": "2021-01-01T01:01:01",
-        "updated_at": "2021-01-01T01:01:01",
-    },
-    "b.podcast.json": {
-        "title": "b",
-        "feed": "https://www.foo.bar/rss",
-        "created_at": "2021-01-02T01:01:01",
-        "updated_at": "2021-01-02T01:01:01",
-    },
-    "b/abc.episode.json": {
-        "id": "abc",
-        "episode_number": "0092",
-        "title": "hello",
-        "url": "https://www.foo.bar/abc.mp3",
-        "created_at": "2021-02-01T00:01:02",
-        "updated_at": "2021-02-01T00:01:02",
-        "downloaded_at": None,
-    },
-    "b/xyz.episode.json": {
-        "id": "xyz",
-        "episode_number": "0082",
-        "title": "goodbye",
-        "url": "https://www.foo.bar/xyz.mp3",
-        "created_at": "2021-01-01T00:00:00",
-        "updated_at": "2021-01-01T00:00:00",
-        "downloaded_at": "2021-01-01T00:00:00",
-    },
-    "c/2.podcast.json": {
-        "title": "c/2",
-        "feed": "https://www.pod.cast/rss",
-        "created_at": "2021-01-03T01:01:01",
-        "updated_at": "2021-01-03T01:01:01",
-    },
-    "c/2/aaa.episode.json": {
-        "id": "aaa",
-        "episode_number": "0011",
-        "title": "old news",
-        "url": "https://www.pod.cast/aaa.mp3",
-        "created_at": "2021-03-03T00:00:00",
-        "updated_at": "2021-03-03T00:00:00",
-        "downloaded_at": "2021-03-03T00:00:00",
-    },
-    "c/d/3.podcast.json": {
-        "title": "c/d/3",
-        "feed": "https://www.hello.world/rss",
-        "created_at": "2021-01-04T01:01:01",
-        "updated_at": "2021-01-04T01:01:01",
-    },
-}
+from pod_store.store import Store, StoreFileHandler
+from tests import TEST_PODCAST_DOWNLOADS_PATH, TEST_STORE_FILE_PATH, TEST_STORE_PATH
 
 
 # Autouse to establish fresh store data for every test.
 @pytest.fixture(autouse=True)
-def setup_test_store_data_and_downloads_path(request):
+def setup_test_store_data_and_downloads_path(request, store_podcasts_data):
     def cleanup():
         if os.path.exists(TEST_STORE_PATH):
             shutil.rmtree(TEST_STORE_PATH)
-        if os.path.exists(TEST_DOWNLOAD_PATH):
-            shutil.rmtree(TEST_DOWNLOAD_PATH)
+        if os.path.exists(TEST_PODCAST_DOWNLOADS_PATH):
+            shutil.rmtree(TEST_PODCAST_DOWNLOADS_PATH)
 
     cleanup()
 
     os.makedirs(TEST_STORE_PATH)
-    os.makedirs(TEST_DOWNLOAD_PATH)
-    for relative_path, file_data in TEST_STORE_DATA.items():
-        file_path = os.path.join(TEST_STORE_PATH, relative_path)
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        with open(file_path, "w") as f:
-            json.dump(file_data, f, indent=2)
-
+    os.makedirs(TEST_PODCAST_DOWNLOADS_PATH)
+    with open(TEST_STORE_FILE_PATH, "w") as f:
+        json.dump(store_podcasts_data, f, indent=2)
     request.addfinalizer(cleanup)
-
-
-# Use when you do NOT want the store to exist at the beginning of the test.
-@pytest.fixture
-def start_with_no_store():
-    shutil.rmtree(TEST_STORE_PATH)
 
 
 # Autouse to prevent real network calls during tests.
 @pytest.fixture(autouse=True)
 def mocked_feedparser_parse(mocker):
-    return mocker.patch("pod_store.podcast.feedparser.parse")
+    return mocker.patch("pod_store.podcasts.feedparser.parse")
 
 
 # Autouse to prevent real network calls during tests.
 @pytest.fixture(autouse=True)
 def mocked_requests_get(mocker):
-    return mocker.patch("pod_store.episode.requests.get")
+    return mocker.patch("pod_store.episodes.requests.get")
 
 
 # Autouse to prevent real shell commands being run during tests.
 @pytest.fixture(autouse=True)
 def mocked_subprocess_run(mocker):
     return mocker.patch("subprocess.run")
+
+
+@pytest.fixture
+def frozen_now(freezer):
+    return datetime.utcnow()
+
+
+@pytest.fixture
+def podcast_episode_data(frozen_now):
+    return {
+        "aaa": {
+            "id": "aaa",
+            "download_path": os.path.join(
+                TEST_PODCAST_DOWNLOADS_PATH, "greetings/0023-hello.mp3"
+            ),
+            "episode_number": "0023",
+            "title": "hello",
+            "url": "http://foo.bar/aaa.mp3",
+            "created_at": frozen_now.isoformat(),
+            "updated_at": frozen_now.isoformat(),
+            "downloaded_at": None,
+        },
+        "zzz": {
+            "id": "zzz",
+            "download_path": os.path.join(
+                TEST_PODCAST_DOWNLOADS_PATH, "greetings/0011-goodbye.mp3"
+            ),
+            "episode_number": "0011",
+            "title": "goodbye",
+            "url": "http://foo.bar/zzz.mp3",
+            "created_at": (frozen_now - timedelta(days=1)).isoformat(),
+            "updated_at": (frozen_now - timedelta(days=1)).isoformat(),
+            "downloaded_at": frozen_now.isoformat(),
+        },
+    }
+
+
+@pytest.fixture
+def store_podcasts_data(frozen_now, podcast_episode_data):
+    return {
+        "greetings": {
+            "title": "greetings",
+            "episode_downloads_path": "/foo/podcasts",
+            "feed": "http://hello.world/rss",
+            "episode_data": podcast_episode_data,
+            "created_at": frozen_now.isoformat(),
+            "updated_at": frozen_now.isoformat(),
+        },
+        "farewell": {
+            "title": "farewell",
+            "episode_downloads_path": "/bar/podcasts",
+            "feed": "http://goodbye.world/rss",
+            "episode_data": {},
+            "created_at": (frozen_now - timedelta(days=1)).isoformat(),
+            "updated_at": frozen_now.isoformat(),
+        },
+    }
+
+
+@pytest.fixture
+def store_file_handler():
+    return StoreFileHandler(TEST_STORE_FILE_PATH)
+
+
+@pytest.fixture
+def store(store_file_handler):
+    return Store(
+        store_path=TEST_STORE_PATH,
+        podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
+        file_handler=store_file_handler,
+    )
+
+
+@pytest.fixture
+def start_with_no_store():
+    shutil.rmtree(TEST_STORE_PATH)
