@@ -13,7 +13,8 @@ from .cmd_decorators import (
 from .episodes import Episode
 from .exc import PodcastDoesNotExistError
 from .podcasts import Podcast
-from .store import Store, StoreFileHandler
+from .store import Store
+from .store_file_handlers import UnencryptedStoreFileHandler
 from .util import run_git_command
 
 
@@ -24,7 +25,7 @@ def cli(ctx) -> None:
         ctx.obj = Store(
             store_path=STORE_PATH,
             podcast_downloads_path=PODCAST_DOWNLOADS_PATH,
-            file_handler=StoreFileHandler(STORE_FILE_PATH),
+            file_handler=UnencryptedStoreFileHandler(STORE_FILE_PATH),
         )
 
 
