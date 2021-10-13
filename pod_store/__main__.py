@@ -11,7 +11,6 @@ from .cmd_decorators import (
     save_store_changes,
 )
 from .episodes import Episode
-from .exc import PodcastDoesNotExistError
 from .podcasts import Podcast
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
@@ -106,7 +105,7 @@ def download(ctx: click.Context, podcast: Optional[str]) -> None:
     if podcast:
         podcast_filters["title"] = podcast
 
-    podcasts = ctx.obj.podcasts.list(**podcast_filters)
+    podcasts = ctx.obj.podcasts.list(allow_empty=False, **podcast_filters)
     _download_podcast_episodes(podcasts)
 
 
@@ -150,7 +149,7 @@ def ls(ctx, new: bool, episodes: bool, podcast: Optional[str]) -> None:
         if podcast:
             podcasts = [ctx.obj.podcasts.get(podcast)]
         else:
-            podcasts = ctx.obj.podcasts.list()
+            podcasts = ctx.obj.podcasts.list(allow_empty=False)
 
         episode_filters = {}
         if new:
@@ -172,10 +171,9 @@ def ls(ctx, new: bool, episodes: bool, podcast: Optional[str]) -> None:
             podcast_filters["title"] = podcast
         if new:
             podcast_filters["has_new_episodes"] = True
-        entries = [str(p) for p in ctx.obj.podcasts.list(**podcast_filters)]
-
-        if podcast and not entries:
-            raise PodcastDoesNotExistError(podcast)
+        entries = [
+            str(p) for p in ctx.obj.podcasts.list(allow_empty=False, **podcast_filters)
+        ]
 
     click.echo("\n".join(entries))
 
@@ -205,7 +203,7 @@ def mark(ctx: click.Context, podcast: Optional[str], interactive: bool) -> None:
     if podcast:
         podcast_filters["title"] = podcast
 
-    podcasts = ctx.obj.podcasts.list(**podcast_filters)
+    podcasts = ctx.obj.podcasts.list(allow_empty=False, **podcast_filters)
 
     if interactive:
         click.echo(
@@ -276,7 +274,7 @@ def refresh(ctx: click.Context, podcast: Optional[str]) -> None:
     if podcast:
         podcasts = [ctx.obj.podcasts.get(podcast)]
     else:
-        podcasts = ctx.obj.podcasts.list()
+        podcasts = ctx.obj.podcasts.list(allow_empty=False)
 
     for podcast in podcasts:
         click.echo(f"Refreshing {podcast.title}")
