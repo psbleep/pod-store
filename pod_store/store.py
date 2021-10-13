@@ -1,7 +1,12 @@
 import os
 from typing import List, Optional
 
-from .exc import PodcastDoesNotExistError, PodcastExistsError, StoreExistsError
+from .exc import (
+    NoPodcastsFoundError,
+    PodcastDoesNotExistError,
+    PodcastExistsError,
+    StoreExistsError,
+)
 from .podcasts import Podcast
 from .store_file_handlers import (
     EncryptedStoreFileHandler,
@@ -82,8 +87,11 @@ class StorePodcasts:
         except KeyError:
             raise PodcastDoesNotExistError(title)
 
-    def list(self, **filters) -> List[Podcast]:
+    def list(self, allow_empty: bool = True, **filters) -> List[Podcast]:
         """Return a list of podcasts, sorted by time created (oldest first).
+
+        When `allow_empty` is set to `False`, an exception will be raised if no podcasts
+        are found.
 
         Optionally provide a list of keyword arguments to filter results by.
 
@@ -95,6 +103,8 @@ class StorePodcasts:
         podcasts = [p for p in self._podcasts.values()]
         for key, value in filters.items():
             podcasts = [p for p in podcasts if getattr(p, key) == value]
+        if not podcasts and not allow_empty:
+            raise NoPodcastsFoundError()
         return sorted(podcasts, key=lambda p: p.created_at)
 
     def rename(self, old_title: str, new_title: str) -> None:
