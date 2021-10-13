@@ -1,6 +1,7 @@
 import os
 from typing import List, Optional
 
+from . import GPG_ID_FILE_PATH
 from .exc import (
     NoPodcastsFoundError,
     PodcastDoesNotExistError,
@@ -187,11 +188,7 @@ class Store:
                 f.write(".gpg-id")
 
         if gpg_id:
-            with open(os.path.join(store_path, ".gpg-id"), "w") as f:
-                f.write(gpg_id)
-            EncryptedStoreFileHandler.create_store_file(
-                gpg_id=gpg_id, store_file_path=store_file_path
-            )
+            cls._setup_encrypted_store(gpg_id=gpg_id, store_file_path=store_file_path)
         else:
             UnencryptedStoreFileHandler.create_store_file(store_file_path)
 
@@ -202,3 +199,13 @@ class Store:
         """Save data to the store json file."""
         podcast_data = self.podcasts.to_json()
         self._file_handler.write_data(podcast_data)
+
+    @staticmethod
+    def _setup_encrypted_store(
+        gpg_id: str, store_file_path: str, store_data: dict = None
+    ):
+        with open(os.path.join(GPG_ID_FILE_PATH), "w") as f:
+            f.write(gpg_id)
+        EncryptedStoreFileHandler.create_store_file(
+            gpg_id=gpg_id, store_file_path=store_file_path, store_data=store_data
+        )
