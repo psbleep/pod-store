@@ -3,7 +3,7 @@ from typing import List, Optional
 
 import click
 
-from . import PODCAST_DOWNLOADS_PATH, STORE_FILE_PATH, STORE_PATH
+from . import GPG_ID, PODCAST_DOWNLOADS_PATH, STORE_FILE_PATH, STORE_PATH
 from .cmd_decorators import (
     catch_pod_store_errors,
     git_add_and_commit,
@@ -14,7 +14,7 @@ from .episodes import Episode
 from .exc import PodcastDoesNotExistError
 from .podcasts import Podcast
 from .store import Store
-from .store_file_handlers import UnencryptedStoreFileHandler
+from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
 from .util import run_git_command
 
 
@@ -22,10 +22,16 @@ from .util import run_git_command
 @click.pass_context
 def cli(ctx) -> None:
     if os.path.exists(STORE_FILE_PATH):
+        if GPG_ID:
+            file_handler = EncryptedStoreFileHandler(
+                gpg_id=GPG_ID, store_file_path=STORE_FILE_PATH
+            )
+        else:
+            file_handler = UnencryptedStoreFileHandler(store_file_path=STORE_FILE_PATH)
         ctx.obj = Store(
             store_path=STORE_PATH,
             podcast_downloads_path=PODCAST_DOWNLOADS_PATH,
-            file_handler=UnencryptedStoreFileHandler(STORE_FILE_PATH),
+            file_handler=file_handler,
         )
 
 
