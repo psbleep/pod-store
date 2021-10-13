@@ -84,6 +84,27 @@ def test_init_store_with_gpg_id_sets_gpg_id_file_and_creates_encrypted_store_fil
         assert f.read() == "hello@world.com"
 
 
+def test_store_encrypt_reads_existing_store_data_and_sets_up_encrypted_store_and_file(
+    mocker,
+    store_podcasts_data,
+    store,
+):
+    mocked_create_encrypted_store_file = mocker.patch(
+        "pod_store.store.EncryptedStoreFileHandler.create_store_file"
+    )
+
+    store.encrypt("zoo@baz.com")
+
+    with open(os.path.join(TEST_STORE_PATH, ".gpg-id")) as f:
+        assert f.read() == "zoo@baz.com"
+
+    mocked_create_encrypted_store_file.assert_called_with(
+        gpg_id="zoo@baz.com",
+        store_file_path=TEST_STORE_FILE_PATH,
+        store_data=store_podcasts_data,
+    )
+
+
 def test_save_writes_data_to_file(store_podcasts_data, store):
     store.podcasts._podcasts["greetings"].title = "updated"
     store.save()
