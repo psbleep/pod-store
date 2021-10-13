@@ -221,6 +221,11 @@ class Store:
     def _setup_encrypted_store(
         gpg_id: str, store_file_path: str, store_data: dict = None
     ):
+        """Set up the store as a GPG encrypted store.
+
+        Sets the GPG ID that will be used by the store, and writes the store data
+        provided as GPG encrypted data to the store file.
+        """
         with open(os.path.join(GPG_ID_FILE_PATH), "w") as f:
             f.write(gpg_id)
         EncryptedStoreFileHandler.create_store_file(
