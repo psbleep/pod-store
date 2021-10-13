@@ -17,6 +17,11 @@ from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFile
 from .util import run_git_command
 
 
+def _abort_if_false(ctx, _, value):
+    if not value:
+        ctx.abort()
+
+
 @click.group()
 @click.pass_context
 def cli(ctx) -> None:
@@ -67,6 +72,23 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]) -> None:
 
     if gpg_id:
         click.echo("GPG ID set for store encryption.")
+
+
+@cli.command()
+@click.pass_context
+@click.argument("gpg-id")
+@click.option(
+    "-f",
+    "--force",
+    is_flag=True,
+    callback=_abort_if_false,
+    expose_value=False,
+    prompt="Are you sure you want to encrypt the pod store?",
+)
+@git_add_and_commit("Store was encrypted.")
+def encrypt_store(ctx: click.Context, gpg_id: str):
+    ctx.obj.encrypt(gpg_id=gpg_id)
+    click.echo("Store encrypted with GPG ID.")
 
 
 @cli.command()

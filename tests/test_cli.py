@@ -55,6 +55,17 @@ def test_init_with_gpg_id(start_with_no_store, runner):
     assert result.output.endswith("GPG ID set for store encryption.\n")
 
 
+def test_encrypt_store(runner):
+    result = runner.invoke(cli, ["encrypt-store", "foo@bar.com", "--force"])
+    assert result.exit_code == 0
+    assert result.output.endswith("Store encrypted with GPG ID.\n")
+
+
+def test_encrypt_aborts_if_not_confirmed(runner):
+    result = runner.invoke(cli, ["encrypt-store", "foo@bar.com"], input="\n")
+    assert result.exit_code == 1
+
+
 def test_add(mocked_run_git_command, runner):
     result = runner.invoke(cli, ["add", "hello", "https://www.hello.world/rss"])
     assert result.exit_code == 0
