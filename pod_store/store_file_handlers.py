@@ -29,9 +29,6 @@ class UnencryptedStoreFileHandler(StoreFileHandler):
     _store_file_path (str): file system location of the json file that holds store data.
     """
 
-    def __init__(self, store_file_path):
-        self._store_file_path = store_file_path
-
     def __repr__(self):
         return "<UnencryptedStoreFileHandler({self._store_file_path!r})>"
 
