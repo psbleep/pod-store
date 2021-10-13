@@ -6,7 +6,7 @@ class GitCommandError(Exception):
     pass
 
 
-class MultiplePodcastsFound(Exception):
+class GPGCommandError(Exception):
     pass
 
 

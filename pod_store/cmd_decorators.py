@@ -6,6 +6,7 @@ import click
 from .exc import (
     EpisodeDoesNotExistError,
     GitCommandError,
+    GPGCommandError,
     PodcastDoesNotExistError,
     PodcastExistsError,
     StoreExistsError,
@@ -28,6 +29,9 @@ def catch_pod_store_errors(f: Callable):
         except GitCommandError as err:
             msg = str(err)
             click.secho(f"Error running git command: {msg}", fg="red")
+        except GPGCommandError as err:
+            msg = str(err)
+            click.secho("Error running GPG command: {msg}", fg="red")
         except PodcastDoesNotExistError as err:
             msg = str(err)
             if msg == "None":

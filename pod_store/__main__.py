@@ -3,7 +3,7 @@ from typing import List, Optional
 
 import click
 
-from . import PODCAST_DOWNLOADS_PATH, STORE_FILE_PATH, STORE_PATH
+from . import GPG_ID, PODCAST_DOWNLOADS_PATH, STORE_FILE_PATH, STORE_PATH
 from .cmd_decorators import (
     catch_pod_store_errors,
     git_add_and_commit,
@@ -13,7 +13,8 @@ from .cmd_decorators import (
 from .episodes import Episode
 from .exc import PodcastDoesNotExistError
 from .podcasts import Podcast
-from .store import Store, StoreFileHandler
+from .store import Store
+from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
 from .util import run_git_command
 
 
@@ -21,10 +22,16 @@ from .util import run_git_command
 @click.pass_context
 def cli(ctx) -> None:
     if os.path.exists(STORE_FILE_PATH):
+        if GPG_ID:
+            file_handler = EncryptedStoreFileHandler(
+                gpg_id=GPG_ID, store_file_path=STORE_FILE_PATH
+            )
+        else:
+            file_handler = UnencryptedStoreFileHandler(store_file_path=STORE_FILE_PATH)
         ctx.obj = Store(
             store_path=STORE_PATH,
             podcast_downloads_path=PODCAST_DOWNLOADS_PATH,
-            file_handler=StoreFileHandler(STORE_FILE_PATH),
+            file_handler=file_handler,
         )
 
 
@@ -32,20 +39,22 @@ def cli(ctx) -> None:
 @click.option(
     "--git/--no-git", default=True, help="initialize git repo for tracking changes"
 )
-@click.option("-g", "--git-url", default=None, help="remote URL for the git repo")
+@click.option("-u", "--git-url", default=None, help="remote URL for the git repo")
+@click.option("-g", "--gpg-id", default=None, help="GPG ID for store encryption")
 @catch_pod_store_errors
-def init(git: bool, git_url: Optional[str]) -> None:
+def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]) -> None:
     """Set up the pod store.
 
     `pod-store` tracks changes using `git`.
     """
     git = git or git_url
-    Store.create(
+    Store.init(
         store_path=STORE_PATH,
         store_file_path=STORE_FILE_PATH,
         podcast_downloads_path=PODCAST_DOWNLOADS_PATH,
         setup_git=git,
         git_url=git_url,
+        gpg_id=gpg_id,
     )
     click.echo(f"Store created: {STORE_PATH}")
     click.echo(f"Podcast episodes will be downloaded to {PODCAST_DOWNLOADS_PATH}")
@@ -56,6 +65,9 @@ def init(git: bool, git_url: Optional[str]) -> None:
         else:
             git_msg = "no remote repo specified. You can manually add one later."
         click.echo(f"Git tracking enabled: {git_msg}")
+
+    if gpg_id:
+        click.echo("GPG ID set for store encryption.")
 
 
 @cli.command()

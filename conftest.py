@@ -5,7 +5,8 @@ from datetime import datetime, timedelta
 
 import pytest
 
-from pod_store.store import Store, StoreFileHandler
+from pod_store.store import Store
+from pod_store.store_file_handlers import UnencryptedStoreFileHandler
 from tests import TEST_PODCAST_DOWNLOADS_PATH, TEST_STORE_FILE_PATH, TEST_STORE_PATH
 
 
@@ -103,16 +104,16 @@ def store_podcasts_data(frozen_now, podcast_episode_data):
 
 
 @pytest.fixture
-def store_file_handler():
-    return StoreFileHandler(TEST_STORE_FILE_PATH)
+def unencrypted_store_file_handler():
+    return UnencryptedStoreFileHandler(TEST_STORE_FILE_PATH)
 
 
 @pytest.fixture
-def store(store_file_handler):
+def store(unencrypted_store_file_handler):
     return Store(
         store_path=TEST_STORE_PATH,
         podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
-        file_handler=store_file_handler,
+        file_handler=unencrypted_store_file_handler,
     )
 
 

@@ -1,4 +1,3 @@
-from collections import namedtuple
 from datetime import datetime
 from subprocess import CalledProcessError
 
@@ -7,9 +6,7 @@ import pytest
 from pod_store import util
 from pod_store.exc import GitCommandError
 
-from . import TEST_STORE_PATH
-
-fake_proc = namedtuple("FakeProc", ["stdout", "stderr"])
+from . import TEST_STORE_PATH, fake_process
 
 
 def test_util_parse_datetime_from_json():
@@ -35,7 +32,7 @@ def test_util_parse_datetime_to_json_tolerates_null():
 
 def test_util_run_git_command(mocked_subprocess_run):
     mocked_subprocess_run.configure_mock(
-        **{"return_value": fake_proc(stdout=b"added the things", stderr=b"")}
+        **{"return_value": fake_process(stdout=b"added the things", stderr=b"")}
     )
     assert util.run_git_command("add .") == "added the things"
     mocked_subprocess_run.assert_called_with(
