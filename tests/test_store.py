@@ -8,9 +8,12 @@ from pod_store.exc import StoreExistsError
 from pod_store.store import Store
 from pod_store.store_file_handlers import EncryptedStoreFileHandler
 
-from . import TEST_PODCAST_DOWNLOADS_PATH, TEST_STORE_FILE_PATH, TEST_STORE_PATH
-
-TEST_GPG_ID_FILE_PATH = os.path.join(TEST_STORE_PATH, ".gpg-id")
+from . import (
+    TEST_GPG_ID_FILE_PATH,
+    TEST_PODCAST_DOWNLOADS_PATH,
+    TEST_STORE_FILE_PATH,
+    TEST_STORE_PATH,
+)
 
 
 @pytest.fixture

@@ -6,7 +6,7 @@ from click.testing import CliRunner
 from pod_store.__main__ import cli
 from pod_store.exc import GitCommandError
 
-from . import TEST_PODCAST_DOWNLOADS_PATH, TEST_STORE_PATH
+from . import TEST_PODCAST_DOWNLOADS_PATH, TEST_GPG_ID_FILE_PATH, TEST_STORE_PATH
 
 
 @pytest.fixture
@@ -63,6 +63,19 @@ def test_encrypt_store(runner):
 
 def test_encrypt_aborts_if_not_confirmed(runner):
     result = runner.invoke(cli, ["encrypt-store", "foo@bar.com"], input="\n")
+    assert result.exit_code == 1
+
+
+def test_unencrypt_store(runner):
+    with open(TEST_GPG_ID_FILE_PATH, "w") as f:
+        f.write("abc@xyz.com")
+    result = runner.invoke(cli, ["unencrypt-store", "--force"])
+    assert result.exit_code == 0
+    assert result.output.endswith("Store was unencrypted.\n")
+
+
+def test_unencrypt_aborts_if_not_confirmed(runner):
+    result = runner.invoke(cli, ["unencrypt-store"], input="\n")
     assert result.exit_code == 1
 
 
