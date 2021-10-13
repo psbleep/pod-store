@@ -170,6 +170,8 @@ class Store:
             run_git_command("init")
             if git_url:
                 run_git_command(f"remote add origin {git_url}")
+            with open(os.path.join(store_path, ".gitignore"), "w") as f:
+                f.write(".gpg-id")
 
         return cls(
             store_path=store_path,

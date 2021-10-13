@@ -37,7 +37,7 @@ def test_create_store_already_exists():
         )
 
 
-def test_create_store_setup_git_initializes_git_repo(
+def test_create_store_setup_git_initializes_git_repo_and_sets_gitignore(
     start_with_no_store, mocked_run_git_command
 ):
     Store.create(
@@ -46,6 +46,8 @@ def test_create_store_setup_git_initializes_git_repo(
         store_file_path=TEST_STORE_FILE_PATH,
         podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
     )
+    with open(os.path.join(TEST_STORE_PATH, ".gitignore")) as f:
+        assert f.read() == ".gpg-id"
     mocked_run_git_command.assert_called_with("init")
 
 
