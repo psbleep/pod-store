@@ -12,9 +12,9 @@ class StoreFileHandler(ABC):
         self._store_file_path = store_file_path
 
     @classmethod
-    def create_with_file(cls, store_file_path: str):
+    def create_with_file(cls, store_file_path: str, **kwargs):
         """Creates an empty store file while constructing the class."""
-        file_handler = cls(store_file_path)
+        file_handler = cls(store_file_path, **kwargs)
         file_handler.write_data({})
         return file_handler
 

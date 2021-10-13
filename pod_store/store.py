@@ -152,11 +152,14 @@ class Store:
         podcast_downloads_path: str,
         setup_git: bool,
         git_url: Optional[str] = None,
+        gpg_id: Optional[str] = None,
         store_file_handler_cls: StoreFileHandler = UnencryptedStoreFileHandler,
     ):
         """Initialize a new pod store.
 
         Optionally set up the `git` repo for the store.
+
+        Optionally set the GPG ID for store encryption.
         """
         try:
             os.makedirs(store_path)
@@ -164,14 +167,21 @@ class Store:
             raise StoreExistsError(store_path)
         os.makedirs(podcast_downloads_path, exist_ok=True)
 
-        file_handler = store_file_handler_cls.create_with_file(store_file_path)
-
         if setup_git:
             run_git_command("init")
             if git_url:
                 run_git_command(f"remote add origin {git_url}")
             with open(os.path.join(store_path, ".gitignore"), "w") as f:
                 f.write(".gpg-id")
+
+        if gpg_id:
+            with open(os.path.join(store_path, ".gpg-id"), "w") as f:
+                f.write(gpg_id)
+            file_handler = store_file_handler_cls(
+                store_file_path=store_file_path, gpg_id=gpg_id
+            )
+        else:
+            file_handler = store_file_handler_cls.create_with_file(store_file_path)
 
         return cls(
             store_path=store_path,
