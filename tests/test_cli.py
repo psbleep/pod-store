@@ -191,7 +191,7 @@ def test_error_handling_git_command_error(mocker, runner):
 def test_error_handling_podcast_does_not_exist(runner):
     result = runner.invoke(cli, ["ls", "-p", "zzzz"])
     assert result.exit_code == 0
-    assert "No podcasts found." in result.output
+    assert "Podcast not found: zzzz" in result.output
 
 
 def test_error_handling_podcast_already_exists(runner):

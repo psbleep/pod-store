@@ -7,7 +7,7 @@ import feedparser
 
 from . import util
 from .episodes import Episode
-from .exc import EpisodeDoesNotExistError
+from .exc import EpisodeDoesNotExistError, NoEpisodesFoundError
 
 P = TypeVar("P", bound="Podcast")
 
@@ -78,7 +78,7 @@ class PodcastEpisodes:
             raise EpisodeDoesNotExistError(id)
         return episode
 
-    def list(self, **filters) -> List[Episode]:
+    def list(self, allow_empty: bool = True, **filters) -> List[Episode]:
         """Return a list of podcast episodes, sorted by time created
         (most recent first).
 
@@ -92,6 +92,9 @@ class PodcastEpisodes:
         episodes = self._episodes.values()
         for key, value in filters.items():
             episodes = [e for e in episodes if getattr(e, key) == value]
+        if not episodes and not allow_empty:
+            raise NoEpisodesFoundError()
+
         return sorted(episodes, key=lambda e: e.created_at, reverse=True)
 
     def to_json(self):

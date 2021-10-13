@@ -87,7 +87,7 @@ class StorePodcasts:
         except KeyError:
             raise PodcastDoesNotExistError(title)
 
-    def list(self, raise_if_empty: bool = True, **filters) -> List[Podcast]:
+    def list(self, allow_empty: bool = True, **filters) -> List[Podcast]:
         """Return a list of podcasts, sorted by time created (oldest first).
 
         Optionally provide a list of keyword arguments to filter results by.
@@ -100,7 +100,7 @@ class StorePodcasts:
         podcasts = [p for p in self._podcasts.values()]
         for key, value in filters.items():
             podcasts = [p for p in podcasts if getattr(p, key) == value]
-        if not podcasts and raise_if_empty:
+        if not podcasts and not allow_empty:
             raise NoPodcastsFoundError()
         return sorted(podcasts, key=lambda p: p.created_at)
 

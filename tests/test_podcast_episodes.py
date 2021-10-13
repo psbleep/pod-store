@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from pod_store.exc import EpisodeDoesNotExistError
+from pod_store.exc import NoEpisodesFoundError, EpisodeDoesNotExistError
 from pod_store.podcasts import PodcastEpisodes
 
 from . import TEST_PODCAST_EPISODE_DOWNLOADS_PATH
@@ -70,6 +70,19 @@ def test_podcast_episodes_list_filter(podcast_episodes):
     episodes = podcast_episodes.list(downloaded_at=None)
     assert len(episodes) == 1
     assert episodes[0].id == "aaa"
+
+
+def test_podcast_episodes_list_no_episodes_found_raises_exception_if_not_allowed(
+    podcast_episodes,
+):
+    with pytest.raises(NoEpisodesFoundError):
+        podcast_episodes.list(allow_empty=False, id="abcdefg")
+
+
+def test_podcast_episodes_list_no_episodes_found_returns_empty_list_if_allowed(
+    podcast_episodes,
+):
+    assert podcast_episodes.list(allow_empty=True, id="abcdefg") == []
 
 
 def test_podcast_episodes_to_json(podcast_episodes, podcast_episode_data):

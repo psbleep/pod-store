@@ -68,13 +68,13 @@ def test_store_podcasts_list_no_podcasts_found_raises_error_when_empty_not_allow
     store_podcasts,
 ):
     with pytest.raises(NoPodcastsFoundError):
-        store_podcasts.list(raise_if_empty=True, title="zzzzzzz")
+        store_podcasts.list(allow_empty=False, title="zzzzzzz")
 
 
 def test_store_podcasts_list_no_podcasts_found_returns_empty_list_when_empty_is_allowed(
     store_podcasts,
 ):
-    assert store_podcasts.list(raise_if_empty=False, title="zzzzzzzzz") == []
+    assert store_podcasts.list(allow_empty=True, title="zzzzzzzzz") == []
 
 
 def test_store_podcasts_rename(store_podcasts):
