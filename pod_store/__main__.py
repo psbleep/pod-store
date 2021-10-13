@@ -44,7 +44,7 @@ def cli(ctx) -> None:
     "--git/--no-git", default=True, help="initialize git repo for tracking changes"
 )
 @click.option("-u", "--git-url", default=None, help="remote URL for the git repo")
-@click.option("-g", "--gpg-id", default=None, help="GPG ID for store encryption")
+@click.option("-g", "--gpg-id", default=None, help="GPG ID for store encryption keys")
 @catch_pod_store_errors
 def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]) -> None:
     """Set up the pod store.
@@ -86,6 +86,7 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]) -> None:
 )
 @git_add_and_commit("Unencrypted the store.")
 def unencrypt_store(ctx: click.Context):
+    """Unencrypt the pod store, saving the data in plaintext instead."""
     ctx.obj.unencrypt()
     click.echo("Store was unencrypted.")
 
@@ -103,6 +104,7 @@ def unencrypt_store(ctx: click.Context):
 )
 @git_add_and_commit("Encrypted the store.")
 def encrypt_store(ctx: click.Context, gpg_id: str):
+    """Encrypt the pod store file with the provided GPG ID keys."""
     ctx.obj.encrypt(gpg_id=gpg_id)
     click.echo("Store encrypted with GPG ID.")
 
