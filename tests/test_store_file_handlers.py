@@ -1,6 +1,5 @@
 import json
 import os
-
 from subprocess import CalledProcessError
 from unittest.mock import ANY
 
@@ -12,7 +11,7 @@ from pod_store.store_file_handlers import (
     UnencryptedStoreFileHandler,
 )
 
-from . import TEST_STORE_PATH, TEST_STORE_FILE_PATH, fake_process
+from . import TEST_STORE_FILE_PATH, TEST_STORE_PATH, fake_process
 
 ENCRYPTED_FILE_HANDLER_TMP_STORE_FILE_PATH = os.path.join(TEST_STORE_PATH, ".tmp")
 

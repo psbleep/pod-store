@@ -1,12 +1,11 @@
 import os
-
 from typing import List, Optional
 
 from .exc import PodcastDoesNotExistError, PodcastExistsError, StoreExistsError
 from .podcasts import Podcast
 from .store_file_handlers import (
-    StoreFileHandler,
     EncryptedStoreFileHandler,
+    StoreFileHandler,
     UnencryptedStoreFileHandler,
 )
 from .util import run_git_command

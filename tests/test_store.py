@@ -7,11 +7,7 @@ import pytest
 from pod_store.exc import StoreExistsError
 from pod_store.store import Store
 
-from . import (
-    TEST_PODCAST_DOWNLOADS_PATH,
-    TEST_STORE_FILE_PATH,
-    TEST_STORE_PATH,
-)
+from . import TEST_PODCAST_DOWNLOADS_PATH, TEST_STORE_FILE_PATH, TEST_STORE_PATH
 
 
 @pytest.fixture

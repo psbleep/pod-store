@@ -1,7 +1,6 @@
 import json
 import os
 import subprocess
-
 from abc import ABC, abstractmethod
 
 from .exc import GPGCommandError
