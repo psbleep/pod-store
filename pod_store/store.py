@@ -34,7 +34,7 @@ class StoreFileHandler:
     def write_data(self, data: dict):
         """Write json data to the store file."""
         with open(self._store_file_path, "w") as f:
-            json.dump(data, f)
+            json.dump(data, f, indent=2)
 
 
 class Store:
