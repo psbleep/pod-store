@@ -76,23 +76,6 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]) -> None:
 
 @cli.command()
 @click.pass_context
-@click.option(
-    "-f",
-    "--force",
-    is_flag=True,
-    callback=_abort_if_false,
-    expose_value=False,
-    prompt="Are you sure you want to unencrypt the pod store?",
-)
-@git_add_and_commit("Unencrypted the store.")
-def unencrypt_store(ctx: click.Context):
-    """Unencrypt the pod store, saving the data in plaintext instead."""
-    ctx.obj.unencrypt()
-    click.echo("Store was unencrypted.")
-
-
-@cli.command()
-@click.pass_context
 @click.argument("gpg-id")
 @click.option(
     "-f",
@@ -107,6 +90,23 @@ def encrypt_store(ctx: click.Context, gpg_id: str):
     """Encrypt the pod store file with the provided GPG ID keys."""
     ctx.obj.encrypt(gpg_id=gpg_id)
     click.echo("Store encrypted with GPG ID.")
+
+
+@cli.command()
+@click.pass_context
+@click.option(
+    "-f",
+    "--force",
+    is_flag=True,
+    callback=_abort_if_false,
+    expose_value=False,
+    prompt="Are you sure you want to unencrypt the pod store?",
+)
+@git_add_and_commit("Unencrypted the store.")
+def unencrypt_store(ctx: click.Context):
+    """Unencrypt the pod store, saving the data in plaintext instead."""
+    ctx.obj.unencrypt()
+    click.echo("Store was unencrypted.")
 
 
 @cli.command()
