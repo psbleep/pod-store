@@ -179,11 +179,11 @@ class Store:
         if gpg_id:
             with open(os.path.join(store_path, ".gpg-id"), "w") as f:
                 f.write(gpg_id)
-            EncryptedStoreFileHandler.create_with_file(
+            EncryptedStoreFileHandler.create_store_file(
                 gpg_id=gpg_id, store_file_path=store_file_path
             )
         else:
-            UnencryptedStoreFileHandler.create_with_file(store_file_path)
+            UnencryptedStoreFileHandler.create_store_file(store_file_path)
 
     def __repr__(self):
         return f"<Store({self._store_path!r})>"

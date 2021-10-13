@@ -98,7 +98,7 @@ def test_encrypted_store_file_handler_cleans_up_during_write_error(
 
 
 def test_unencrypted_store_file_handler_create_store_file():
-    UnencryptedStoreFileHandler.create_with_file(TEST_STORE_FILE_PATH)
+    UnencryptedStoreFileHandler.create_store_file(TEST_STORE_FILE_PATH)
     with open(TEST_STORE_FILE_PATH) as f:
         assert json.load(f) == {}
 
