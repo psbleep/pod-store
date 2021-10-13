@@ -1,5 +1,4 @@
 import functools
-
 from typing import Any, Callable
 
 import click
@@ -11,7 +10,6 @@ from .exc import (
     PodcastExistsError,
     StoreExistsError,
 )
-
 from .util import run_git_command
 
 

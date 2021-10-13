@@ -1,17 +1,12 @@
 import json
 import os
 import shutil
-
 from datetime import datetime, timedelta
 
 import pytest
 
 from pod_store.store import Store, StoreFileHandler
-from tests import (
-    TEST_PODCAST_DOWNLOADS_PATH,
-    TEST_STORE_FILE_PATH,
-    TEST_STORE_PATH,
-)
+from tests import TEST_PODCAST_DOWNLOADS_PATH, TEST_STORE_FILE_PATH, TEST_STORE_PATH
 
 
 # Autouse to establish fresh store data for every test.

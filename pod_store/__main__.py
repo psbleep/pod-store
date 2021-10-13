@@ -4,12 +4,11 @@ from typing import List, Optional
 import click
 
 from . import PODCAST_DOWNLOADS_PATH, STORE_FILE_PATH, STORE_PATH
-
 from .cmd_decorators import (
     catch_pod_store_errors,
     git_add_and_commit,
-    save_store_changes,
     optional_podcast_commit_message_builder,
+    save_store_changes,
 )
 from .episodes import Episode
 from .exc import PodcastDoesNotExistError
