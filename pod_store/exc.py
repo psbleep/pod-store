@@ -10,6 +10,10 @@ class GPGCommandError(Exception):
     pass
 
 
+class NoPodcastsFoundError(Exception):
+    pass
+
+
 class PodcastDoesNotExistError(Exception):
     pass
 

@@ -2,7 +2,11 @@ import os
 
 import pytest
 
-from pod_store.exc import PodcastDoesNotExistError, PodcastExistsError
+from pod_store.exc import (
+    NoPodcastsFoundError,
+    PodcastDoesNotExistError,
+    PodcastExistsError,
+)
 from pod_store.store import StorePodcasts
 
 from . import TEST_PODCAST_DOWNLOADS_PATH
@@ -58,6 +62,19 @@ def test_store_podcasts_list_with_filters(store_podcasts):
     pods = store_podcasts.list(has_new_episodes=True)
     assert len(pods) == 1
     assert pods[0].title == "greetings"
+
+
+def test_store_podcasts_list_no_podcasts_found_raises_error_when_empty_not_allowed(
+    store_podcasts,
+):
+    with pytest.raises(NoPodcastsFoundError):
+        store_podcasts.list(raise_if_empty=True, title="zzzzzzz")
+
+
+def test_store_podcasts_list_no_podcasts_found_returns_empty_list_when_empty_is_allowed(
+    store_podcasts,
+):
+    assert store_podcasts.list(raise_if_empty=False, title="zzzzzzzzz") == []
 
 
 def test_store_podcasts_rename(store_podcasts):
