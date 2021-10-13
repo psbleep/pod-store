@@ -6,12 +6,12 @@ from click.testing import CliRunner
 from pod_store.__main__ import cli
 from pod_store.exc import GitCommandError
 
-from . import TEST_DOWNLOAD_PATH, TEST_STORE_PATH
+from . import TEST_PODCAST_DOWNLOADS_PATH, TEST_STORE_PATH
 
 
 @pytest.fixture
 def mocked_run_git_command(mocker):
-    return mocker.patch("pod_store.__main__.run_git_command")
+    return mocker.patch("pod_store.cmd_decorators.run_git_command")
 
 
 def _assert_git_changes_commited(mocked: Mock, commit_msg: str):
@@ -28,7 +28,7 @@ def test_init(start_with_no_store, runner):
     assert result.exit_code == 0
     assert result.output == (
         f"Store created: {TEST_STORE_PATH}\n"
-        f"Podcast episodes will be downloaded to {TEST_DOWNLOAD_PATH}\n"
+        f"Podcast episodes will be downloaded to {TEST_PODCAST_DOWNLOADS_PATH}\n"
     )
 
 
@@ -52,6 +52,7 @@ def test_init_with_git_url(start_with_no_store, runner):
 def test_add(mocked_run_git_command, runner):
     result = runner.invoke(cli, ["add", "hello", "https://www.hello.world/rss"])
     assert result.exit_code == 0
+
     _assert_git_changes_commited(mocked_run_git_command, "Added podcast: hello.")
 
 

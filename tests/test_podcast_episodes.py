@@ -5,13 +5,13 @@ import pytest
 from pod_store.exc import EpisodeDoesNotExistError
 from pod_store.podcasts import PodcastEpisodes
 
-from . import TEST_PODCAST_DOWNLOAD_PATH
+from . import TEST_PODCAST_EPISODE_DOWNLOADS_PATH
 
 
 @pytest.fixture
 def podcast_episodes(podcast_episode_data):
     return PodcastEpisodes(
-        episode_downloads_path=TEST_PODCAST_DOWNLOAD_PATH,
+        episode_downloads_path=TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
         episode_data=podcast_episode_data,
     )
 
@@ -29,7 +29,7 @@ def test_podcast_episodes_add_episode_sets_download_path_from_episode_number_and
     )
 
     assert episode.download_path == os.path.join(
-        TEST_PODCAST_DOWNLOAD_PATH, "0981-foo.mp3"
+        TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0981-foo.mp3"
     )
 
     assert podcast_episodes._episodes["bbb"] == episode
@@ -38,6 +38,11 @@ def test_podcast_episodes_add_episode_sets_download_path_from_episode_number_and
 def test_podcast_episodes_delete_episode(podcast_episodes):
     podcast_episodes.delete("zzz")
     assert "zzz" not in podcast_episodes._episodes
+
+
+def test_podcast_episodes_delete_episode_not_found(podcast_episodes):
+    with pytest.raises(EpisodeDoesNotExistError):
+        podcast_episodes.delete("xubu")
 
 
 def test_podcast_episodes_get_episode(podcast_episodes):

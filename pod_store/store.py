@@ -8,28 +8,49 @@ from .util import run_git_command
 
 
 class StoreFileHandler:
+    """Class for reading/writing data from the store file.
+
+    _store_file_path (str): file system location of the json file that holds store data.
+    """
+
     def __init__(self, store_file_path):
         self._store_file_path = store_file_path
 
     @classmethod
     def create_with_file(cls, store_file_path: str):
+        """Creates an empty store file while constructing the class."""
         file_handler = cls(store_file_path)
         file_handler.write_data({})
         return file_handler
 
+    def __repr__(self):
+        return "<StoreFileHandler({self._store_file_path!r})>"
+
     def read_data(self):
+        """Return json data from the store file."""
         with open(self._store_file_path) as f:
             return json.load(f)
 
     def write_data(self, data: dict):
+        """Write json data to the store file."""
         with open(self._store_file_path, "w") as f:
             json.dump(data, f)
 
-    def __repr__(self):
-        return "<StoreFileHandler({self._store_file_path!r})>"
-
 
 class Store:
+    """Podcast store coordinating class.
+
+    podcasts (StorePodcasts): tracks all the podcasts kept in the store
+
+    _store_path (str): location of pod store directory
+
+    _podcast_downloads_path (str): file system directory for podcasts to download
+        episodes into
+
+    _file_handler (StoreFileHandler): class that handles reading/writing from the store
+        json file
+    """
+
     def __init__(
         self,
         store_path: str,
@@ -56,6 +77,10 @@ class Store:
         git_url: Optional[str] = None,
         store_file_handler_cls: StoreFileHandler = StoreFileHandler,
     ):
+        """Initialize a new pod store.
+
+        Optionally set up the `git` repo for the store.
+        """
         try:
             os.makedirs(store_path)
         except FileExistsError:
@@ -68,27 +93,42 @@ class Store:
             run_git_command("init")
             if git_url:
                 run_git_command(f"remote add origin {git_url}")
+
         return cls(
             store_path=store_path,
             podcast_downloads_path=podcast_downloads_path,
             file_handler=file_handler,
         )
 
-    def save(self):
-        podcast_data = self.podcasts.to_json()
-        self._file_handler.write_data(podcast_data)
-
     def __repr__(self):
         return f"<Store({self._store_path!r})>"
 
+    def save(self):
+        """Save data to the store json file."""
+        podcast_data = self.podcasts.to_json()
+        self._file_handler.write_data(podcast_data)
+
 
 class StorePodcasts:
-    def __init__(self, podcast_data: dict, podcast_downloads_path: str):
+    """Class for tracking all the podcasts in the store.
+
+    _podcast_downloads_path (str): file system location for podcasts to download
+        episodes to
+
+    _podcasts (dict):
+        {title: `pod_store.podcasts.Podcast`}
+    """
+
+    def __init__(self, podcast_downloads_path: str, podcast_data: dict):
+        self._podcast_downloads_path = podcast_downloads_path
+
         self._podcasts = {
             title: Podcast.from_json(**podcast)
             for title, podcast in podcast_data.items()
         }
-        self._podcast_downloads_path = podcast_downloads_path
+
+    def __repr__(self):
+        return "<StorePodcasts>"
 
     def add(
         self,
@@ -97,6 +137,12 @@ class StorePodcasts:
         episode_data: Optional[dict] = None,
         **kwargs,
     ) -> None:
+        """Add a podcast to the store.
+
+        An `episodes_download_path` for the podcast object  will be constructed from the
+        `_podcast_downloads_path` attribute and the title passed in, if none is
+        provided.
+        """
         if title in self._podcasts:
             raise PodcastExistsError(title)
 
@@ -115,24 +161,45 @@ class StorePodcasts:
         return podcast
 
     def delete(self, title: str) -> None:
+        """Delete a podcast from the store.
+
+        Looks up podcast by title.
+        """
         try:
             del self._podcasts[title]
         except KeyError:
             raise PodcastDoesNotExistError(title)
 
     def get(self, title: str) -> Podcast:
+        """Retrieve a podcast from the store.
+
+        Looks up podcast by title.
+        """
         try:
             return self._podcasts[title]
         except KeyError:
             raise PodcastDoesNotExistError(title)
 
     def list(self, **filters) -> List[Podcast]:
+        """Return a list of podcasts, sorted by time created (oldest first).
+
+        Optionally provide a list of keyword arguments to filter results by.
+
+            list(foo="bar")
+
+        will check for a `foo` attribute on the `pod_store.podcasts.Podcast` object and
+        check if the value matches "bar".
+        """
         podcasts = [p for p in self._podcasts.values()]
         for key, value in filters.items():
             podcasts = [p for p in podcasts if getattr(p, key) == value]
         return sorted(podcasts, key=lambda p: p.created_at)
 
     def rename(self, old_title: str, new_title: str) -> None:
+        """Rename a podcast in the store.
+
+        Will change the podcast's episode download path in accordance with the new title
+        """
         if new_title in self._podcasts:
             raise PodcastExistsError(new_title)
 
@@ -144,7 +211,5 @@ class StorePodcasts:
         del self._podcasts[old_title]
 
     def to_json(self):
+        """Convert store podcasts to json data for writing to the store file."""
         return {title: podcast.to_json() for title, podcast in self._podcasts.items()}
-
-    def __repr__(self):
-        return "<StorePodcasts>"

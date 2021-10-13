@@ -5,9 +5,7 @@ import pytest
 
 from pod_store.podcasts import Podcast
 
-from . import TEST_DOWNLOAD_PATH
-
-TEST_PODCAST_DOWNLOAD_PATH = os.path.join(TEST_DOWNLOAD_PATH, "hello")
+from . import TEST_PODCAST_EPISODE_DOWNLOADS_PATH
 
 
 @pytest.fixture
@@ -15,7 +13,7 @@ def podcast(frozen_now, podcast_episode_data):
     return Podcast(
         title="hello",
         feed="http://hello.world/rss",
-        episode_downloads_path=TEST_PODCAST_DOWNLOAD_PATH,
+        episode_downloads_path=TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
         created_at=frozen_now,
         updated_at=frozen_now,
         episode_data=podcast_episode_data,
@@ -26,7 +24,7 @@ def test_podcast_from_json_parses_datetimes(frozen_now):
     podcast = Podcast.from_json(
         title="hello",
         feed="http://hello.world/rss",
-        episode_downloads_path=TEST_PODCAST_DOWNLOAD_PATH,
+        episode_downloads_path=TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
         created_at=frozen_now.isoformat(),
         updated_at=frozen_now.isoformat(),
         episode_data={},
@@ -34,6 +32,11 @@ def test_podcast_from_json_parses_datetimes(frozen_now):
 
     assert podcast.created_at == frozen_now
     assert podcast.updated_at == frozen_now
+
+
+def test_podcast_str(podcast):
+    # title [n]  where `n` is number of new episodes
+    assert str(podcast) == "hello [1]"
 
 
 def test_podcast_has_new_episodes(podcast):
@@ -97,7 +100,7 @@ def test_podcast_refresh(frozen_now, mocked_feedparser_parse, podcast):
 
     new_episode = podcast.episodes.get("ccc")
     assert new_episode.download_path == os.path.join(
-        TEST_PODCAST_DOWNLOAD_PATH, "0002-no-number-provided.mp3"
+        TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0002-no-number-provided.mp3"
     )
     assert new_episode.episode_number == "0002"
 
@@ -106,7 +109,7 @@ def test_podcast_to_json(frozen_now, podcast_episode_data, podcast):
     assert podcast.to_json() == {
         "title": "hello",
         "feed": "http://hello.world/rss",
-        "episode_downloads_path": TEST_PODCAST_DOWNLOAD_PATH,
+        "episode_downloads_path": TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
         "created_at": frozen_now.isoformat(),
         "updated_at": frozen_now.isoformat(),
         "episode_data": podcast_episode_data,

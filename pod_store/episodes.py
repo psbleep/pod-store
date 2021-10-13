@@ -12,17 +12,17 @@ E = TypeVar("E", bound="Episode")
 
 
 class Episode:
-    """Podcast episode tracked in the pypod store.
+    """Podcast episode tracked in the store.
 
-    id: store ID (parsed from RSS feed ID)
-    episode_number: zero-padded episode number
-    title: episode title
-    url: download URL
-    downloaded_at: if set to `None`, the episode hasn't been downloaded yet
-    created_at: timestamp
-    updated_at: timestamp
+    id (str): store ID (parsed from RSS feed ID)
+    download_path (str): where episode will be downloaded on file system
+    episode_number (str): zero-padded episode number from podcast feed
+    title (str): episode title
+    url (str): download URL
+    downloaded_at (datetime): if set to `None`, the episode hasn't been downloaded yet
 
-    download_path: file path to download the episode audio file
+    created_at (datetime)
+    updated_at (datetime)
     """
 
     def __init__(
@@ -53,6 +53,10 @@ class Episode:
         downloaded_at: Optional[str] = None,
         **kwargs,
     ) -> E:
+        """Load a `pod_store.episodes.Episode` object from json data.
+
+        Parses `datetime` objects from json strings where appropriate.
+        """
         created_at = util.parse_datetime_from_json(created_at)
         updated_at = util.parse_datetime_from_json(updated_at)
         downloaded_at = util.parse_datetime_from_json(downloaded_at)

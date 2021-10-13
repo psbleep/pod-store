@@ -8,8 +8,7 @@ import pytest
 
 from pod_store.store import Store, StoreFileHandler
 from tests import (
-    TEST_DOWNLOAD_PATH,
-    TEST_PODCAST_DOWNLOAD_PATH,
+    TEST_PODCAST_DOWNLOADS_PATH,
     TEST_STORE_FILE_PATH,
     TEST_STORE_PATH,
 )
@@ -21,13 +20,13 @@ def setup_test_store_data_and_downloads_path(request, store_podcasts_data):
     def cleanup():
         if os.path.exists(TEST_STORE_PATH):
             shutil.rmtree(TEST_STORE_PATH)
-        if os.path.exists(TEST_DOWNLOAD_PATH):
-            shutil.rmtree(TEST_DOWNLOAD_PATH)
+        if os.path.exists(TEST_PODCAST_DOWNLOADS_PATH):
+            shutil.rmtree(TEST_PODCAST_DOWNLOADS_PATH)
 
     cleanup()
 
     os.makedirs(TEST_STORE_PATH)
-    os.makedirs(TEST_DOWNLOAD_PATH)
+    os.makedirs(TEST_PODCAST_DOWNLOADS_PATH)
     with open(TEST_STORE_FILE_PATH, "w") as f:
         json.dump(store_podcasts_data, f, indent=2)
     request.addfinalizer(cleanup)
@@ -61,7 +60,9 @@ def podcast_episode_data(frozen_now):
     return {
         "aaa": {
             "id": "aaa",
-            "download_path": os.path.join(TEST_PODCAST_DOWNLOAD_PATH, "0023-hello.mp3"),
+            "download_path": os.path.join(
+                TEST_PODCAST_DOWNLOADS_PATH, "greetings/0023-hello.mp3"
+            ),
             "episode_number": "0023",
             "title": "hello",
             "url": "http://foo.bar/aaa.mp3",
@@ -72,7 +73,7 @@ def podcast_episode_data(frozen_now):
         "zzz": {
             "id": "zzz",
             "download_path": os.path.join(
-                TEST_PODCAST_DOWNLOAD_PATH, "0011-goodbye.mp3"
+                TEST_PODCAST_DOWNLOADS_PATH, "greetings/0011-goodbye.mp3"
             ),
             "episode_number": "0011",
             "title": "goodbye",
@@ -115,7 +116,7 @@ def store_file_handler():
 def store(store_file_handler):
     return Store(
         store_path=TEST_STORE_PATH,
-        podcast_downloads_path=TEST_DOWNLOAD_PATH,
+        podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
         file_handler=store_file_handler,
     )
 

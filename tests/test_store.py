@@ -7,7 +7,7 @@ import pytest
 from pod_store.exc import StoreExistsError
 from pod_store.store import Store
 
-from . import TEST_DOWNLOAD_PATH, TEST_STORE_FILE_PATH, TEST_STORE_PATH
+from . import TEST_PODCAST_DOWNLOADS_PATH, TEST_STORE_FILE_PATH, TEST_STORE_PATH
 
 
 @pytest.fixture
@@ -22,7 +22,7 @@ def test_create_store_creates_store_directory_and_store_file_and_downloads_path(
         setup_git=False,
         store_path=TEST_STORE_PATH,
         store_file_path=TEST_STORE_FILE_PATH,
-        podcast_downloads_path=TEST_DOWNLOAD_PATH,
+        podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
     )
     assert os.path.exists(TEST_STORE_FILE_PATH)
 
@@ -33,7 +33,7 @@ def test_create_store_already_exists():
             setup_git=False,
             store_path=TEST_STORE_PATH,
             store_file_path=TEST_STORE_FILE_PATH,
-            podcast_downloads_path=TEST_DOWNLOAD_PATH,
+            podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
         )
 
 
@@ -44,7 +44,7 @@ def test_create_store_setup_git_initializes_git_repo(
         setup_git=True,
         store_path=TEST_STORE_PATH,
         store_file_path=TEST_STORE_FILE_PATH,
-        podcast_downloads_path=TEST_DOWNLOAD_PATH,
+        podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
     )
     mocked_run_git_command.assert_called_with("init")
 
@@ -57,7 +57,7 @@ def test_create_store_setup_git_with_git_url_establishes_repo_remote_origin(
         git_url="https://git.foo.bar/pod-store.git",
         store_path=TEST_STORE_PATH,
         store_file_path=TEST_STORE_FILE_PATH,
-        podcast_downloads_path=TEST_DOWNLOAD_PATH,
+        podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
     )
     mocked_run_git_command.assert_has_calls(
         [

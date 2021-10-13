@@ -5,9 +5,11 @@ import pytest
 
 from pod_store.episodes import Episode
 
-from . import TEST_PODCAST_DOWNLOAD_PATH
+from . import TEST_PODCAST_DOWNLOADS_PATH
 
-TEST_EPISODE_DOWNLOAD_PATH = os.path.join(TEST_PODCAST_DOWNLOAD_PATH, "0092-hello.mp3")
+TEST_EPISODE_DOWNLOAD_PATH = os.path.join(
+    TEST_PODCAST_DOWNLOADS_PATH, "hello/0092-hello.mp3"
+)
 
 
 @pytest.fixture
@@ -40,6 +42,15 @@ def test_episode_from_json_parses_datetimes(frozen_now):
 
     assert episode.created_at == frozen_now
     assert episode.updated_at == frozen_now
+
+
+def test_episode_string_not_downloaded_yet(episode):
+    assert str(episode) == "[0092] hello "
+
+
+def test_episode_string_has_been_downloaded(frozen_now, episode):
+    episode.downloaded_at = frozen_now
+    assert str(episode) == "[0092] hello [X]"
 
 
 def test_episode_download(frozen_now, mocked_requests_get, episode):

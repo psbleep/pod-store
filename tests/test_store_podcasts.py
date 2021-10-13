@@ -5,20 +5,23 @@ import pytest
 from pod_store.exc import PodcastDoesNotExistError, PodcastExistsError
 from pod_store.store import StorePodcasts
 
-from . import TEST_DOWNLOAD_PATH
+from . import TEST_PODCAST_DOWNLOADS_PATH
 
 
 @pytest.fixture
 def store_podcasts(store_podcasts_data):
     return StorePodcasts(
-        podcast_data=store_podcasts_data, podcast_downloads_path=TEST_DOWNLOAD_PATH
+        podcast_data=store_podcasts_data,
+        podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
     )
 
 
 def test_store_podcasts_add_podcast(store_podcasts):
     podcast = store_podcasts.add(title="zoobar", feed="http://zoo.bar/rss")
     assert podcast.title == "zoobar"
-    assert podcast.episode_downloads_path == os.path.join(TEST_DOWNLOAD_PATH, "zoobar")
+    assert podcast.episode_downloads_path == os.path.join(
+        TEST_PODCAST_DOWNLOADS_PATH, "zoobar"
+    )
 
 
 def test_store_podcasts_add_podcast_with_title_already_exists(store_podcasts):
@@ -61,7 +64,7 @@ def test_store_podcasts_rename(store_podcasts):
     store_podcasts.rename("greetings", "hellos")
     assert "greetings" not in store_podcasts._podcasts
     assert store_podcasts._podcasts["hellos"].episode_downloads_path == os.path.join(
-        TEST_DOWNLOAD_PATH, "hellos"
+        TEST_PODCAST_DOWNLOADS_PATH, "hellos"
     )
 
 
