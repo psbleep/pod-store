@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from pod_store.exc import NoEpisodesFoundError, EpisodeDoesNotExistError
+from pod_store.exc import EpisodeDoesNotExistError, NoEpisodesFoundError
 from pod_store.podcasts import PodcastEpisodes
 
 from . import TEST_PODCAST_EPISODE_DOWNLOADS_PATH
