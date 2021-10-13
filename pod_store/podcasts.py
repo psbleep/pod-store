@@ -82,6 +82,9 @@ class PodcastEpisodes:
         """Return a list of podcast episodes, sorted by time created
         (most recent first).
 
+        When `allow_empty` is set to `False`, an exception is raised if no episodes
+        are found.
+
         Optionally provide a list of keyword arguments to filter results by.
 
             list(foo="bar")

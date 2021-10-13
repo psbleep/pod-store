@@ -90,6 +90,9 @@ class StorePodcasts:
     def list(self, allow_empty: bool = True, **filters) -> List[Podcast]:
         """Return a list of podcasts, sorted by time created (oldest first).
 
+        When `allow_empty` is set to `False`, an exception will be raised if no podcasts
+        are found.
+
         Optionally provide a list of keyword arguments to filter results by.
 
             list(foo="bar")
