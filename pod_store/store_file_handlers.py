@@ -11,10 +11,12 @@ class StoreFileHandler(ABC):
         self._store_file_path = store_file_path
 
     @classmethod
-    def create_store_file(cls, store_file_path: str, **kwargs):
-        """Creates an empty store file while constructing the class."""
+    def create_store_file(cls, store_file_path: str, store_data: dict = None, **kwargs):
+        """Creates an initial store file while constructing the class."""
+        store_data = store_data or {}
+
         file_handler = cls(store_file_path=store_file_path, **kwargs)
-        file_handler.write_data({})
+        file_handler.write_data(store_data)
 
     @abstractmethod
     def read_data(self):
