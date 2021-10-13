@@ -36,11 +36,14 @@ class EncryptedStoreFileHandler(StoreFileHandler):
         return f"<EncryptedStoreFileHandler({self._store_file_path!r})>"
 
     def read_data(self):
+        """Retrieve encrypted json data from the store file."""
+
         cmd = f"gpg -d {self._store_file_path}"
         decrypted = self._run_gpg_command(cmd)
         return json.loads(decrypted)
 
     def write_data(self, data: dict):
+        """Write encrypted json data to the store file."""
         try:
             with open(self._store_file_path, "rb") as f:
                 existing_data = f.read()
@@ -89,6 +92,6 @@ class UnencryptedStoreFileHandler(StoreFileHandler):
             return json.load(f)
 
     def write_data(self, data: dict):
-        """Write encrypted json data to the store file."""
+        """Write unencrypted json data to the store file."""
         with open(self._store_file_path, "w") as f:
             json.dump(data, f, indent=2)
