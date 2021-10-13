@@ -41,7 +41,7 @@ def init(git: bool, git_url: Optional[str]) -> None:
     `pod-store` tracks changes using `git`.
     """
     git = git or git_url
-    Store.create(
+    Store.init(
         store_path=STORE_PATH,
         store_file_path=STORE_FILE_PATH,
         podcast_downloads_path=PODCAST_DOWNLOADS_PATH,

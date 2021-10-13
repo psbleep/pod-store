@@ -14,7 +14,7 @@ class StoreFileHandler(ABC):
     @classmethod
     def create_with_file(cls, store_file_path: str, **kwargs):
         """Creates an empty store file while constructing the class."""
-        file_handler = cls(store_file_path, **kwargs)
+        file_handler = cls(store_file_path=store_file_path, **kwargs)
         file_handler.write_data({})
         return file_handler
 
@@ -29,8 +29,8 @@ class StoreFileHandler(ABC):
 
 class EncryptedStoreFileHandler(StoreFileHandler):
     def __init__(self, gpg_id: str, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         self._gpg_id = gpg_id
+        super().__init__(*args, **kwargs)
 
     def __repr__(self):
         return f"<EncryptedStoreFileHandler({self._store_file_path!r})>"

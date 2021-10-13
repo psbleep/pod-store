@@ -4,7 +4,11 @@ from typing import List, Optional
 
 from .exc import PodcastDoesNotExistError, PodcastExistsError, StoreExistsError
 from .podcasts import Podcast
-from .store_file_handlers import StoreFileHandler, UnencryptedStoreFileHandler
+from .store_file_handlers import (
+    StoreFileHandler,
+    EncryptedStoreFileHandler,
+    UnencryptedStoreFileHandler,
+)
 from .util import run_git_command
 
 
@@ -139,13 +143,13 @@ class Store:
 
         self._file_handler = file_handler
 
-        podcast_data = file_handler.read_data()
+        podcast_data = self._file_handler.read_data()
         self.podcasts = StorePodcasts(
             podcast_data=podcast_data, podcast_downloads_path=podcast_downloads_path
         )
 
     @classmethod
-    def create(
+    def init(
         cls,
         store_path: str,
         store_file_path: str,
@@ -153,7 +157,6 @@ class Store:
         setup_git: bool,
         git_url: Optional[str] = None,
         gpg_id: Optional[str] = None,
-        store_file_handler_cls: StoreFileHandler = UnencryptedStoreFileHandler,
     ):
         """Initialize a new pod store.
 
@@ -177,17 +180,11 @@ class Store:
         if gpg_id:
             with open(os.path.join(store_path, ".gpg-id"), "w") as f:
                 f.write(gpg_id)
-            file_handler = store_file_handler_cls(
-                store_file_path=store_file_path, gpg_id=gpg_id
+            EncryptedStoreFileHandler.create_with_file(
+                gpg_id=gpg_id, store_file_path=store_file_path
             )
         else:
-            file_handler = store_file_handler_cls.create_with_file(store_file_path)
-
-        return cls(
-            store_path=store_path,
-            podcast_downloads_path=podcast_downloads_path,
-            file_handler=file_handler,
-        )
+            UnencryptedStoreFileHandler.create_with_file(store_file_path)
 
     def __repr__(self):
         return f"<Store({self._store_path!r})>"
