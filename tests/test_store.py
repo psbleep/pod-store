@@ -1,14 +1,13 @@
 import json
 import os
-from datetime import datetime
 from unittest.mock import call
 
 import pytest
 
-from pod_store import store
-from pod_store.exc import PodcastDoesNotExistError, PodcastExistsError, StoreExistsError
+from pod_store.exc import StoreExistsError
+from pod_store.store import Store
 
-from . import TEST_STORE_PATH
+from . import TEST_DOWNLOAD_PATH, TEST_STORE_FILE_PATH, TEST_STORE_PATH
 
 
 @pytest.fixture
@@ -16,102 +15,60 @@ def mocked_run_git_command(mocker):
     return mocker.patch("pod_store.store.run_git_command")
 
 
-def _get_podcast_titles(podcasts):
-    return [p.title for p in podcasts]
+def test_create_store_creates_store_directory_and_store_file_and_downloads_path(
+    start_with_no_store,
+):
+    Store.create(
+        setup_git=False,
+        store_path=TEST_STORE_PATH,
+        store_file_path=TEST_STORE_FILE_PATH,
+        podcast_downloads_path=TEST_DOWNLOAD_PATH,
+    )
+    assert os.path.exists(TEST_STORE_FILE_PATH)
 
 
-def test_init_store(start_with_no_store):
-    store.init_store(setup_git=False)
+def test_create_store_already_exists():
+    with pytest.raises(StoreExistsError):
+        Store.create(
+            setup_git=False,
+            store_path=TEST_STORE_PATH,
+            store_file_path=TEST_STORE_FILE_PATH,
+            podcast_downloads_path=TEST_DOWNLOAD_PATH,
+        )
 
-    assert os.path.exists(TEST_STORE_PATH)
 
-
-def test_init_store_setup_git(start_with_no_store, mocked_run_git_command):
-    store.init_store(setup_git=True)
+def test_create_store_setup_git_initializes_git_repo(
+    start_with_no_store, mocked_run_git_command
+):
+    Store.create(
+        setup_git=True,
+        store_path=TEST_STORE_PATH,
+        store_file_path=TEST_STORE_FILE_PATH,
+        podcast_downloads_path=TEST_DOWNLOAD_PATH,
+    )
     mocked_run_git_command.assert_called_with("init")
 
 
-def test_init_store_setup_git_with_git_url(start_with_no_store, mocked_run_git_command):
-    store.init_store(setup_git=True, git_url="https://git.foo.bar/pod_store-store.git")
+def test_create_store_setup_git_with_git_url_establishes_repo_remote_origin(
+    start_with_no_store, mocked_run_git_command
+):
+    Store.create(
+        setup_git=True,
+        git_url="https://git.foo.bar/pod-store.git",
+        store_path=TEST_STORE_PATH,
+        store_file_path=TEST_STORE_FILE_PATH,
+        podcast_downloads_path=TEST_DOWNLOAD_PATH,
+    )
     mocked_run_git_command.assert_has_calls(
         [
             call("init"),
-            call("remote add origin https://git.foo.bar/pod_store-store.git"),
+            call("remote add origin https://git.foo.bar/pod-store.git"),
         ]
     )
 
 
-def test_init_store_already_exists():
-    with pytest.raises(StoreExistsError):
-        store.init_store()
-
-
-def test_store_list_podcasts():
-    assert _get_podcast_titles(store.list_podcasts()) == ["a/1", "b", "c/2", "c/d/3"]
-
-
-def test_store_search_podcasts():
-    assert _get_podcast_titles(store.search_podcasts("c/")) == ["c/2", "c/d/3"]
-
-
-def test_store_podcasts_with_new_episodes():
-    assert _get_podcast_titles(store.list_podcasts_with_new_episodes()) == ["b"]
-
-
-def test_store_get_podcast():
-    assert store.get_podcast("c/d/3").title == "c/d/3"
-
-
-def test_store_add_podcast():
-    now = datetime.utcnow()
-    file_path = os.path.join(TEST_STORE_PATH, "e/4.podcast.json")
-    store.add_podcast(
-        title="e/4", feed="https://www.py.pod/rss", created_at=now, updated_at=now
-    )
-
-    with open(file_path) as f:
-        assert json.load(f) == {
-            "title": "e/4",
-            "feed": "https://www.py.pod/rss",
-            "created_at": now.isoformat(),
-            "updated_at": now.isoformat(),
-        }
-
-
-def test_store_add_podcast_title_already_exists():
-    with pytest.raises(PodcastExistsError):
-        store.add_podcast(title="a/1", feed="https://a1.cast/rss")
-
-
-def test_store_remove_podcast():
-    file_path = os.path.join(TEST_STORE_PATH, "c/2.podcast.json")
-    store.remove_podcast("c/2")
-
-    assert not os.path.exists(file_path)
-
-
-def test_store_rename_podcast():
-    new_podcast_path = os.path.join(TEST_STORE_PATH, "z/foo.podcast.json")
-    old_podcast_path = os.path.join(TEST_STORE_PATH, "c/2.podcast.json")
-
-    new_podcast_episodes_path = os.path.join(TEST_STORE_PATH, "z/foo")
-
-    store.rename_podcast("c/2", "z/foo")
-
-    assert not os.path.exists(old_podcast_path)
-
-    assert os.path.exists(new_podcast_path)
-    assert os.path.exists(new_podcast_episodes_path)
-
-    with open(new_podcast_path) as f:
-        assert json.load(f)["title"] == "z/foo"
-
-
-def test_store_rename_podcast_does_not_exist():
-    with pytest.raises(PodcastDoesNotExistError):
-        store.rename_podcast("zzzzzz", "aaaaa")
-
-
-def test_store_rename_podcast_new_title_already_exists():
-    with pytest.raises(PodcastExistsError):
-        store.rename_podcast("c/2", "a/1")
+def test_save_writes_data_to_file(store_podcasts_data, store):
+    store.podcasts._podcasts["greetings"].title = "updated"
+    store.save()
+    with open(TEST_STORE_FILE_PATH) as f:
+        assert json.load(f)["greetings"]["title"] == "updated"

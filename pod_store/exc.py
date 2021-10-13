@@ -6,6 +6,10 @@ class GitCommandError(Exception):
     pass
 
 
+class MultiplePodcastsFound(Exception):
+    pass
+
+
 class PodcastDoesNotExistError(Exception):
     pass
 
