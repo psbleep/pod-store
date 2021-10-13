@@ -6,8 +6,11 @@ import pytest
 
 from pod_store.exc import StoreExistsError
 from pod_store.store import Store
+from pod_store.store_file_handlers import EncryptedStoreFileHandler
 
 from . import TEST_PODCAST_DOWNLOADS_PATH, TEST_STORE_FILE_PATH, TEST_STORE_PATH
+
+TEST_GPG_ID_FILE_PATH = os.path.join(TEST_STORE_PATH, ".gpg-id")
 
 
 @pytest.fixture
@@ -84,6 +87,36 @@ def test_init_store_with_gpg_id_sets_gpg_id_file_and_creates_encrypted_store_fil
         assert f.read() == "hello@world.com"
 
 
+def test_decrypt_reads_existing_store_data_and_writes_unencrypted_store_file(
+    mocker, start_with_no_store, store_podcasts_data
+):
+    Store.init(
+        store_path=TEST_STORE_PATH,
+        store_file_path=TEST_STORE_FILE_PATH,
+        podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
+        setup_git=False,
+        gpg_id="oof@rab.com",
+    )
+
+    file_handler = EncryptedStoreFileHandler(
+        store_file_path=TEST_STORE_FILE_PATH, gpg_id="oof@rab.com"
+    )
+    file_handler.read_data = mocker.Mock(return_value=store_podcasts_data)
+
+    store = Store(
+        store_path=TEST_STORE_PATH,
+        podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
+        file_handler=file_handler,
+    )
+
+    store.decrypt()
+
+    assert not os.path.exists(TEST_GPG_ID_FILE_PATH)
+
+    with open(TEST_STORE_FILE_PATH) as f:
+        assert json.load(f) == store_podcasts_data
+
+
 def test_store_encrypt_reads_existing_store_data_and_sets_up_encrypted_store_and_file(
     mocker,
     store_podcasts_data,
@@ -95,7 +128,7 @@ def test_store_encrypt_reads_existing_store_data_and_sets_up_encrypted_store_and
 
     store.encrypt("zoo@baz.com")
 
-    with open(os.path.join(TEST_STORE_PATH, ".gpg-id")) as f:
+    with open(TEST_GPG_ID_FILE_PATH) as f:
         assert f.read() == "zoo@baz.com"
 
     mocked_create_encrypted_store_file.assert_called_with(

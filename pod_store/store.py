@@ -195,6 +195,14 @@ class Store:
     def __repr__(self):
         return f"<Store({self._store_path!r})>"
 
+    def decrypt(self):
+        store_file_path = self._file_handler.store_file_path
+        store_data = self._file_handler.read_data()
+        UnencryptedStoreFileHandler.create_store_file(
+            store_file_path=store_file_path, store_data=store_data
+        )
+        os.remove(GPG_ID_FILE_PATH)
+
     def encrypt(self, gpg_id: str):
         store_file_path = self._file_handler.store_file_path
         store_data = self._file_handler.read_data()
