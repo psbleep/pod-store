@@ -62,8 +62,8 @@ def init(git: bool, git_url: Optional[str]) -> None:
 @click.pass_context
 @click.argument("title")
 @click.argument("feed")
-@save_store_changes
 @git_add_and_commit("Added podcast: {}.", "title")
+@save_store_changes
 @catch_pod_store_errors
 def add(ctx: click.Context, title: str, feed: str) -> None:
     """Add a podcast to the store.
@@ -82,11 +82,11 @@ def add(ctx: click.Context, title: str, feed: str) -> None:
     default=None,
     help="(podcast title) Download only episodes for the specified podcast.",
 )
-@save_store_changes
 @git_add_and_commit(
     "Downloaded {} new episodes.",
     commit_message_builder=optional_podcast_commit_message_builder,
 )
+@save_store_changes
 @catch_pod_store_errors
 def download(ctx: click.Context, podcast: Optional[str]) -> None:
     """Download podcast episode(s)"""
@@ -181,11 +181,11 @@ def ls(ctx, new: bool, episodes: bool, podcast: Optional[str]) -> None:
     default=True,
     help="Run the command in interactive mode to select which episodes to mark",
 )
-@save_store_changes
 @git_add_and_commit(
     "Marked {} podcast episodes.",
     commit_message_builder=optional_podcast_commit_message_builder,
 )
+@save_store_changes
 @catch_pod_store_errors
 def mark(ctx: click.Context, podcast: Optional[str], interactive: bool) -> None:
     """Mark 'new' episodes as old."""
@@ -240,8 +240,8 @@ def _mark_episode_interactively(podcast: Podcast, episode: Episode) -> (bool, bo
 @click.pass_context
 @click.argument("old")
 @click.argument("new")
-@save_store_changes
 @git_add_and_commit("Renamed podcast: {} -> {}", "old", "new")
+@save_store_changes
 @catch_pod_store_errors
 def mv(ctx: click.Context, old: str, new: str) -> None:
     """Rename a podcast in the store."""
@@ -253,11 +253,11 @@ def mv(ctx: click.Context, old: str, new: str) -> None:
 @click.option(
     "-p", "--podcast", default=None, help="Refresh only the specified podcast."
 )
-@save_store_changes
 @git_add_and_commit(
     "Refreshed {} podcast feed.",
     commit_message_builder=optional_podcast_commit_message_builder,
 )
+@save_store_changes
 @catch_pod_store_errors
 def refresh(ctx: click.Context, podcast: Optional[str]) -> None:
     """Refresh podcast data from RSS feeds."""
@@ -274,8 +274,8 @@ def refresh(ctx: click.Context, podcast: Optional[str]) -> None:
 @cli.command()
 @click.pass_context
 @click.argument("title")
-@save_store_changes
 @git_add_and_commit("Removed podcast: {}.", "title")
+@save_store_changes
 @catch_pod_store_errors
 def rm(ctx: click.Context, title: str) -> None:
     """Remove specified podcast from the store."""
