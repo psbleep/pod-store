@@ -324,6 +324,14 @@ def refresh(ctx: click.Context, podcast: Optional[str]) -> None:
 @cli.command()
 @click.pass_context
 @click.argument("title")
+@click.option(
+    "-f",
+    "--force",
+    is_flag=True,
+    callback=_abort_if_false,
+    expose_value=False,
+    prompt="Are you sure you want to delete this podcast?",
+)
 @git_add_and_commit("Removed podcast: {}.", "title")
 @save_store_changes
 @catch_pod_store_errors

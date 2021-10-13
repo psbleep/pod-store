@@ -196,9 +196,14 @@ def test_refresh_single_podcast(mocked_run_git_command, runner):
 
 
 def test_rm(mocked_run_git_command, runner):
-    result = runner.invoke(cli, ["rm", "greetings"])
+    result = runner.invoke(cli, ["rm", "greetings", "--force"])
     assert result.exit_code == 0
     _assert_git_changes_commited(mocked_run_git_command, "Removed podcast: greetings.")
+
+
+def test_rm_aborts_if_not_confirmed(runner):
+    result = runner.invoke(cli, ["rm", "greetings"], input="n\n")
+    assert result.exit_code == 1
 
 
 def test_error_handling_git_command_error(mocker, runner):
