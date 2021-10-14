@@ -88,7 +88,9 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]) -> None:
 @git_add_and_commit("Encrypted the store.")
 def encrypt_store(ctx: click.Context, gpg_id: str):
     """Encrypt the pod store file with the provided GPG ID keys."""
-    ctx.obj.encrypt(gpg_id=gpg_id)
+    store = ctx.obj
+
+    store.encrypt(gpg_id=gpg_id)
     click.echo("Store encrypted with GPG ID.")
 
 
@@ -105,7 +107,9 @@ def encrypt_store(ctx: click.Context, gpg_id: str):
 @git_add_and_commit("Unencrypted the store.")
 def unencrypt_store(ctx: click.Context):
     """Unencrypt the pod store, saving the data in plaintext instead."""
-    ctx.obj.unencrypt()
+    store = ctx.obj
+
+    store.unencrypt()
     click.echo("Store was unencrypted.")
 
 
@@ -122,7 +126,8 @@ def add(ctx: click.Context, title: str, feed: str) -> None:
     TITLE: title that will be used for tracking in the store
     FEED: rss feed url for updating podcast info
     """
-    ctx.obj.podcasts.add(title=title, feed=feed)
+    store = ctx.obj
+    store.podcasts.add(title=title, feed=feed)
 
 
 @cli.command()
@@ -141,11 +146,13 @@ def add(ctx: click.Context, title: str, feed: str) -> None:
 @catch_pod_store_errors
 def download(ctx: click.Context, podcast: Optional[str]) -> None:
     """Download podcast episode(s)"""
+    store = ctx.obj
+
     podcast_filters = {"has_new_episodes": True}
     if podcast:
         podcast_filters["title"] = podcast
 
-    podcasts = ctx.obj.podcasts.list(allow_empty=False, **podcast_filters)
+    podcasts = store.podcasts.list(allow_empty=False, **podcast_filters)
     _download_podcast_episodes(podcasts)
 
 
@@ -179,17 +186,19 @@ def git(cmd: str) -> None:
     help="(podcast title) if listing episodes, limit results to the specified podcast",
 )
 @catch_pod_store_errors
-def ls(ctx, new: bool, episodes: bool, podcast: Optional[str]) -> None:
+def ls(ctx: click.Context, new: bool, episodes: bool, podcast: Optional[str]) -> None:
     """List store entries.
 
     By default, this will list podcasts that have new episodes. Adjust the output using
     the provided flags and command options.
     """
+    store = ctx.obj
+
     if episodes:
         if podcast:
-            podcasts = [ctx.obj.podcasts.get(podcast)]
+            podcasts = [store.podcasts.get(podcast)]
         else:
-            podcasts = ctx.obj.podcasts.list(allow_empty=False)
+            podcasts = store.podcasts.list(allow_empty=False)
 
         episode_filters = {}
         if new:
@@ -212,7 +221,7 @@ def ls(ctx, new: bool, episodes: bool, podcast: Optional[str]) -> None:
         if new:
             podcast_filters["has_new_episodes"] = True
         entries = [
-            str(p) for p in ctx.obj.podcasts.list(allow_empty=False, **podcast_filters)
+            str(p) for p in store.podcasts.list(allow_empty=False, **podcast_filters)
         ]
 
     click.echo("\n".join(entries))
@@ -239,11 +248,13 @@ def ls(ctx, new: bool, episodes: bool, podcast: Optional[str]) -> None:
 @catch_pod_store_errors
 def mark(ctx: click.Context, podcast: Optional[str], interactive: bool) -> None:
     """Mark 'new' episodes as old."""
+    store = ctx.obj
+
     podcast_filters = {"has_new_episodes": True}
     if podcast:
         podcast_filters["title"] = podcast
 
-    podcasts = ctx.obj.podcasts.list(allow_empty=False, **podcast_filters)
+    podcasts = store.podcasts.list(allow_empty=False, **podcast_filters)
 
     if interactive:
         click.echo(
@@ -295,7 +306,8 @@ def _mark_episode_interactively(podcast: Podcast, episode: Episode) -> (bool, bo
 @catch_pod_store_errors
 def mv(ctx: click.Context, old: str, new: str) -> None:
     """Rename a podcast in the store."""
-    ctx.obj.podcasts.rename(old, new)
+    store = ctx.obj
+    store.podcasts.rename(old, new)
 
 
 @cli.command()
@@ -311,10 +323,12 @@ def mv(ctx: click.Context, old: str, new: str) -> None:
 @catch_pod_store_errors
 def refresh(ctx: click.Context, podcast: Optional[str]) -> None:
     """Refresh podcast data from RSS feeds."""
+    store = ctx.obj
+
     if podcast:
-        podcasts = [ctx.obj.podcasts.get(podcast)]
+        podcasts = [store.podcasts.get(podcast)]
     else:
-        podcasts = ctx.obj.podcasts.list(allow_empty=False)
+        podcasts = store.podcasts.list(allow_empty=False)
 
     for podcast in podcasts:
         click.echo(f"Refreshing {podcast.title}")
@@ -337,7 +351,8 @@ def refresh(ctx: click.Context, podcast: Optional[str]) -> None:
 @catch_pod_store_errors
 def rm(ctx: click.Context, title: str) -> None:
     """Remove specified podcast from the store."""
-    ctx.obj.podcasts.delete(title)
+    store = ctx.obj
+    store.podcasts.delete(title)
 
 
 def main() -> None:
