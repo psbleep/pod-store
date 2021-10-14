@@ -172,7 +172,8 @@ class Store:
 
         Optionally set up the `git` repo for the store.
 
-        Optionally set the GPG ID for store encryption.
+        Optionally set the GPG ID for store encryption and establish the store file
+        as an encrypted file.
         """
         try:
             os.makedirs(store_path)
@@ -204,7 +205,11 @@ class Store:
         )
 
     def unencrypt(self):
-        """Unencrypt an existing store that is currently stored as encrypted data."""
+        """Unencrypt an existing store that is currently stored as encrypted data.
+
+        Unsets the GPG ID for the store and writes the existing encrypted store data
+        as plaintext json.
+        """
         store_file_path = self._file_handler.store_file_path
         store_data = self._file_handler.read_data()
         UnencryptedStoreFileHandler.create_store_file(
@@ -224,7 +229,7 @@ class Store:
         """Set up the store as a GPG encrypted store.
 
         Sets the GPG ID that will be used by the store, and writes the store data
-        provided as GPG encrypted data to the store file.
+        passed in as GPG encrypted data to the store file.
         """
         with open(os.path.join(GPG_ID_FILE_PATH), "w") as f:
             f.write(gpg_id)
