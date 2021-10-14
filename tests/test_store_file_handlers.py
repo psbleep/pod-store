@@ -40,7 +40,11 @@ def test_encrypted_store_file_handler_read_data(
 
     assert encrypted_store_file_handler.read_data() == {"hello": "world"}
     mocked_subprocess_run.assert_called_with(
-        f"gpg -d {TEST_STORE_FILE_PATH}", capture_output=True, check=True, shell=True
+        f"gpg -d {TEST_STORE_FILE_PATH}",
+        capture_output=True,
+        check=True,
+        cwd=None,
+        shell=True,
     )
 
 
@@ -67,6 +71,7 @@ def test_encrypted_store_file_handler_write_data(
         gpg_cmd,
         capture_output=True,
         check=True,
+        cwd=None,
         shell=True,
     )
 

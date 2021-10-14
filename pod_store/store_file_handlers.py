@@ -1,9 +1,9 @@
 import json
 import os
-import subprocess
 from abc import ABC, abstractmethod
 
 from .exc import GPGCommandError
+from .util import run_shell_command
 
 
 class StoreFileHandler(ABC):
@@ -68,7 +68,7 @@ class EncryptedStoreFileHandler(StoreFileHandler):
         """Retrieve encrypted json data from the store file."""
 
         cmd = f"gpg -d {self.store_file_path}"
-        decrypted = self._run_gpg_command(cmd)
+        decrypted = run_shell_command(cmd)
         return json.loads(decrypted)
 
     def write_data(self, data: dict):
@@ -91,7 +91,7 @@ class EncryptedStoreFileHandler(StoreFileHandler):
                 f"--recipient {self._gpg_id} "
                 f"{tmp_file}"
             )
-            self._run_gpg_command(cmd)
+            run_shell_command(cmd)
         except Exception as err:
             os.remove(tmp_file)
             with open(self.store_file_path, "wb") as f:
@@ -99,12 +99,6 @@ class EncryptedStoreFileHandler(StoreFileHandler):
             raise GPGCommandError(str(err))
 
         os.remove(tmp_file)
-
-    @staticmethod
-    def _run_gpg_command(cmd: str):
-        """Helper method to run a GPG command."""
-        proc = subprocess.run(cmd, capture_output=True, check=True, shell=True)
-        return proc.stdout.decode()
 
 
 class UnencryptedStoreFileHandler(StoreFileHandler):
