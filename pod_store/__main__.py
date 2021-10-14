@@ -1,5 +1,5 @@
 import os
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import click
 
@@ -17,7 +17,8 @@ from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFile
 from .util import run_git_command
 
 
-def _abort_if_false(ctx, _, value):
+def _abort_if_false(ctx: click.Context, _, value: Any):
+    """Callback for aborting a Click command from within an argument or option."""
     if not value:
         ctx.abort()
 
