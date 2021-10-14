@@ -6,7 +6,7 @@ from click.testing import CliRunner
 from pod_store.__main__ import cli
 from pod_store.exc import GitCommandError
 
-from . import TEST_PODCAST_DOWNLOADS_PATH, TEST_GPG_ID_FILE_PATH, TEST_STORE_PATH
+from . import TEST_GPG_ID_FILE_PATH, TEST_PODCAST_DOWNLOADS_PATH, TEST_STORE_PATH
 
 
 @pytest.fixture
