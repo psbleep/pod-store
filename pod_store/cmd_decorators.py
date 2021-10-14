@@ -5,12 +5,12 @@ import click
 
 from .exc import (
     EpisodeDoesNotExistError,
-    ShellCommandError,
     GPGCommandError,
     NoEpisodesFoundError,
     NoPodcastsFoundError,
     PodcastDoesNotExistError,
     PodcastExistsError,
+    ShellCommandError,
     StoreExistsError,
 )
 from .util import run_git_command
