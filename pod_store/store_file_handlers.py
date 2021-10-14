@@ -7,12 +7,30 @@ from .exc import GPGCommandError
 
 
 class StoreFileHandler(ABC):
+    """`StoreFileHandler` classes are used to read/write data from the store file.
+
+    They should implement these methods:
+
+        def read_data(self):
+            ...
+
+        def write_data(self, data: dict):
+            ...
+
+    Attributes
+    ----------
+    store_file_path (str): file system location of the store file
+    """
+
     def __init__(self, store_file_path: str):
         self.store_file_path = store_file_path
 
     @classmethod
     def create_store_file(cls, store_file_path: str, store_data: dict = None, **kwargs):
-        """Creates an initial store file while constructing the class."""
+        """Creates an initial store file with the store data provided.
+
+        If no store data is passed in, the store will be initialized as an empty dict.
+        """
         store_data = store_data or {}
 
         file_handler = cls(store_file_path=store_file_path, **kwargs)
@@ -30,7 +48,13 @@ class StoreFileHandler(ABC):
 class EncryptedStoreFileHandler(StoreFileHandler):
     """Class for reading/writing data from an encrypted store file.
 
-    store_file_path (str): file system location of the json file that holds store data.
+    Data is encrypted/decrypted using GPG public/private keys.
+
+    Attributes
+    ----------
+    store_file_path (str): store file location
+
+    _gpg_id (str): used to look up the GPG keys in the keyring
     """
 
     def __init__(self, gpg_id: str, *args, **kwargs):
@@ -78,6 +102,7 @@ class EncryptedStoreFileHandler(StoreFileHandler):
 
     @staticmethod
     def _run_gpg_command(cmd: str):
+        """Helper method to run a GPG command."""
         proc = subprocess.run(cmd, capture_output=True, check=True, shell=True)
         return proc.stdout.decode()
 
