@@ -42,10 +42,10 @@ def test_init_with_git(start_with_no_store, runner):
 
 
 def test_init_with_git_url(start_with_no_store, runner):
-    result = runner.invoke(cli, ["init", "-u", "https://git.foo.bar/pypod-store.git"])
+    result = runner.invoke(cli, ["init", "-u", "https://git.foo.bar/pod-store.git"])
     assert result.exit_code == 0
     assert result.output.endswith(
-        "Git tracking enabled: https://git.foo.bar/pypod-store.git\n"
+        "Git tracking enabled: https://git.foo.bar/pod-store.git\n"
     )
 
 
