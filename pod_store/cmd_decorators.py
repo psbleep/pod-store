@@ -5,7 +5,7 @@ import click
 
 from .exc import (
     EpisodeDoesNotExistError,
-    GitCommandError,
+    ShellCommandError,
     GPGCommandError,
     NoEpisodesFoundError,
     NoPodcastsFoundError,
@@ -28,9 +28,6 @@ def catch_pod_store_errors(f: Callable):
         except EpisodeDoesNotExistError as err:
             msg = str(err)
             click.secho(f"Episode not found: {msg}", fg="red")
-        except GitCommandError as err:
-            msg = str(err)
-            click.secho(f"Error running git command: {msg}", fg="red")
         except GPGCommandError as err:
             msg = str(err)
             click.secho("Error running GPG command: {msg}", fg="red")
@@ -46,6 +43,9 @@ def catch_pod_store_errors(f: Callable):
         except PodcastExistsError as err:
             msg = str(err)
             click.secho(f"Podcast with title already exists: {msg}", fg="red")
+        except ShellCommandError as err:
+            msg = str(err)
+            click.secho(f"Error running shell command: {msg}", fg="red")
         except StoreExistsError as err:
             msg = str(err)
             click.secho(f"Store already initialized: {msg}", fg="red")
@@ -114,7 +114,7 @@ def git_add_and_commit(
             commit_msg = commit_message_builder(ctx.params, *builder_args)
             try:
                 run_git_command(f"commit -m {commit_msg!r}")
-            except GitCommandError:
+            except ShellCommandError:
                 pass
             return resp
 

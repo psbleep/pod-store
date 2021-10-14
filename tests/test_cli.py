@@ -4,7 +4,7 @@ import pytest
 from click.testing import CliRunner
 
 from pod_store.__main__ import cli
-from pod_store.exc import GitCommandError
+from pod_store.exc import ShellCommandError
 
 from . import TEST_GPG_ID_FILE_PATH, TEST_PODCAST_DOWNLOADS_PATH, TEST_STORE_PATH
 
@@ -209,12 +209,12 @@ def test_rm_aborts_if_not_confirmed(runner):
 def test_error_handling_git_command_error(mocker, runner):
     mocker.patch(
         "pod_store.__main__.run_git_command",
-        side_effect=GitCommandError("no such command zzz"),
+        side_effect=ShellCommandError("no such command zzz"),
     )
 
     result = runner.invoke(cli, ["git", "zzz"])
     assert result.exit_code == 0
-    assert "Error running git command" in result.output
+    assert "Error running shell command" in result.output
 
 
 def test_error_handling_no_podcasts_found(runner):

@@ -2,10 +2,6 @@ class EpisodeDoesNotExistError(Exception):
     pass
 
 
-class GitCommandError(Exception):
-    pass
-
-
 class GPGCommandError(Exception):
     pass
 
@@ -23,6 +19,10 @@ class PodcastDoesNotExistError(Exception):
 
 
 class PodcastExistsError(Exception):
+    pass
+
+
+class ShellCommandError(Exception):
     pass
 
 
