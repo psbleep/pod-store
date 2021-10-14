@@ -4,7 +4,7 @@ from subprocess import CalledProcessError
 import pytest
 
 from pod_store import util
-from pod_store.exc import GitCommandError
+from pod_store.exc import ShellCommandError
 
 from . import TEST_STORE_PATH, fake_process
 
@@ -52,5 +52,5 @@ def test_util_run_git_command_encounters_git_error(mocked_subprocess_run):
             )
         }
     )
-    with pytest.raises(GitCommandError):
+    with pytest.raises(ShellCommandError):
         util.run_git_command("zzzzz")

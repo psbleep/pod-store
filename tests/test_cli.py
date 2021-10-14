@@ -4,9 +4,9 @@ import pytest
 from click.testing import CliRunner
 
 from pod_store.__main__ import cli
-from pod_store.exc import GitCommandError
+from pod_store.exc import ShellCommandError
 
-from . import TEST_PODCAST_DOWNLOADS_PATH, TEST_STORE_PATH
+from . import TEST_GPG_ID_FILE_PATH, TEST_PODCAST_DOWNLOADS_PATH, TEST_STORE_PATH
 
 
 @pytest.fixture
@@ -53,6 +53,30 @@ def test_init_with_gpg_id(start_with_no_store, runner):
     result = runner.invoke(cli, ["init", "--no-git", "-g", "foo@bar.com"])
     assert result.exit_code == 0
     assert result.output.endswith("GPG ID set for store encryption.\n")
+
+
+def test_encrypt_store(runner):
+    result = runner.invoke(cli, ["encrypt-store", "foo@bar.com", "--force"])
+    assert result.exit_code == 0
+    assert result.output.endswith("Store encrypted with GPG ID.\n")
+
+
+def test_encrypt_aborts_if_not_confirmed(runner):
+    result = runner.invoke(cli, ["encrypt-store", "foo@bar.com"], input="\n")
+    assert result.exit_code == 1
+
+
+def test_unencrypt_store(runner):
+    with open(TEST_GPG_ID_FILE_PATH, "w") as f:
+        f.write("abc@xyz.com")
+    result = runner.invoke(cli, ["unencrypt-store", "--force"])
+    assert result.exit_code == 0
+    assert result.output.endswith("Store was unencrypted.\n")
+
+
+def test_unencrypt_aborts_if_not_confirmed(runner):
+    result = runner.invoke(cli, ["unencrypt-store"], input="\n")
+    assert result.exit_code == 1
 
 
 def test_add(mocked_run_git_command, runner):
@@ -172,20 +196,25 @@ def test_refresh_single_podcast(mocked_run_git_command, runner):
 
 
 def test_rm(mocked_run_git_command, runner):
-    result = runner.invoke(cli, ["rm", "greetings"])
+    result = runner.invoke(cli, ["rm", "greetings", "--force"])
     assert result.exit_code == 0
     _assert_git_changes_commited(mocked_run_git_command, "Removed podcast: greetings.")
+
+
+def test_rm_aborts_if_not_confirmed(runner):
+    result = runner.invoke(cli, ["rm", "greetings"], input="n\n")
+    assert result.exit_code == 1
 
 
 def test_error_handling_git_command_error(mocker, runner):
     mocker.patch(
         "pod_store.__main__.run_git_command",
-        side_effect=GitCommandError("no such command zzz"),
+        side_effect=ShellCommandError("no such command zzz"),
     )
 
     result = runner.invoke(cli, ["git", "zzz"])
     assert result.exit_code == 0
-    assert "Error running git command" in result.output
+    assert "Error running shell command" in result.output
 
 
 def test_error_handling_no_podcasts_found(runner):

@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 from . import STORE_PATH
-from .exc import GitCommandError
+from .exc import ShellCommandError
 
 
 def parse_datetime_from_json(dt: datetime) -> Optional[datetime]:
@@ -29,11 +29,13 @@ def parse_datetime_to_json(dt: datetime) -> Optional[str]:
 
 
 def run_git_command(cmd):
+    return run_shell_command(f"git {cmd}", cwd=STORE_PATH)
+
+
+def run_shell_command(cmd, cwd=None):
     try:
-        proc = subprocess.run(
-            f"git {cmd}", cwd=STORE_PATH, capture_output=True, check=True, shell=True
-        )
+        proc = subprocess.run(cmd, cwd=cwd, capture_output=True, check=True, shell=True)
         return proc.stdout.decode()
     except subprocess.CalledProcessError as err:
         stderr = err.stderr.decode()
-        raise GitCommandError(f"{cmd}: {stderr}")
+        raise ShellCommandError(f"{cmd}: {stderr}")
