@@ -206,6 +206,15 @@ def test_rm_aborts_if_not_confirmed(runner):
     assert result.exit_code == 1
 
 
+def test_git_add_and_commit_decorated_commands_work_if_git_is_not_set_up(
+    start_with_no_store, mocked_run_git_command, runner
+):
+    runner.invoke(cli, ["init", "--no-git"])
+    result = runner.invoke(cli, ["add", "not-git-tracked", "http://fake.url.com/rss"])
+    assert result.exit_code == 0
+    mocked_run_git_command.assert_not_called()
+
+
 def test_error_handling_gpg_command_error(mocker, runner):
     mocker.patch(
         "pod_store.__main__.run_git_command",

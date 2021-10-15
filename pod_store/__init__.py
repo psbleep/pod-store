@@ -33,6 +33,8 @@ try:
 except FileNotFoundError:
     GPG_ID = None
 
+STORE_GIT_REPO = os.path.join(STORE_PATH, ".git")
+
 PODCAST_DOWNLOADS_PATH = os.path.abspath(
     os.getenv("POD_STORE_PODCAST_DOWNLOADS_PATH", DEFAULT_PODCAST_DOWNLOADS_PATH)
 )
