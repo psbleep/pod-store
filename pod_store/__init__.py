@@ -1,4 +1,15 @@
+"""Encrypted CLI podcast tracker that syncs across devices.
+
+Inspired by `pass`.
+"""
+
 import os
+
+__author__ = "Patrick Schneeweis"
+__docformat__ = "markdown en"
+__license__ = "GPLv3+"
+__title__ = "pod-store"
+__version__ = "0.0.1"
 
 DEFAULT_STORE_PATH = os.path.join(os.path.expanduser("~"), ".pod-store")
 DEFAULT_PODCAST_DOWNLOADS_PATH = os.path.join(os.path.expanduser("~"), "Podcasts")
