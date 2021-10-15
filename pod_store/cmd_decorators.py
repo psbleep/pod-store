@@ -15,6 +15,17 @@ from .exc import (
 )
 from .util import run_git_command
 
+POD_STORE_EXCEPTIONS_AND_ERROR_MESSAGE_TEMPLATES = {
+    EpisodeDoesNotExistError: "Episode not found: {}.",
+    GPGCommandError: "Error encountered when running GPG commands: {}.",
+    NoEpisodesFoundError: "No episodes found. {}",
+    NoPodcastsFoundError: "No podcasts found. {}",
+    PodcastDoesNotExistError: "Podcast not found: {}.",
+    PodcastExistsError: "Podcast with title already exists: {}.",
+    ShellCommandError: "Error running shell command: {}.",
+    StoreExistsError: "Store already initialized: {}.",
+}
+
 
 def catch_pod_store_errors(f: Callable):
     """Decorator for catching pod store errors and rendering a more-friendly error
@@ -25,30 +36,15 @@ def catch_pod_store_errors(f: Callable):
     def catch_pod_store_errors_inner(*args, **kwargs) -> Any:
         try:
             return f(*args, **kwargs)
-        except EpisodeDoesNotExistError as err:
-            msg = str(err)
-            click.secho(f"Episode not found: {msg}", fg="red")
-        except GPGCommandError as err:
-            msg = str(err)
-            click.secho("Error running GPG command: {msg}", fg="red")
-        except NoEpisodesFoundError:
-            click.secho("No episodes found.", fg="red")
-        except NoPodcastsFoundError:
-            click.secho("No podcasts found.", fg="red")
-        except PodcastDoesNotExistError as err:
-            msg = str(err)
-            if msg == "None":
-                msg = "not specified"
-            click.secho(f"Podcast not found: {msg}", fg="red")
-        except PodcastExistsError as err:
-            msg = str(err)
-            click.secho(f"Podcast with title already exists: {msg}", fg="red")
-        except ShellCommandError as err:
-            msg = str(err)
-            click.secho(f"Error running shell command: {msg}", fg="red")
-        except StoreExistsError as err:
-            msg = str(err)
-            click.secho(f"Store already initialized: {msg}", fg="red")
+        except Exception as err:
+            try:
+                error_msg_template = POD_STORE_EXCEPTIONS_AND_ERROR_MESSAGE_TEMPLATES[
+                    err.__class__
+                ]
+                click.secho(error_msg_template.format(str(err)), fg="red")
+                raise click.Abort()
+            except KeyError:
+                raise err
 
     return catch_pod_store_errors_inner
 
