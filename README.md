@@ -10,7 +10,7 @@ This is a very young/alpha-stage project. Use at your own risk, of course.
 
 ## Requirements
 
-Written for Linux environments running Python 3.7 and above. (Tested against 3.7, 3.8 and 3.9). May work on MacOS but probably does not work on Windows. Apart from Python library requirements, `pod-store` requires `git` (for syncing across devices) and `gpg` (for encryption).
+Written for Linux environments running Python 3.7 and above. May work on MacOS but probably does not work on Windows. Apart from Python library requirements, `pod-store` requires `git` (for syncing across devices) and `gpg` (for encryption).
 
 ## Installation
 
