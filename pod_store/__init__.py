@@ -6,10 +6,11 @@ import os
 
 version_file = os.path.join(os.path.dirname(__file__), "VERSION")
 if not os.path.exists(version_file):
-    version = "NOT SET"
+    version = "v0.0.0"
 else:
     with open(version_file) as f:
         version = f.read()
+version = version.lstrip("v")
 
 __author__ = "Patrick Schneeweis"
 __docformat__ = "markdown en"
