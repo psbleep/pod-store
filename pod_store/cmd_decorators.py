@@ -15,7 +15,6 @@ from .exc import (
 )
 from .util import run_git_command
 
-
 POD_STORE_EXCEPTIONS_AND_ERROR_MESSAGE_TEMPLATES = {
     EpisodeDoesNotExistError: "Episode not found: {}.",
     GPGCommandError: "Error encountered when running GPG commands: {}.",
