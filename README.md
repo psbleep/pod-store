@@ -14,7 +14,11 @@ Written for Linux environments running Python 3.7 and above. (Tested against 3.7
 
 ## Installation
 
-Install from the repo using `pip`:
+Install the current release version using `pip`:
+
+    pip install pod-store
+
+Or install directly from the repo using `pip`:
 
     pip install git+https://github.com/psbleep/pod-store.git
 
