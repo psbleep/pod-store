@@ -4,7 +4,7 @@ import pytest
 from click.testing import CliRunner
 
 from pod_store.__main__ import cli
-from pod_store.exc import ShellCommandError
+from pod_store.exc import GPGCommandError, ShellCommandError
 
 from . import TEST_GPG_ID_FILE_PATH, TEST_PODCAST_DOWNLOADS_PATH, TEST_STORE_PATH
 
@@ -164,10 +164,10 @@ def test_mark_bulk(mocked_run_git_command, runner):
 def test_mark_single_podcast_generates_correct_commit_message(
     mocked_run_git_command, runner
 ):
-    result = runner.invoke(cli, ["mark", "-p", "farewell"])
+    result = runner.invoke(cli, ["mark", "-p", "greetings", "--bulk"])
     assert result.exit_code == 0
     _assert_git_changes_commited(
-        mocked_run_git_command, "Marked farewell podcast episodes."
+        mocked_run_git_command, "Marked greetings podcast episodes."
     )
 
 
@@ -206,36 +206,49 @@ def test_rm_aborts_if_not_confirmed(runner):
     assert result.exit_code == 1
 
 
-def test_error_handling_git_command_error(mocker, runner):
+def test_error_handling_gpg_command_error(mocker, runner):
+    mocker.patch(
+        "pod_store.__main__.run_git_command",
+        side_effect=GPGCommandError("you are hacked"),
+    )
+
+    result = runner.invoke(cli, ["git", "zzz"])
+    assert result.exit_code == 1
+    assert (
+        "Error encountered when running GPG commands: you are hacked." in result.output
+    )
+
+
+def test_error_handling_no_podcasts_found(runner):
+    result = runner.invoke(cli, ["ls", "-p", "zzzz"])
+    assert result.exit_code == 1
+    assert "No podcasts found" in result.output
+
+
+def test_error_handling_podcast_does_not_exist(runner):
+    result = runner.invoke(cli, ["ls", "--episodes", "-p", "zzzz"])
+    assert result.exit_code == 1
+    assert "Podcast not found: zzzz" in result.output
+
+
+def test_error_handling_podcast_already_exists(runner):
+    result = runner.invoke(cli, ["mv", "greetings", "farewell"])
+    assert result.exit_code == 1
+    assert "Podcast with title already exists" in result.output
+
+
+def test_error_handling_shell_command_error(mocker, runner):
     mocker.patch(
         "pod_store.__main__.run_git_command",
         side_effect=ShellCommandError("no such command zzz"),
     )
 
     result = runner.invoke(cli, ["git", "zzz"])
-    assert result.exit_code == 0
+    assert result.exit_code == 1
     assert "Error running shell command" in result.output
-
-
-def test_error_handling_no_podcasts_found(runner):
-    result = runner.invoke(cli, ["ls", "-p", "zzzz"])
-    assert result.exit_code == 0
-    assert "No podcasts found" in result.output
-
-
-def test_error_handling_podcast_does_not_exist(runner):
-    result = runner.invoke(cli, ["ls", "--episodes", "-p", "zzzz"])
-    assert result.exit_code == 0
-    assert "Podcast not found: zzzz" in result.output
-
-
-def test_error_handling_podcast_already_exists(runner):
-    result = runner.invoke(cli, ["mv", "greetings", "farewell"])
-    assert result.exit_code == 0
-    assert "Podcast with title already exists" in result.output
 
 
 def test_error_handling_store_already_exists(runner):
     result = runner.invoke(cli, ["init"])
-    assert result.exit_code == 0
+    assert result.exit_code == 1
     assert "Store already initialized" in result.output
