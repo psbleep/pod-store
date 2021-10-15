@@ -1,4 +1,4 @@
-name: Upload Python Package
+name: release pypi package version
 
 on:
   release:
@@ -6,11 +6,13 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
+    - name: Set version
+      run: echo ${{ github.event.release.tag_name }} > pod_store/VERSION
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip

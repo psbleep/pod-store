@@ -26,7 +26,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-pod_store/_version.py
+pod_store/VERSION
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
