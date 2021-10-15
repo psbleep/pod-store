@@ -1,8 +1,10 @@
 import functools
+import os
 from typing import Any, Callable
 
 import click
 
+from . import STORE_GIT_REPO
 from .exc import (
     EpisodeDoesNotExistError,
     GPGCommandError,
@@ -64,7 +66,10 @@ def git_add_and_commit(
     *builder_args,
     commit_message_builder: Callable = _default_commit_message_builder,
 ):
-    """Decorator for checking in and commiting changes made after running a command.
+    """Decorator for checking in and commiting git changes made after running a command.
+
+    If no git repo is detected within the pod store, this will be a no-op.
+
     Requires the `click.Context` object as a first argument to the decorated function.
     (see `click.pass_context`)
 
@@ -106,6 +111,9 @@ def git_add_and_commit(
         @functools.wraps(f)
         def git_add_and_commit_inner(ctx: click.Context, *args, **kwargs) -> Any:
             resp = f(ctx, *args, **kwargs)
+            if not os.path.exists(STORE_GIT_REPO):
+                return resp
+
             run_git_command("add .")
             commit_msg = commit_message_builder(ctx.params, *builder_args)
             try:

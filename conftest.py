@@ -22,6 +22,7 @@ def setup_test_store_data_and_downloads_path(request, store_podcasts_data):
     cleanup()
 
     os.makedirs(TEST_STORE_PATH)
+    os.makedirs(os.path.join(TEST_STORE_PATH, ".git"))  # register as "git enabled"
     os.makedirs(TEST_PODCAST_DOWNLOADS_PATH)
     with open(TEST_STORE_FILE_PATH, "w") as f:
         json.dump(store_podcasts_data, f, indent=2)
