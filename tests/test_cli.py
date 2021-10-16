@@ -11,7 +11,7 @@ from . import TEST_GPG_ID_FILE_PATH, TEST_PODCAST_DOWNLOADS_PATH, TEST_STORE_PAT
 
 @pytest.fixture
 def mocked_run_git_command(mocker):
-    return mocker.patch("pod_store.cmd_decorators.run_git_command")
+    return mocker.patch("pod_store.commands.decorators.run_git_command")
 
 
 def _assert_git_changes_commited(mocked: Mock, commit_msg: str):
