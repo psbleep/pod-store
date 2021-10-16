@@ -190,8 +190,8 @@ def ls(ctx: click.Context, new: bool, episodes: bool, podcast: Optional[str]) ->
             )
             if not eps:
                 continue
-            click.echo(pod.title)
-            click.echo("{}\n".format("\n".join([str(e) for e in eps])))
+            eps_listing = "\n".join([str(e) for e in eps])
+            click.echo(f"{pod.title}\n{eps_listing}\n")
     else:
         click.echo("\n".join([str(p) for p in podcasts]))
 
