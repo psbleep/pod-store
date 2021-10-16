@@ -5,7 +5,6 @@ import click
 from ..episodes import Episode
 from ..podcasts import Podcast
 
-
 INTERACTIVE_MODE_HELP = """Marking in interactive mode. Options are:
 
     y = yes (mark as downloaded)
