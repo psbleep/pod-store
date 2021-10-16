@@ -10,7 +10,7 @@ from .commands.decorators import (
     optional_podcast_commit_message_builder,
     save_store_changes,
 )
-from .commands.helpers import abort_if_false, get_podcasts
+from .commands.helpers import abort_if_false, get_episodes, get_podcasts
 from .episodes import Episode
 from .podcasts import Podcast
 from .store import Store
@@ -189,32 +189,21 @@ def ls(ctx: click.Context, new: bool, episodes: bool, podcast: Optional[str]) ->
     the provided flags and command options.
     """
     store = ctx.obj
+    episodes = episodes or podcast
+
+    podcasts = get_podcasts(store=store, has_new_episodes=new, title=podcast)
 
     if episodes:
-        if podcast:
-            podcasts = [store.podcasts.get(podcast)]
-        else:
-            podcasts = store.podcasts.list(allow_empty=False)
-
-        episode_filters = {}
-        if new:
-            episode_filters["downloaded_at"] = None
-
-        entries = []
         for pod in podcasts:
-            pod_episodes = pod.episodes.list(**episode_filters)
-            if not pod_episodes:
+            eps = get_episodes(
+                store=store, new=new, podcast_title=pod.title, allow_empty=True
+            )
+            if not eps:
                 continue
-            entries.append(f"{pod.title}\n")
-            entries.extend([str(e) for e in pod_episodes])
-            entries.append("\n")
-        entries = entries[:-1]
-
+            click.echo(pod.title)
+            click.echo("{}\n".format("\n".join([str(e) for e in eps])))
     else:
-        podcasts = get_podcasts(store=store, has_new_episodes=new, title=podcast)
-        entries = [str(p) for p in podcasts]
-
-    click.echo("\n".join(entries))
+        click.echo("\n".join([str(p) for p in podcasts]))
 
 
 @cli.command()
