@@ -1,26 +1,21 @@
 import os
-from typing import Any, List, Optional
+from typing import Optional
 
 import click
 
 from . import GPG_ID, PODCAST_DOWNLOADS_PATH, STORE_FILE_PATH, STORE_PATH
-from .cmd_decorators import (
+from .commands.decorators import (
     catch_pod_store_errors,
     git_add_and_commit,
     optional_podcast_commit_message_builder,
     save_store_changes,
 )
-from .episodes import Episode
-from .podcasts import Podcast
+from .commands.helpers import abort_if_false, get_episodes, get_podcasts
+from .commands.ls import list_podcast_episodes
+from .commands.mark import INTERACTIVE_MODE_HELP, handle_episode_marking
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
 from .util import run_git_command
-
-
-def _abort_if_false(ctx: click.Context, _, value: Any):
-    """Callback for aborting a Click command from within an argument or option."""
-    if not value:
-        ctx.abort()
 
 
 @click.group()
@@ -33,6 +28,7 @@ def cli(ctx) -> None:
             )
         else:
             file_handler = UnencryptedStoreFileHandler(store_file_path=STORE_FILE_PATH)
+
         ctx.obj = Store(
             store_path=STORE_PATH,
             podcast_downloads_path=PODCAST_DOWNLOADS_PATH,
@@ -82,7 +78,7 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]) -> None:
     "-f",
     "--force",
     is_flag=True,
-    callback=_abort_if_false,
+    callback=abort_if_false,
     expose_value=False,
     prompt="Are you sure you want to encrypt the pod store?",
 )
@@ -101,7 +97,7 @@ def encrypt_store(ctx: click.Context, gpg_id: str):
     "-f",
     "--force",
     is_flag=True,
-    callback=_abort_if_false,
+    callback=abort_if_false,
     expose_value=False,
     prompt="Are you sure you want to unencrypt the pod store?",
 )
@@ -148,21 +144,11 @@ def add(ctx: click.Context, title: str, feed: str) -> None:
 def download(ctx: click.Context, podcast: Optional[str]) -> None:
     """Download podcast episode(s)"""
     store = ctx.obj
+    episodes = get_episodes(store=store, new=True, podcast_title=podcast)
 
-    podcast_filters = {"has_new_episodes": True}
-    if podcast:
-        podcast_filters["title"] = podcast
-
-    podcasts = store.podcasts.list(allow_empty=False, **podcast_filters)
-    _download_podcast_episodes(podcasts)
-
-
-def _download_podcast_episodes(podcasts: List[Podcast]) -> None:
-    """Helper method for downloading all new episodes for a batch of podcasts."""
-    for pod in podcasts:
-        for episode in pod.episodes.list(downloaded_at=None):
-            click.echo(f"Downloading {pod.title} -> {episode.title}")
-            episode.download()
+    for ep in episodes:
+        click.echo(f"Downloading: {ep.download_path}")
+        ep.download()
 
 
 @cli.command()
@@ -195,37 +181,21 @@ def ls(ctx: click.Context, new: bool, episodes: bool, podcast: Optional[str]) ->
     """
     store = ctx.obj
 
-    if episodes:
-        if podcast:
-            podcasts = [store.podcasts.get(podcast)]
-        else:
-            podcasts = store.podcasts.list(allow_empty=False)
+    # assume we are listing episodes if an individual podcast was specified
+    list_episodes = episodes or podcast
 
-        episode_filters = {}
-        if new:
-            episode_filters["downloaded_at"] = None
+    podcasts = get_podcasts(store=store, has_new_episodes=new, title=podcast)
 
-        entries = []
+    if list_episodes:
         for pod in podcasts:
-            pod_episodes = pod.episodes.list(**episode_filters)
-            if not pod_episodes:
-                continue
-            entries.append(f"{pod.title}\n")
-            entries.extend([str(e) for e in pod_episodes])
-            entries.append("\n")
-        entries = entries[:-1]
-
+            episode_listing = list_podcast_episodes(
+                store=store, new=new, podcast_title=pod.title
+            )
+            if episode_listing:
+                click.echo(episode_listing)
     else:
-        podcast_filters = {}
-        if podcast:
-            podcast_filters["title"] = podcast
-        if new:
-            podcast_filters["has_new_episodes"] = True
-        entries = [
-            str(p) for p in store.podcasts.list(allow_empty=False, **podcast_filters)
-        ]
-
-    click.echo("\n".join(entries))
+        podcast_listing = "\n".join([str(p) for p in podcasts])
+        click.echo(podcast_listing)
 
 
 @cli.command()
@@ -250,52 +220,21 @@ def ls(ctx: click.Context, new: bool, episodes: bool, podcast: Optional[str]) ->
 def mark(ctx: click.Context, podcast: Optional[str], interactive: bool) -> None:
     """Mark 'new' episodes as old."""
     store = ctx.obj
-
-    podcast_filters = {"has_new_episodes": True}
-    if podcast:
-        podcast_filters["title"] = podcast
-
-    podcasts = store.podcasts.list(allow_empty=False, **podcast_filters)
+    podcasts = get_podcasts(store=store, has_new_episodes=True, title=podcast)
 
     if interactive:
-        click.echo(
-            "Marking in interactive mode. Options are:\n\n"
-            "y = yes (mark as downloaded)\n"
-            "n = no (do not mark as downloaded)\n"
-            "b = bulk (mark this and all following episodes as 'downloaded')\n"
-        )
+        click.echo(INTERACTIVE_MODE_HELP)
 
     for pod in podcasts:
-        for episode in pod.episodes.list(downloaded_at=None):
-            if interactive:
-                confirm, interactive = _mark_episode_interactively(pod, episode)
-            else:
-                confirm = True
-
-            if confirm:
-                click.echo(
-                    f"Marking {pod.title} -> [{episode.episode_number}] {episode.title}"
-                )
-                episode.mark_as_downloaded()
-
-
-def _mark_episode_interactively(podcast: Podcast, episode: Episode) -> (bool, bool):
-    interactive = True
-
-    result = click.prompt(
-        f"{podcast.title}: [{episode.episode_number}] {episode.title}",
-        type=click.Choice(["y", "n", "b"], case_sensitive=False),
-    )
-
-    if result == "y":
-        confirm = True
-    elif result == "n":
-        confirm = False
-    else:
-        confirm = True
-        interactive = False
-
-    return confirm, interactive
+        for ep in pod.episodes.list(downloaded_at=None):
+            # `interactive` can get switched from True -> False here, if the user
+            # decides to switch from interactive to bulk-assignment partway through
+            # the list of episodes.
+            marked, interactive = handle_episode_marking(
+                interactive_mode=interactive, podcast=pod, episode=ep
+            )
+            if marked:
+                click.echo(f"Marked {pod.title} -> [{ep.episode_number}] {ep.title}")
 
 
 @cli.command()
@@ -325,11 +264,7 @@ def mv(ctx: click.Context, old: str, new: str) -> None:
 def refresh(ctx: click.Context, podcast: Optional[str]) -> None:
     """Refresh podcast data from RSS feeds."""
     store = ctx.obj
-
-    if podcast:
-        podcasts = [store.podcasts.get(podcast)]
-    else:
-        podcasts = store.podcasts.list(allow_empty=False)
+    podcasts = get_podcasts(store=store, title=podcast)
 
     for podcast in podcasts:
         click.echo(f"Refreshing {podcast.title}")
@@ -343,7 +278,7 @@ def refresh(ctx: click.Context, podcast: Optional[str]) -> None:
     "-f",
     "--force",
     is_flag=True,
-    callback=_abort_if_false,
+    callback=abort_if_false,
     expose_value=False,
     prompt="Are you sure you want to delete this podcast?",
 )

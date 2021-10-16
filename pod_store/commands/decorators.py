@@ -1,11 +1,13 @@
+"""Decorators used on the Click commands defined in `pod_store.__main__`."""
+
 import functools
 import os
 from typing import Any, Callable
 
 import click
 
-from . import STORE_GIT_REPO
-from .exc import (
+from .. import STORE_GIT_REPO
+from ..exc import (
     EpisodeDoesNotExistError,
     GPGCommandError,
     NoEpisodesFoundError,
@@ -15,7 +17,7 @@ from .exc import (
     ShellCommandError,
     StoreExistsError,
 )
-from .util import run_git_command
+from ..util import run_git_command
 
 POD_STORE_EXCEPTIONS_AND_ERROR_MESSAGE_TEMPLATES = {
     EpisodeDoesNotExistError: "Episode not found: {}.",

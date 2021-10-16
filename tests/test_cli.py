@@ -1,3 +1,4 @@
+import os
 from unittest.mock import Mock, call
 
 import pytest
@@ -6,12 +7,21 @@ from click.testing import CliRunner
 from pod_store.__main__ import cli
 from pod_store.exc import GPGCommandError, ShellCommandError
 
-from . import TEST_GPG_ID_FILE_PATH, TEST_PODCAST_DOWNLOADS_PATH, TEST_STORE_PATH
+from . import (
+    TEST_GPG_ID_FILE_PATH,
+    TEST_PODCAST_DOWNLOADS_PATH,
+    TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
+    TEST_STORE_PATH,
+)
+
+TEST_EPISODE_DOWNLOAD_PATH = os.path.join(
+    TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0023-hello.mp3"
+)
 
 
 @pytest.fixture
 def mocked_run_git_command(mocker):
-    return mocker.patch("pod_store.cmd_decorators.run_git_command")
+    return mocker.patch("pod_store.commands.decorators.run_git_command")
 
 
 def _assert_git_changes_commited(mocked: Mock, commit_msg: str):
@@ -89,14 +99,14 @@ def test_add(mocked_run_git_command, runner):
 def test_download_all_podcast_episodes(mocked_run_git_command, runner):
     result = runner.invoke(cli, ["download"])
     assert result.exit_code == 0
-    assert result.output == "Downloading greetings -> hello\n"
+    assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}\n"
     _assert_git_changes_commited(mocked_run_git_command, "Downloaded all new episodes.")
 
 
 def test_download_single_podcast_episodes(mocked_run_git_command, runner):
     result = runner.invoke(cli, ["download", "-p", "greetings"])
     assert result.exit_code == 0
-    assert result.output == "Downloading greetings -> hello\n"
+    assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}\n"
     _assert_git_changes_commited(
         mocked_run_git_command, "Downloaded greetings new episodes."
     )
@@ -117,31 +127,31 @@ def test_ls_podcasts_with_new_episodes(runner):
 def test_ls_all_podcast_episodes(runner):
     result = runner.invoke(cli, ["ls", "--episodes", "-p", "greetings", "--all"])
     assert result.exit_code == 0
-    assert result.output == "greetings\n\n[0023] hello \n[0011] goodbye [X]\n"
+    assert result.output == "greetings\n[0023] hello \n[0011] goodbye [X]\n\n"
 
 
 def test_ls_new_podcast_episodes(runner):
     result = runner.invoke(cli, ["ls", "--episodes", "-p", "greetings", "--new"])
     assert result.exit_code == 0
-    assert result.output == "greetings\n\n[0023] hello \n"
+    assert result.output == "greetings\n[0023] hello \n\n"
 
 
 def test_ls_all_episodes(runner):
     result = runner.invoke(cli, ["ls", "--episodes", "--all"])
     assert result.exit_code == 0
-    assert result.output == "greetings\n\n[0023] hello \n[0011] goodbye [X]\n"
+    assert result.output == "greetings\n[0023] hello \n[0011] goodbye [X]\n\n"
 
 
 def test_ls_new_episodes(runner):
     result = runner.invoke(cli, ["ls", "--episodes", "--new"])
     assert result.exit_code == 0
-    assert result.output == "greetings\n\n[0023] hello \n"
+    assert result.output == "greetings\n[0023] hello \n\n"
 
 
 def test_mark_interactive_marks_when_confirmed(mocked_run_git_command, runner):
     result = runner.invoke(cli, ["mark", "--interactive"], input="y\n")
     assert result.exit_code == 0
-    assert result.output.endswith("Marking greetings -> [0023] hello\n")
+    assert result.output.endswith("Marked greetings -> [0023] hello\n")
     _assert_git_changes_commited(mocked_run_git_command, "Marked all podcast episodes.")
 
 
@@ -154,10 +164,17 @@ def test_mark_interactive_does_not_mark_when_not_confirmed(
     _assert_git_changes_commited(mocked_run_git_command, "Marked all podcast episodes.")
 
 
+def test_mark_interactive_aborts_when_quit(runner):
+    result = runner.invoke(cli, ["mark", "--interactive"], input="q\n")
+    assert result.exit_code == 1
+    assert "Aborted!" in result.output
+    assert "Marking greetings" not in result.output
+
+
 def test_mark_bulk(mocked_run_git_command, runner):
     result = runner.invoke(cli, ["mark", "--bulk"])
     assert result.exit_code == 0
-    assert result.output.endswith("Marking greetings -> [0023] hello\n")
+    assert result.output.endswith("Marked greetings -> [0023] hello\n")
     _assert_git_changes_commited(mocked_run_git_command, "Marked all podcast episodes.")
 
 
@@ -232,12 +249,6 @@ def test_error_handling_no_podcasts_found(runner):
     result = runner.invoke(cli, ["ls", "-p", "zzzz"])
     assert result.exit_code == 1
     assert "No podcasts found" in result.output
-
-
-def test_error_handling_podcast_does_not_exist(runner):
-    result = runner.invoke(cli, ["ls", "--episodes", "-p", "zzzz"])
-    assert result.exit_code == 1
-    assert "Podcast not found: zzzz" in result.output
 
 
 def test_error_handling_podcast_already_exists(runner):
