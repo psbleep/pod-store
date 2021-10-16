@@ -211,7 +211,7 @@ def ls(ctx: click.Context, new: bool, episodes: bool, podcast: Optional[str]) ->
         entries = entries[:-1]
 
     else:
-        podcasts = get_podcasts(store=store, with_new_episodes=new, title=podcast)
+        podcasts = get_podcasts(store=store, has_new_episodes=new, title=podcast)
         entries = [str(p) for p in podcasts]
 
     click.echo("\n".join(entries))

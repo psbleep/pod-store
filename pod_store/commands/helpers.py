@@ -14,7 +14,7 @@ def abort_if_false(ctx: click.Context, _, value: Any):
 
 def get_podcasts(
     store: Store,
-    with_new_episodes: Optional[bool] = None,
+    has_new_episodes: Optional[bool] = None,
     title: Optional[str] = None,
     allow_empty: bool = False,
 ) -> List[Podcast]:
@@ -23,7 +23,7 @@ def get_podcasts(
     Builds the filters used by the `pod_store.Store.StorePodcasts.list` method.
     """
     podcast_filters = {}
-    if with_new_episodes:
+    if has_new_episodes:
         podcast_filters["has_new_episodes"] = True
     if title:
         podcast_filters["title"] = title
