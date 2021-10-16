@@ -10,7 +10,7 @@ from .commands.decorators import (
     optional_podcast_commit_message_builder,
     save_store_changes,
 )
-from .commands.helpers import abort_if_false
+from .commands.helpers import abort_if_false, get_podcasts
 from .episodes import Episode
 from .podcasts import Podcast
 from .store import Store
@@ -211,14 +211,8 @@ def ls(ctx: click.Context, new: bool, episodes: bool, podcast: Optional[str]) ->
         entries = entries[:-1]
 
     else:
-        podcast_filters = {}
-        if podcast:
-            podcast_filters["title"] = podcast
-        if new:
-            podcast_filters["has_new_episodes"] = True
-        entries = [
-            str(p) for p in store.podcasts.list(allow_empty=False, **podcast_filters)
-        ]
+        podcasts = get_podcasts(store=store, with_new_episodes=new, title=podcast)
+        entries = [str(p) for p in podcasts]
 
     click.echo("\n".join(entries))
 
