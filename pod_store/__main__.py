@@ -1,5 +1,5 @@
 import os
-from typing import List, Optional
+from typing import Optional
 
 import click
 
@@ -143,21 +143,11 @@ def add(ctx: click.Context, title: str, feed: str) -> None:
 def download(ctx: click.Context, podcast: Optional[str]) -> None:
     """Download podcast episode(s)"""
     store = ctx.obj
+    episodes = get_episodes(store=store, new=True, podcast_title=podcast)
 
-    podcast_filters = {"has_new_episodes": True}
-    if podcast:
-        podcast_filters["title"] = podcast
-
-    podcasts = store.podcasts.list(allow_empty=False, **podcast_filters)
-    _download_podcast_episodes(podcasts)
-
-
-def _download_podcast_episodes(podcasts: List[Podcast]) -> None:
-    """Helper method for downloading all new episodes for a batch of podcasts."""
-    for pod in podcasts:
-        for episode in pod.episodes.list(downloaded_at=None):
-            click.echo(f"Downloading {pod.title} -> {episode.title}")
-            episode.download()
+    for ep in episodes:
+        click.echo(f"Downloading: {ep.download_path}")
+        ep.download()
 
 
 @cli.command()

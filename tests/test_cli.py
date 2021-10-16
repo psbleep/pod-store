@@ -1,3 +1,4 @@
+import os
 from unittest.mock import Mock, call
 
 import pytest
@@ -6,7 +7,16 @@ from click.testing import CliRunner
 from pod_store.__main__ import cli
 from pod_store.exc import GPGCommandError, ShellCommandError
 
-from . import TEST_GPG_ID_FILE_PATH, TEST_PODCAST_DOWNLOADS_PATH, TEST_STORE_PATH
+from . import (
+    TEST_GPG_ID_FILE_PATH,
+    TEST_PODCAST_DOWNLOADS_PATH,
+    TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
+    TEST_STORE_PATH,
+)
+
+TEST_EPISODE_DOWNLOAD_PATH = os.path.join(
+    TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0023-hello.mp3"
+)
 
 
 @pytest.fixture
@@ -89,14 +99,14 @@ def test_add(mocked_run_git_command, runner):
 def test_download_all_podcast_episodes(mocked_run_git_command, runner):
     result = runner.invoke(cli, ["download"])
     assert result.exit_code == 0
-    assert result.output == "Downloading greetings -> hello\n"
+    assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}\n"
     _assert_git_changes_commited(mocked_run_git_command, "Downloaded all new episodes.")
 
 
 def test_download_single_podcast_episodes(mocked_run_git_command, runner):
     result = runner.invoke(cli, ["download", "-p", "greetings"])
     assert result.exit_code == 0
-    assert result.output == "Downloading greetings -> hello\n"
+    assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}\n"
     _assert_git_changes_commited(
         mocked_run_git_command, "Downloaded greetings new episodes."
     )
