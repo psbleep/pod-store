@@ -164,6 +164,13 @@ def test_mark_interactive_does_not_mark_when_not_confirmed(
     _assert_git_changes_commited(mocked_run_git_command, "Marked all podcast episodes.")
 
 
+def test_mark_interactive_aborts_when_quit(runner):
+    result = runner.invoke(cli, ["mark", "--interactive"], input="q\n")
+    assert result.exit_code == 1
+    assert "Aborted!" in result.output
+    assert "Marking greetings" not in result.output
+
+
 def test_mark_bulk(mocked_run_git_command, runner):
     result = runner.invoke(cli, ["mark", "--bulk"])
     assert result.exit_code == 0

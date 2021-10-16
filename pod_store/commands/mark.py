@@ -11,6 +11,7 @@ INTERACTIVE_MODE_HELP = """Marking in interactive mode. Options are:
     y = yes (mark as downloaded)
     n = no (do not mark as downloaded)
     b = bulk (mark this and all following episodes as 'downloaded')
+    q = quit (stop marking episodes)
 """
 
 
@@ -52,13 +53,15 @@ def _mark_episode_interactively(podcast: Podcast, episode: Episode) -> (bool, bo
 
     result = click.prompt(
         f"{podcast.title}: [{episode.episode_number}] {episode.title}",
-        type=click.Choice(["y", "n", "b"], case_sensitive=False),
+        type=click.Choice(["y", "n", "b", "q"], case_sensitive=False),
     )
 
     if result == "y":
         confirm = True
     elif result == "n":
         confirm = False
+    elif result == "q":
+        raise click.Abort()
     else:
         confirm = True
         interactive = False
