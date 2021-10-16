@@ -309,11 +309,7 @@ def mv(ctx: click.Context, old: str, new: str) -> None:
 def refresh(ctx: click.Context, podcast: Optional[str]) -> None:
     """Refresh podcast data from RSS feeds."""
     store = ctx.obj
-
-    if podcast:
-        podcasts = [store.podcasts.get(podcast)]
-    else:
-        podcasts = store.podcasts.list(allow_empty=False)
+    podcasts = get_podcasts(store=store, title=podcast)
 
     for podcast in podcasts:
         click.echo(f"Refreshing {podcast.title}")
