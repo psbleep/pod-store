@@ -11,6 +11,7 @@ from .commands.decorators import (
     save_store_changes,
 )
 from .commands.helpers import abort_if_false, get_episodes, get_podcasts
+from .commands.ls import list_podcast_episodes
 from .commands.mark import INTERACTIVE_MODE_HELP, handle_episode_marking
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
@@ -187,15 +188,14 @@ def ls(ctx: click.Context, new: bool, episodes: bool, podcast: Optional[str]) ->
 
     if list_episodes:
         for pod in podcasts:
-            eps = get_episodes(
-                store=store, new=new, podcast_title=pod.title, allow_empty=True
+            episode_listing = list_podcast_episodes(
+                store=store, new=new, podcast_title=pod.title
             )
-            if not eps:
-                continue
-            eps_listing = "\n".join([str(e) for e in eps])
-            click.echo(f"{pod.title}\n{eps_listing}\n")
+            if episode_listing:
+                click.echo(episode_listing)
     else:
-        click.echo("\n".join([str(p) for p in podcasts]))
+        podcast_listing = "\n".join([str(p) for p in podcasts])
+        click.echo(podcast_listing)
 
 
 @cli.command()
