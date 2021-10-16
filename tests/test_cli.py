@@ -151,7 +151,7 @@ def test_ls_new_episodes(runner):
 def test_mark_interactive_marks_when_confirmed(mocked_run_git_command, runner):
     result = runner.invoke(cli, ["mark", "--interactive"], input="y\n")
     assert result.exit_code == 0
-    assert result.output.endswith("Marking greetings -> [0023] hello\n")
+    assert result.output.endswith("Marked greetings -> [0023] hello\n")
     _assert_git_changes_commited(mocked_run_git_command, "Marked all podcast episodes.")
 
 
@@ -167,7 +167,7 @@ def test_mark_interactive_does_not_mark_when_not_confirmed(
 def test_mark_bulk(mocked_run_git_command, runner):
     result = runner.invoke(cli, ["mark", "--bulk"])
     assert result.exit_code == 0
-    assert result.output.endswith("Marking greetings -> [0023] hello\n")
+    assert result.output.endswith("Marked greetings -> [0023] hello\n")
     _assert_git_changes_commited(mocked_run_git_command, "Marked all podcast episodes.")
 
 

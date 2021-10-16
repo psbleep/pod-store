@@ -11,8 +11,7 @@ from .commands.decorators import (
     save_store_changes,
 )
 from .commands.helpers import abort_if_false, get_episodes, get_podcasts
-from .episodes import Episode
-from .podcasts import Podcast
+from .commands.mark import INTERACTIVE_MODE_HELP, handle_episode_marking
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
 from .util import run_git_command
@@ -221,44 +220,18 @@ def mark(ctx: click.Context, podcast: Optional[str], interactive: bool) -> None:
     podcasts = get_podcasts(store=store, has_new_episodes=True, title=podcast)
 
     if interactive:
-        click.echo(
-            "Marking in interactive mode. Options are:\n\n"
-            "y = yes (mark as downloaded)\n"
-            "n = no (do not mark as downloaded)\n"
-            "b = bulk (mark this and all following episodes as 'downloaded')\n"
-        )
+        click.echo(INTERACTIVE_MODE_HELP)
 
     for pod in podcasts:
-        for episode in pod.episodes.list(downloaded_at=None):
-            if interactive:
-                confirm, interactive = _mark_episode_interactively(pod, episode)
-            else:
-                confirm = True
-
-            if confirm:
-                click.echo(
-                    f"Marking {pod.title} -> [{episode.episode_number}] {episode.title}"
-                )
-                episode.mark_as_downloaded()
-
-
-def _mark_episode_interactively(podcast: Podcast, episode: Episode) -> (bool, bool):
-    interactive = True
-
-    result = click.prompt(
-        f"{podcast.title}: [{episode.episode_number}] {episode.title}",
-        type=click.Choice(["y", "n", "b"], case_sensitive=False),
-    )
-
-    if result == "y":
-        confirm = True
-    elif result == "n":
-        confirm = False
-    else:
-        confirm = True
-        interactive = False
-
-    return confirm, interactive
+        for ep in pod.episodes.list(downloaded_at=None):
+            # `interactive` can get switched from True -> False here, if the user
+            # decides to switch from interactive to bulk-assignment partway through
+            # the list of episodes.
+            marked, interactive = handle_episode_marking(
+                interactive_mode=interactive, podcast=pod, episode=ep
+            )
+            if marked:
+                click.echo(f"Marked {pod.title} -> [{ep.episode_number}] {ep.title}")
 
 
 @cli.command()
