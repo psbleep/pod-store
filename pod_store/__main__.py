@@ -1,5 +1,5 @@
 import os
-from typing import Any, List, Optional
+from typing import List, Optional
 
 import click
 
@@ -10,17 +10,12 @@ from .commands.decorators import (
     optional_podcast_commit_message_builder,
     save_store_changes,
 )
+from .commands.helpers import abort_if_false
 from .episodes import Episode
 from .podcasts import Podcast
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
 from .util import run_git_command
-
-
-def _abort_if_false(ctx: click.Context, _, value: Any):
-    """Callback for aborting a Click command from within an argument or option."""
-    if not value:
-        ctx.abort()
 
 
 @click.group()
@@ -82,7 +77,7 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]) -> None:
     "-f",
     "--force",
     is_flag=True,
-    callback=_abort_if_false,
+    callback=abort_if_false,
     expose_value=False,
     prompt="Are you sure you want to encrypt the pod store?",
 )
@@ -101,7 +96,7 @@ def encrypt_store(ctx: click.Context, gpg_id: str):
     "-f",
     "--force",
     is_flag=True,
-    callback=_abort_if_false,
+    callback=abort_if_false,
     expose_value=False,
     prompt="Are you sure you want to unencrypt the pod store?",
 )
@@ -343,7 +338,7 @@ def refresh(ctx: click.Context, podcast: Optional[str]) -> None:
     "-f",
     "--force",
     is_flag=True,
-    callback=_abort_if_false,
+    callback=abort_if_false,
     expose_value=False,
     prompt="Are you sure you want to delete this podcast?",
 )
