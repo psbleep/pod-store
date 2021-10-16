@@ -1,4 +1,4 @@
-"""Helpers for the `mark` command."""
+"""Helpers for the `mark` Click command defined in `pod_store.__main__`."""
 
 import click
 

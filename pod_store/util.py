@@ -1,3 +1,5 @@
+"""Utility functions used in more than one place."""
+
 import subprocess
 from datetime import datetime
 from typing import Optional

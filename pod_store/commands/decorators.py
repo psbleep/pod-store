@@ -1,3 +1,5 @@
+"""Decorators used on the Click commands defined in `pod_store.__main__`."""
+
 import functools
 import os
 from typing import Any, Callable
