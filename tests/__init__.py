@@ -11,8 +11,5 @@ TEST_PODCAST_DOWNLOADS_PATH = os.path.join(
 TEST_PODCAST_EPISODE_DOWNLOADS_PATH = os.path.join(
     TEST_PODCAST_DOWNLOADS_PATH, "greetings"
 )
-TEST_EPISODE_DOWNLOAD_PATH = os.path.join(
-    TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0023-hello.mp3"
-)
 
 fake_process = namedtuple("FakeProc", ["stdout", "stderr"])
