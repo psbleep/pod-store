@@ -239,12 +239,7 @@ def ls(ctx: click.Context, new: bool, episodes: bool, podcast: Optional[str]) ->
 def mark(ctx: click.Context, podcast: Optional[str], interactive: bool) -> None:
     """Mark 'new' episodes as old."""
     store = ctx.obj
-
-    podcast_filters = {"has_new_episodes": True}
-    if podcast:
-        podcast_filters["title"] = podcast
-
-    podcasts = store.podcasts.list(allow_empty=False, **podcast_filters)
+    podcasts = get_podcasts(store=store, has_new_episodes=True, title=podcast)
 
     if interactive:
         click.echo(
