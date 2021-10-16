@@ -18,7 +18,7 @@ def get_podcasts(
     title: Optional[str] = None,
     allow_empty: bool = False,
 ) -> List[Podcast]:
-    """Helper method for filtering a list of podcasts in the store from command args.
+    """Helper method for filtering a list of podcasts in the store from cli args.
 
     Builds the filters used by the `pod_store.Store.StorePodcasts.list` method.
     """
