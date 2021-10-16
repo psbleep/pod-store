@@ -27,6 +27,7 @@ def cli(ctx) -> None:
             )
         else:
             file_handler = UnencryptedStoreFileHandler(store_file_path=STORE_FILE_PATH)
+
         ctx.obj = Store(
             store_path=STORE_PATH,
             podcast_downloads_path=PODCAST_DOWNLOADS_PATH,
@@ -178,11 +179,13 @@ def ls(ctx: click.Context, new: bool, episodes: bool, podcast: Optional[str]) ->
     the provided flags and command options.
     """
     store = ctx.obj
-    episodes = episodes or podcast
+
+    # assume we are listing episodes if an individual podcast was specified
+    list_episodes = episodes or podcast
 
     podcasts = get_podcasts(store=store, has_new_episodes=new, title=podcast)
 
-    if episodes:
+    if list_episodes:
         for pod in podcasts:
             eps = get_episodes(
                 store=store, new=new, podcast_title=pod.title, allow_empty=True
