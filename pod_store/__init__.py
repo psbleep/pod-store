@@ -2,7 +2,7 @@
 import os
 
 # The version is set automatically within the Github action for building a new
-# PyPI release: `pod-store./github/workflows/release.yml`
+# PyPI release: `pod_store./github/workflows/release.yml`
 #
 # A version number is read from the tag of the Github Release that triggers the PyPI
 # release process, and that version written to the `pod-store/VERSION` file, where it
