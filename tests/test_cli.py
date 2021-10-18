@@ -148,43 +148,48 @@ def test_ls_new_episodes(runner):
     assert result.output == "greetings\n[0023] hello \n\n"
 
 
-def test_mark_interactive_marks_when_confirmed(mocked_run_git_command, runner):
-    result = runner.invoke(cli, ["mark", "--interactive"], input="y\n")
-    assert result.exit_code == 0
-    assert result.output.endswith("Marked greetings -> [0023] hello\n")
-    _assert_git_changes_commited(mocked_run_git_command, "Marked all podcast episodes.")
-
-
-def test_mark_interactive_does_not_mark_when_not_confirmed(
+def test_untag_episodes_interactive_untags_when_confirmed(
     mocked_run_git_command, runner
 ):
-    result = runner.invoke(cli, ["mark", "--interactive"], input="n\n")
+    result = runner.invoke(cli, ["untag-episodes", "new", "--interactive"], input="y\n")
     assert result.exit_code == 0
-    assert "Marking greetings" not in result.output
-    _assert_git_changes_commited(mocked_run_git_command, "Marked all podcast episodes.")
+    assert result.output.endswith("Untagged greetings -> [0023] hello\n")
+    _assert_git_changes_commited(
+        mocked_run_git_command, "Untagged all podcast episodes."
+    )
 
 
-def test_mark_interactive_aborts_when_quit(runner):
-    result = runner.invoke(cli, ["mark", "--interactive"], input="q\n")
+def test_untag_episodes_interactive_does_not_untag_when_not_confirmed(
+    mocked_run_git_command, runner
+):
+    result = runner.invoke(cli, ["untag-episodes", "new", "--interactive"], input="n\n")
+    assert result.exit_code == 0
+    assert "Untagged greetings" not in result.output
+
+
+def test_untag_episodes_interactive_aborts_when_quit(runner):
+    result = runner.invoke(cli, ["untag-episodes", "new", "--interactive"], input="q\n")
     assert result.exit_code == 1
     assert "Aborted!" in result.output
-    assert "Marking greetings" not in result.output
+    assert "Untagged greetings" not in result.output
 
 
-def test_mark_bulk(mocked_run_git_command, runner):
-    result = runner.invoke(cli, ["mark", "--bulk"])
+def test_untag_episodes_bulk(mocked_run_git_command, runner):
+    result = runner.invoke(cli, ["untag-episodes", "new", "--bulk"])
     assert result.exit_code == 0
-    assert result.output.endswith("Marked greetings -> [0023] hello\n")
-    _assert_git_changes_commited(mocked_run_git_command, "Marked all podcast episodes.")
+    assert result.output.endswith("Untagged greetings -> [0023] hello\n")
+    _assert_git_changes_commited(
+        mocked_run_git_command, "Untagged all podcast episodes."
+    )
 
 
-def test_mark_single_podcast_generates_correct_commit_message(
+def test_untag_episodes_single_podcast_generates_correct_commit_message(
     mocked_run_git_command, runner
 ):
-    result = runner.invoke(cli, ["mark", "-p", "greetings", "--bulk"])
+    result = runner.invoke(cli, ["untag-episodes", "new", "-p", "greetings", "--bulk"])
     assert result.exit_code == 0
     _assert_git_changes_commited(
-        mocked_run_git_command, "Marked greetings podcast episodes."
+        mocked_run_git_command, "Untagged greetings podcast episodes."
     )
 
 

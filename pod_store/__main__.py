@@ -14,7 +14,7 @@ from .commands.decorators import (
 )
 from .commands.helpers import abort_if_false, get_episodes, get_podcasts
 from .commands.ls import list_podcast_episodes
-from .commands.mark import INTERACTIVE_MODE_HELP, handle_episode_marking
+from .commands.untag import INTERACTIVE_MODE_HELP, handle_episode_untagging
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
 from .util import run_git_command
@@ -202,46 +202,6 @@ def ls(ctx: click.Context, new: bool, episodes: bool, podcast: Optional[str]):
 
 @cli.command()
 @click.pass_context
-@click.option(
-    "-p",
-    "--podcast",
-    default=None,
-    help="Mark episodes for only the specified podcast.",
-)
-@click.option(
-    "--interactive/--bulk",
-    default=True,
-    help="Run the command in interactive mode to select which episodes to mark",
-)
-@git_add_and_commit(
-    "Marked {} podcast episodes.",
-    commit_message_builder=optional_podcast_commit_message_builder,
-)
-@save_store_changes
-@catch_pod_store_errors
-def mark(ctx: click.Context, podcast: Optional[str], interactive: bool):
-    """Mark 'new' episodes as old."""
-    store = ctx.obj
-    interactive_mode = interactive
-    podcasts = get_podcasts(store=store, has_new_episodes=True, title=podcast)
-
-    if interactive:
-        click.echo(INTERACTIVE_MODE_HELP)
-
-    for pod in podcasts:
-        for ep in pod.episodes.list(new=True):
-            # `interactive` can get switched from True -> False here, if the user
-            # decides to switch from interactive to bulk-assignment partway through
-            # the list of episodes.
-            marked, interactive_mode = handle_episode_marking(
-                interactive_mode=interactive_mode, podcast=pod, episode=ep
-            )
-            if marked:
-                click.echo(f"Marked {pod.title} -> [{ep.episode_number}] {ep.title}")
-
-
-@cli.command()
-@click.pass_context
 @click.argument("old")
 @click.argument("new")
 @git_add_and_commit("Renamed podcast: {} -> {}", "old", "new")
@@ -344,6 +304,51 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     else:
         click.echo(f"Untagged {podcast.title} -> {tag}.")
         podcast.untag(tag)
+
+
+@cli.command()
+@click.pass_context
+@click.argument("tag")
+@click.option(
+    "-p",
+    "--podcast",
+    default=None,
+    help="Untag episodes for only the specified podcast.",
+)
+@click.option(
+    "--interactive/--bulk",
+    default=True,
+    help="Run this command in interactive mode to select which episodes to untag",
+)
+@git_add_and_commit(
+    "Untagged {} podcast episodes.",
+    commit_message_builder=optional_podcast_commit_message_builder,
+)
+@save_store_changes
+@catch_pod_store_errors
+def untag_episodes(
+    ctx: click.Context, tag: str, podcast: Optional[str], interactive: bool
+):
+    """Untag episodes in groups."""
+    store = ctx.obj
+    interactive_mode = interactive
+    podcasts = get_podcasts(store=store, has_new_episodes=True, title=podcast)
+
+    click.echo(f"Untagging: {tag}.")
+
+    if interactive:
+        click.echo(INTERACTIVE_MODE_HELP)
+
+    for pod in podcasts:
+        for ep in pod.episodes.list(new=True):
+            # `interactive` can get switched from True -> False here, if the user
+            # decides to switch from interactive to bulk-assignment partway through
+            # the list of episodes.
+            marked, interactive_mode = handle_episode_untagging(
+                tag=tag, interactive_mode=interactive_mode, podcast=pod, episode=ep
+            )
+            if marked:
+                click.echo(f"Untagged {pod.title} -> [{ep.episode_number}] {ep.title}")
 
 
 def main() -> None:
