@@ -129,6 +129,19 @@ def git_add_and_commit(
     return git_add_and_commit_wrapper
 
 
+def required_podcast_optional_episode_commit_message_builder(
+    ctx_params: dict, commit_message_template: str, *param_names
+):
+    podcast = ctx_params["podcast"]
+    episode = ctx_params.get("episode")
+    if episode:
+        episode_msg = f", episode {episode} "
+    else:
+        episode_msg = " "
+    template_args = [ctx_params[p] for p in param_names]
+    return commit_message_template.format(podcast, episode_msg, *template_args)
+
+
 def optional_podcast_commit_message_builder(
     ctx_params: dict, commit_message_template: str
 ) -> str:

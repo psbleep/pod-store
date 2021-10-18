@@ -8,6 +8,7 @@ from .commands.decorators import (
     catch_pod_store_errors,
     git_add_and_commit,
     optional_podcast_commit_message_builder,
+    required_podcast_optional_episode_commit_message_builder,
     save_store_changes,
 )
 from .commands.helpers import abort_if_false, get_episodes, get_podcasts
@@ -289,6 +290,32 @@ def rm(ctx: click.Context, title: str) -> None:
     """Remove specified podcast from the store."""
     store = ctx.obj
     store.podcasts.delete(title)
+
+
+@cli.command()
+@click.pass_context
+@click.argument("podcast")
+@click.argument("tag")
+@click.option("-e", "--episode", default=None)
+@git_add_and_commit(
+    "Tagged {}{}-> {}.",
+    "tag",
+    commit_message_builder=required_podcast_optional_episode_commit_message_builder,
+)
+@save_store_changes
+@catch_pod_store_errors
+def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
+    """Tag a podcast or episode with an arbitrary text tag."""
+    store = ctx.obj
+
+    podcast = store.podcasts.get(podcast)
+    if episode:
+        ep = podcast.episodes.get(episode)
+        ep.tag(tag)
+        click.echo(f"Tagged {podcast.title}, episode {episode} -> {tag}.")
+    else:
+        click.echo(f"Tagged {podcast.title} -> {tag}.")
+        podcast.tag(tag)
 
 
 def main() -> None:
