@@ -53,6 +53,7 @@ class PodcastEpisodes:
             id=id,
             episode_number=episode_number,
             title=title,
+            tags=["new"],
             download_path=download_path,
             **kwargs,
         )
