@@ -1,3 +1,10 @@
+"""Classes for reading/writing data from the pod store file. Used by the
+`pod_store.store.Store` coordinating class.
+
+Delegating the file handling behavior to these classes allows swapping in a different
+file handler without changing the core `Store` class to handle encrypted vs.
+unenecrypted store files.
+"""
 import json
 import os
 from abc import ABC, abstractmethod
