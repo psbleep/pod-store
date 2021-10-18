@@ -34,7 +34,7 @@ def get_episodes(
 
     episode_filters = {}
     if new:
-        episode_filters = {"downloaded_at": None}
+        episode_filters = {"new": True}
 
     podcasts = store.podcasts.list(allow_empty=allow_empty, **podcast_filters)
     episodes = []

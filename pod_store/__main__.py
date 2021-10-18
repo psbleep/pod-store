@@ -222,18 +222,19 @@ def ls(ctx: click.Context, new: bool, episodes: bool, podcast: Optional[str]):
 def mark(ctx: click.Context, podcast: Optional[str], interactive: bool):
     """Mark 'new' episodes as old."""
     store = ctx.obj
+    interactive_mode = interactive
     podcasts = get_podcasts(store=store, has_new_episodes=True, title=podcast)
 
     if interactive:
         click.echo(INTERACTIVE_MODE_HELP)
 
     for pod in podcasts:
-        for ep in pod.episodes.list(downloaded_at=None):
+        for ep in pod.episodes.list(new=True):
             # `interactive` can get switched from True -> False here, if the user
             # decides to switch from interactive to bulk-assignment partway through
             # the list of episodes.
-            marked, interactive = handle_episode_marking(
-                interactive_mode=interactive, podcast=pod, episode=ep
+            marked, interactive_mode = handle_episode_marking(
+                interactive_mode=interactive_mode, podcast=pod, episode=ep
             )
             if marked:
                 click.echo(f"Marked {pod.title} -> [{ep.episode_number}] {ep.title}")

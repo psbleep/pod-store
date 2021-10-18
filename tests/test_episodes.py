@@ -54,6 +54,15 @@ def test_episode_string_has_been_downloaded(frozen_now, episode):
     assert str(episode) == "[0092] hello [X]"
 
 
+def test_episode_new_property_when_new(episode):
+    assert episode.new is True
+
+
+def test_episode_new_property_when_not_new(episode):
+    episode.tags = []
+    assert episode.new is False
+
+
 def test_episode_download(frozen_now, mocked_requests_get, episode):
     def iter_content(_):
         for chunk in (b"hello ", b"world"):
@@ -75,6 +84,7 @@ def test_episode_download(frozen_now, mocked_requests_get, episode):
 def test_episode_mark_as_downloaded(frozen_now, episode):
     episode.mark_as_downloaded()
     assert episode.downloaded_at == frozen_now
+    assert "new" not in episode.tags
 
 
 def test_episode_update(episode):
