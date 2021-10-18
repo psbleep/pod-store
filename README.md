@@ -130,6 +130,8 @@ To work on the code:
 
 Write tests for your changes!
 
+The CLI is built using the [Click](https://click.palletsprojects.com/) library, so some familiarity with that library will help in understanding/contributing to the code.
+
 This project uses [black](https://github.com/psf/black) for code formatting/linting, and [https://pycqa.github.io/isort/](isort) for import linting. [PEP-8](https://www.python.org/dev/peps/pep-0008/) is generally followed, with the exception of an 88 character line limit rather than 79 characters (which is in line with the default behavior for `black`).
 
 Tests are run using [pytest](https://docs.pytest.org/) and run against multiple Python versions using [tox](https://tox.wiki/en/latest/).

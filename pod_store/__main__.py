@@ -1,3 +1,4 @@
+"""Define a CLI for `pod-store`. Uses the `Click` library."""
 import os
 from typing import Optional
 
@@ -292,6 +293,7 @@ def rm(ctx: click.Context, title: str) -> None:
 
 
 def main() -> None:
+    """Run the Click application."""
     cli()
 
 
