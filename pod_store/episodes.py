@@ -102,10 +102,6 @@ class Episode:
         with open(self.download_path, "wb") as f:
             for chunk in resp.iter_content(DOWNLOAD_CHUNK_SIZE):
                 f.write(chunk)
-        self.mark_as_downloaded()
-
-    def mark_as_downloaded(self) -> None:
-        """Mark the episode as 'already downloaded'."""
         self.downloaded_at = datetime.utcnow()
         self.untag("new")
 
