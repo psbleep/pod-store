@@ -1,7 +1,4 @@
-"""Encrypted CLI podcast tracker that syncs across devices.
-
-Inspired by `pass`.
-"""
+"""Encrypted CLI podcast tracker that syncs across devices. Inspired by `pass`."""
 import os
 
 version_file = os.path.join(os.path.dirname(__file__), "VERSION")
