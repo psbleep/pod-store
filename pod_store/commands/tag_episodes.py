@@ -1,4 +1,6 @@
-"""Helpers for the `tag` and `untag` Click command defined in `pod_store.__main__`."""
+"""Helpers for the `tag-episodes` and `untag-episodes` Click commands defined in
+`pod_store.__main__`.
+"""
 
 import click
 
