@@ -130,7 +130,7 @@ def git_add_and_commit(
 
 
 def optional_podcast_commit_message_builder(
-    ctx_params: dict, commit_message_template: str
+    ctx_params: dict, commit_message_template: str, *param_names
 ) -> str:
     """Helper to build `git` commit messages for Click commands that
     have an optional `podcast` argument.
@@ -138,7 +138,8 @@ def optional_podcast_commit_message_builder(
     See the `git_add_and_commit` decorator for more information.
     """
     podcast_name = ctx_params.get("podcast") or "all"
-    return commit_message_template.format(podcast_name)
+    template_args = [ctx_params[p] for p in param_names]
+    return commit_message_template.format(podcast_name, *template_args)
 
 
 def required_podcast_optional_episode_commit_message_builder(

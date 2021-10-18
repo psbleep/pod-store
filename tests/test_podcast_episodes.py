@@ -60,16 +60,38 @@ def test_podcast_episodes_get_episode_allow_empty_returns_none_if_not_found(
     assert podcast_episodes.get("fooooo", allow_empty=True) is None
 
 
-def test_podcast_episodes_list_sorts_by_created_time(podcast_episodes):
+def test_podcast_episodes_list_sorts_episodes_by_created_time(podcast_episodes):
     ep1, ep2 = podcast_episodes.list()
     assert ep1.id == "aaa"
     assert ep2.id == "zzz"
 
 
-def test_podcast_episodes_list_filter(podcast_episodes):
+def test_podcast_episodes_list_filters_episodes(podcast_episodes):
     episodes = podcast_episodes.list(downloaded_at=None)
     assert len(episodes) == 1
     assert episodes[0].id == "aaa"
+
+
+def test_podcast_episodes_list_filters_episodes_by_presence_of_tag(podcast_episodes):
+    ep = podcast_episodes.get("aaa")
+    ep.tags = ["foobar"]
+
+    episodes = podcast_episodes.list(foobar=True)
+    assert len(episodes) == 1
+    assert episodes[0].id == "aaa"
+
+
+def test_podcast_episoes_list_filter_episodes_by_absence_of_tag(podcast_episodes):
+    episodes = podcast_episodes.list(new=False)
+    assert len(episodes) == 1
+    assert episodes[0].id == "zzz"
+
+
+def test_podcsat_episode_list_filter_raises_exception_if_filter_is_not_attribute_or_tag(
+    podcast_episodes,
+):
+    with pytest.raises(AttributeError):
+        podcast_episodes.list(zozozozo="hello")
 
 
 def test_podcast_episodes_list_no_episodes_found_raises_exception_if_not_allowed(

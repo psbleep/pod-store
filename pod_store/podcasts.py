@@ -97,8 +97,11 @@ class PodcastEpisodes:
         check if the value matches "bar".
         """
         episodes = self._episodes.values()
+
         for key, value in filters.items():
-            episodes = [e for e in episodes if getattr(e, key) == value]
+            episodes = [
+                e for e in episodes if util.meets_list_filter_criteria(e, key, value)
+            ]
         if not episodes and not allow_empty:
             raise NoEpisodesFoundError()
 

@@ -94,14 +94,6 @@ class Episode:
             downloaded_msg = ""
         return f"[{self.episode_number}] {self.title} {downloaded_msg}"
 
-    @property
-    def new(self) -> bool:
-        """Indicate whether the episode is "new" or not.
-
-        Checks for whether the `new` tag is assigned to the episode.
-        """
-        return "new" in self.tags
-
     def download(self) -> None:
         """Download the audio file of the episode to the file system."""
         os.makedirs(os.path.dirname(self.download_path), exist_ok=True)
@@ -110,10 +102,6 @@ class Episode:
         with open(self.download_path, "wb") as f:
             for chunk in resp.iter_content(DOWNLOAD_CHUNK_SIZE):
                 f.write(chunk)
-        self.mark_as_downloaded()
-
-    def mark_as_downloaded(self) -> None:
-        """Mark the episode as 'already downloaded'."""
         self.downloaded_at = datetime.utcnow()
         self.untag("new")
 

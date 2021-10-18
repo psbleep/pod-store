@@ -52,16 +52,41 @@ def test_store_podcasts_get_podcast_raises_error_if_not_found(store_podcasts):
         store_podcasts.get("ababababa")
 
 
-def test_store_podcasts_list_podcasts_sorts_by_order_created(store_podcasts):
+def test_store_podcasts_lists_podcasts_sorted_by_created_at(store_podcasts):
     pod1, pod2 = store_podcasts.list()
     assert pod1.title == "farewell"
     assert pod2.title == "greetings"
 
 
-def test_store_podcasts_list_with_filters(store_podcasts):
+def test_store_podcasts_lists_podcasts_filtered_by_attribute(store_podcasts):
     pods = store_podcasts.list(has_new_episodes=True)
     assert len(pods) == 1
     assert pods[0].title == "greetings"
+
+
+def test_store_podcasts_lists_podcasts_filtered_by_presence_of_tag(store_podcasts):
+    pod = store_podcasts.get("greetings")
+    pod.tags = ["zoobar"]
+
+    pods = store_podcasts.list(zoobar=True)
+    assert len(pods) == 1
+    assert pods[0].title == "greetings"
+
+
+def test_store_podcasts_lists_podcasts_filtered_by_absence_of_tag(store_podcasts):
+    pod = store_podcasts.get("greetings")
+    pod.tags = ["zoobar"]
+
+    pods = store_podcasts.list(zoobar=False)
+    assert len(pods) == 1
+    assert pods[0].title == "farewell"
+
+
+def test_store_podcasts_list_raises_attribute_error_if_filter_is_not_attribute_or_tag(
+    store_podcasts,
+):
+    with pytest.raises(AttributeError):
+        store_podcasts.list(zozo="hello")
 
 
 def test_store_podcasts_list_no_podcasts_found_raises_error_when_empty_not_allowed(
