@@ -109,9 +109,9 @@ Unencrypt a store that is set up as encrypted:
     POD_STORE_PATH  # defaults to /home/<username>/.pod-store
     POD_STORE_FILE_NAME  # defaults to "pod-store.json"
     POD_STORE_PODCASTS_DOWNLOAD_PATH  # defaults to /home/<username>/Podcasts
+    POD_STORE_GPG_ID_FILE  # defaults to <POD_STORE_PATH>/.gpg-id
 
-If encryption is used, the GPG ID will be read from a plaintext file located at `<POD_STORE_PATH>/.gpg-id`. (The location of that file is currently not configurable, but maybe it should be.) This file is included in the git repo's `.gitignore` file by default.
-
+The default GPG ID file is automatically included in the git repo's `.gitignore` file. If you want to track it for some reason you can remove the entry from the `.gitignore` file (or remove the `.gitignore` file entirely).
 
 ## Contributing
 

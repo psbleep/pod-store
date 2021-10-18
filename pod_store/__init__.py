@@ -26,7 +26,9 @@ STORE_PATH = os.path.abspath(os.getenv("POD_STORE_PATH", DEFAULT_STORE_PATH))
 STORE_FILE_NAME = os.getenv("POD_STORE_FILE_NAME", "pod-store.json")
 STORE_FILE_PATH = os.path.join(STORE_PATH, STORE_FILE_NAME)
 
-GPG_ID_FILE_PATH = os.path.join(STORE_PATH, ".gpg-id")
+GPG_ID_FILE_PATH = os.getenv(
+    "POD_STORE_GPG_ID_FILE", os.path.join(STORE_PATH, ".gpg-id")
+)
 try:
     with open(GPG_ID_FILE_PATH) as f:
         GPG_ID = f.read()
