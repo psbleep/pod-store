@@ -1,3 +1,8 @@
+"""Podcast episodes tracked in the pod store.
+
+Episode objects are created/managed using the `pod_store.podcasts.PodcastEpisodes`
+class.
+"""
 import os
 from datetime import datetime
 from typing import Any, Optional, Type, TypeVar
