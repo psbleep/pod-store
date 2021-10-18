@@ -211,7 +211,7 @@ def ls(ctx: click.Context, new: bool, episodes: bool, podcast: Optional[str]):
 @click.option(
     "--interactive/--bulk",
     default=True,
-    help="Run this command in interactive mode to select which episodes to untag",
+    help="Run this command in interactive mode to select which episodes to mark",
 )
 def mark_as_old(ctx: click.Context, podcast: Optional[str], interactive: bool):
     """Remove the `new` tag from a group of episodes. Alias for the `untag` command."""
