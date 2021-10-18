@@ -1,10 +1,10 @@
 # pod-store
 
-`pod-store` is a CLI podcast tracker inspired by [pass](https://www.passwordstore.org/), "the standard unix password manager."
+`pod-store` is an encrypted CLI podcast tracker that syncs across devices using `git`. Inspired by [pass](https://www.passwordstore.org/), "the standard unix password manager."
 
-The state of your podcasts is tracked in a JSON-structured file that is synced across devices using `git`.
+The state of your podcasts and episodes is tracked in a JSON-structured store file. [git](https://git-scm.com/) is used to share that store file between devices. [GPG](https://gnupg.org/) keys encrypt the store file for security.
 
-Optionally, you can encrypt this podcast store file using [GPG](https://gnupg.org/) keys for security.
+Synchronization and encryption features are optional. `pod-store` can be used as an unecrypted CLI podcast tracker for a single device.
 
 This is a very young/alpha-stage project. Use at your own risk, of course.
 
@@ -12,57 +12,56 @@ This is a very young/alpha-stage project. Use at your own risk, of course.
 
 Written for Linux environments running Python 3.7 and above. May work on MacOS but probably does not work on Windows. Apart from Python library requirements, `pod-store` requires `git` (for syncing across devices) and `gpg` (for encryption).
 
+## Why?
+
+When I was looking for CLI podcast trackers I did not love any of the options I found. `pass` has been my password manager for a while now, and the concept of a `pass`-like interface for podcast tracking appealed to me.
+
+In particular, I like that `pass`:
+
+ - Mimics core utilities commands in name and (some) parameters where sensible (`ls`, `rm`, etc)
+ - Handles syncing across devices with a standard version control system (`git`)
+ - Provides security using a basic public/private key encryption standard (`gpg`)
+
+There are other things about the `pass` philosophy that I obviously ignore in this project. In particular, I do not aspire for `pod-store` to be "the standard unix" _anything_. That frees me from having to write it in shell script.
+
 ## Installation
 
 Install the current release version using `pip`:
 
     pip install pod-store
 
-Or install directly from the repo using `pip`:
+Or install the cutting edge directly from the repo using `pip`:
 
     pip install git+https://github.com/psbleep/pod-store.git
 
 I recommend you install this in a Python [virtual environment](https://docs.python.org/3.7/tutorial/venv.html).
 
-## Motivations
-
-When I was looking for CLI podcast trackers I did not love any of the options I found. `pass` has been my password manager for a while now, and the concept of a `pass`-like interface for podcast tracking appealed to me.
-
-In particular, I like that `pass`:
-
- - Mimics core utilities commands in name and arguments where sensible (`ls`, `rm`, etc)
- - Handles syncing across devices with `git` (which I already use for managing dotfiles, etc)
- - Provides security using a basic public/private key encryption standard (`gpg`)
-
-There are other things about the `pass` philosophy that I obviously ignore in this project. In particular, I do not aspire for `pod-store` to be "the standard unix" _anything_. That frees me from having to write it in shell script.
-
 ## Usage
 
-`pod-store` tracks your podcast data in a JSON file, referred to as the "pod-store file."
+`pod-store` tracks your podcast data in a JSON file (which I will refer to as "the store"). To get started, set up your store. If you have already have a remote `git` repo you want to sync your podcasts with, you can provide that directly during set up. Currently only SSH authentication is supported. For encrypting the store, pass in the GPG ID from your keychain that you want to use:
 
-To get started, set up your store. If you have a remote `git` repo you want to sync your podcasts with, you can provide that directly during set up. (Alternatively, you can set it up manually later on.) Currently only SSH authentication is supported:
+    pod init --git-url git@git.foo.bar:foobar/pods.git --gpg-id foo@bar.com
 
-    pod init --git-url git@git.foo.bar:foobar/pods.git
+Leave off the `git-url` option and you can set up your remote `git` path manually. Leave off the `gpg-id` option and your store will not be encrypted.
 
-If you want an encrypted store, pass in the GPG ID of the keys you want to use.
+You can avoid setting up `git` with your store at all using the `--no-git` flag:
 
-    pass init --gpg-id foo@bar.com
+    pod init --no-git
 
-Once your store is set up you will want to add a podcast to it. Supply the name you want to track your podcast with and the RSS feed URL for the episodes:
+Once your store is set up you will want to add a podcast to it. Supply the name you want to use in the store for this podcast, and the RSS feed URL for the podcast episodes:
 
     pod add podcast-name https://pod.cast/episodes/rss
 
-You can see the which podcasts in your store have new episodes, or a list of all podcasts in your store:
+You can list which podcasts in your store have new episodes, or list all podcasts in your store:
 
     pod ls
     pod ls --all
-
 
 List new episodes, list all episodes, list new episodes for a specific podcast:
 
     pod ls --episodes
     pod ls --all --episodes
-    pod ls --episodes -p podcast-name
+    pod ls -p podcast-name
 
 Refresh episode data for all podcasts from their RSS feeds, or just a specific podcast:
 
@@ -76,10 +75,12 @@ Download all new episodes, or new episodes for just a specific podcast:
 
 By default podcast episodes will be downloaded to e.g. `/home/<username>/Podcasts/<podcast-name>/<001-episode-title>.mp3`. See the configuration section for how to adjust the download path.
 
-Sometimes you may want to mark an episode as being not-new without actually downloading it. Do that using the `mark` command, either interactively or by bulk marking all new episodes. Do either of these for all episodes, or just episodes of a specific podcast:
+Sometimes you may want to mark an episode as being not-new without actually downloading it. Do that using the `mark` command. By default you will interactively choose which episodes to mark, or you can bulk-mark all episodes. Either of these strategies can be applied to _all_ new episodes, or just the episodes of a specific podcast:
 
     pod mark
     pod mark --bulk
+
+    pod mark -p podcast-name
     pod mark --bulk -p podcast-name
 
 Rename a podcast in the store:
@@ -90,13 +91,15 @@ Remove a podcast from the store:
 
     pod rm podcast-name
 
-Run an arbitrary git command from inside the `pod-store` repo. (This command is pretty limited, it does not work with any flags).
+Run an arbitrary git command from inside the `pod-store` repo. (This command is pretty limited at the moment, it does not work with any flags).
 
     pod git push
 
-Encrypt a store that is set up as unencrypted:
+Encrypt a store with keys from your GPG keyring:
 
     pod encrypt-store <gpg-id>
+
+This command works either to encrypt a previously-unencrypted store, or to switch which GPG keys are used to encrypt the store.
 
 Unencrypt a store that is set up as encrypted:
 
@@ -120,10 +123,10 @@ Feel free to file issues on Github or open pull requests. Since this is a person
 To work on the code:
 
  - Fork this repo on Github
-  - Clone your copy of the repo
-  - `pip install -r requirements.txt` into your development environment
-  - Make a branch for your changes. If it is targetted at an existing Github issue, name the branch in the style `012-change-these-things`, where `012` is the zero-padded three digit Github issue number and `change-these-things` is a short description of what you are working on.
-  - When you are finished, open a PR from your fork and branch into the `main` branch on this repo.
+ - Clone your copy of the repo
+ - `pip install -r requirements.txt` into your development environment
+ - Make a branch for your changes. If it is targetted at an existing Github issue, name the branch in the style `012-change-these-things`, where `012` is the zero-padded three digit Github issue number and `change-these-things` is a short description of what you are working on.
+ - When you are finished, open a PR from your fork and branch into the `main` branch on this repo.
 
 Write tests for your changes!
 
