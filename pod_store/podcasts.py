@@ -181,7 +181,7 @@ class Podcast:
     @property
     def has_new_episodes(self) -> bool:
         """Inidicates if the podcast has any new episodes."""
-        return bool(self.episodes.list(downloaded_at=None))
+        return bool(self.episodes.list(new=True))
 
     @property
     def number_of_new_episodes(self) -> int:

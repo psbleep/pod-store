@@ -47,7 +47,7 @@ def test_podcast_has_new_episodes(podcast):
 
 def test_podcast_does_not_have_new_episodes(frozen_now, podcast):
     episode = podcast.episodes.get("aaa")
-    episode.downloaded_at = frozen_now
+    episode.tags = []
     assert podcast.has_new_episodes is False
 
 
