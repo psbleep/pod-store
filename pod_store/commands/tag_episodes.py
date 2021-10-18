@@ -1,32 +1,34 @@
-"""Helpers for the `untag` Click command defined in `pod_store.__main__`."""
+"""Helpers for the `tag` and `untag` Click command defined in `pod_store.__main__`."""
 
 import click
 
 from ..episodes import Episode
 from ..podcasts import Podcast
 
-INTERACTIVE_MODE_HELP = """Untagging in interactive mode. Options are:
+INTERACTIVE_MODE_HELP = """{action}ging in interactive mode. Options are:
 
-    y = yes (tag this episode)
-    n = no (do not tag this episode)
-    b = bulk (untag this and all following episodes)
-    q = quit (stop untagging episodes and quit)
+    y = yes ({action} this episode)
+    n = no (do not {action} this episode)
+    b = bulk ({action} this and all following episodes)
+    q = quit (stop {action}ging episodes and quit)
 """
 
 
-def handle_episode_untagging(
-    tag: str, interactive_mode: bool, podcast: Podcast, episode: Episode
+def handle_episode_tagging(
+    tag: str, action: str, interactive_mode: bool, podcast: Podcast, episode: Episode
 ) -> (bool, bool):
-    """Helper method for the details of untagging an episode.
+    """Helper method for the details of tagging or untagging an episode.
 
-    If the `untag` command is being run in interactive mode, will prompt the user to
-    decide whether to untag the episode.
+    `action` is a string indicating whether to tag or untag.
 
-    Returns tuple of bools: whether the episode was untagged, whether we are in
+    If the command is being run in interactive mode, will prompt the user to
+    decide whether to perform the action.
+
+    Returns tuple of bools: whether the action was performed, whether we are (still) in
     interactive mode.
     """
     if interactive_mode:
-        confirm, interactive_mode = _untag_episode_interactively(
+        confirm, interactive_mode = _determine_interactive_mode_action(
             podcast=podcast, episode=episode
         )
     else:
@@ -35,12 +37,17 @@ def handle_episode_untagging(
         confirm = True
 
     if confirm:
-        episode.untag(tag)
+        if action == "tag":
+            episode.tag(tag)
+        elif action == "untag":
+            episode.untag(tag)
 
     return confirm, interactive_mode
 
 
-def _untag_episode_interactively(podcast: Podcast, episode: Episode) -> (bool, bool):
+def _determine_interactive_mode_action(
+    podcast: Podcast, episode: Episode
+) -> (bool, bool):
     """Helper for prompting the user whether to untag an episode as downloaded.
 
     User can also choose to switch from interactive to bulk-assignment mode here.

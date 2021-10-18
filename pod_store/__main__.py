@@ -14,7 +14,7 @@ from .commands.decorators import (
 )
 from .commands.helpers import abort_if_false, get_episodes, get_podcasts
 from .commands.ls import list_podcast_episodes
-from .commands.untag import INTERACTIVE_MODE_HELP, handle_episode_untagging
+from .commands.tag_episodes import INTERACTIVE_MODE_HELP, handle_episode_tagging
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
 from .util import run_git_command
@@ -338,17 +338,21 @@ def untag_episodes(
     click.echo(f"Untagging: {tag}.")
 
     if interactive:
-        click.echo(INTERACTIVE_MODE_HELP)
+        click.echo(INTERACTIVE_MODE_HELP.format(action="untag"))
 
     for pod in podcasts:
         for ep in pod.episodes.list(new=True):
             # `interactive` can get switched from True -> False here, if the user
             # decides to switch from interactive to bulk-assignment partway through
             # the list of episodes.
-            marked, interactive_mode = handle_episode_untagging(
-                tag=tag, interactive_mode=interactive_mode, podcast=pod, episode=ep
+            confirmed, interactive_mode = handle_episode_tagging(
+                tag=tag,
+                action="untag",
+                interactive_mode=interactive_mode,
+                podcast=pod,
+                episode=ep,
             )
-            if marked:
+            if confirmed:
                 click.echo(f"Untagged {pod.title} -> [{ep.episode_number}] {ep.title}")
 
 
