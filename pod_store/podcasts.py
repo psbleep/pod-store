@@ -114,6 +114,7 @@ class Podcast:
     title (str): podcast title
     episode_downloads_path (str): location in file system to download podcast episodes
     feed (str): RSS feed URL
+    tags (list): arbitrary text tags assigned to the podcast
 
     episode_data (dict): data about podcast episodes loaded from the store json.
         is used to construct the `PodcastEpisodes` class.
@@ -130,12 +131,16 @@ class Podcast:
         episode_downloads_path: str,
         feed: str,
         episode_data: dict,
+        tags: List[str] = None,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
     ):
+        tags = tags or []
+
         self.title = title
         self.episode_downloads_path = episode_downloads_path
         self.feed = feed
+        self.tags = tags
         self.created_at = created_at or datetime.utcnow()
         self.updated_at = updated_at or datetime.utcnow()
 
@@ -221,6 +226,14 @@ class Podcast:
             if episode.id not in episodes_seen:
                 self.episodes.delete(episode.id)
 
+    def tag(self, tag_name: str) -> None:
+        """Apply a tag to the podcast."""
+        self.tags.append(tag_name)
+
+    def untag(self, tag_name: str) -> None:
+        """Remove a tag from the podcast."""
+        self.tags = [t for t in self.tags if t != tag_name]
+
     def to_json(self) -> dict:
         """Convert podcast data into a json-able dict.
 
@@ -232,6 +245,7 @@ class Podcast:
             "title": self.title,
             "episode_downloads_path": self.episode_downloads_path,
             "feed": self.feed,
+            "tags": self.tags,
             "created_at": created_at,
             "updated_at": updated_at,
             "episode_data": self.episodes.to_json(),

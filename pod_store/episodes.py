@@ -5,7 +5,7 @@ class.
 """
 import os
 from datetime import datetime
-from typing import Any, Optional, Type, TypeVar
+from typing import Any, List, Optional, Type, TypeVar
 
 import requests
 
@@ -24,6 +24,8 @@ class Episode:
     episode_number (str): zero-padded episode number from podcast feed
     title (str): episode title
     url (str): download URL
+    tags (list): arbitrary text tags. `new` tag is used to determine if an episode has
+        been downloaded yet.
     downloaded_at (datetime): if set to `None`, the episode hasn't been downloaded yet
 
     created_at (datetime)
@@ -39,6 +41,7 @@ class Episode:
         url: str,
         created_at: datetime,
         updated_at: datetime,
+        tags: List[str] = None,
         downloaded_at: Optional[datetime] = None,
     ):
         self.id = id
@@ -46,6 +49,7 @@ class Episode:
         self.episode_number = episode_number
         self.title = title
         self.url = url
+        self.tags = tags or []
         self.created_at = created_at
         self.updated_at = updated_at
         self.downloaded_at = downloaded_at
@@ -109,6 +113,14 @@ class Episode:
         for key, value in data.items():
             setattr(self, key, value)
 
+    def tag(self, tag_name: str) -> None:
+        """Apply a tag to the episode."""
+        self.tags.append(tag_name)
+
+    def untag(self, tag_name: str) -> None:
+        """Remove a tag from the episode."""
+        self.tags = [t for t in self.tags if t != tag_name]
+
     def to_json(self) -> dict:
         """Convert episode data into a json-able dict.
 
@@ -124,6 +136,7 @@ class Episode:
             "episode_number": self.episode_number,
             "title": self.title,
             "url": self.url,
+            "tags": self.tags,
             "created_at": created_at,
             "updated_at": updated_at,
             "downloaded_at": downloaded_at,

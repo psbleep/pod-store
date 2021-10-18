@@ -20,6 +20,7 @@ def episode(frozen_now):
         episode_number="0092",
         title="hello",
         url="https://www.foo.bar/abc.mp3",
+        tags=["new"],
         created_at=frozen_now,
         updated_at=frozen_now,
         downloaded_at=None,
@@ -82,6 +83,16 @@ def test_episode_update(episode):
     assert episode.url == "https://www.new.bar/"
 
 
+def test_episide_tag(episode):
+    episode.tag("foobar")
+    assert episode.tags == ["new", "foobar"]
+
+
+def test_episode_untag(episode):
+    episode.untag("new")
+    assert episode.tags == []
+
+
 def test_episode_to_json(frozen_now, episode):
     assert episode.to_json() == {
         "id": "abc",
@@ -89,6 +100,7 @@ def test_episode_to_json(frozen_now, episode):
         "episode_number": "0092",
         "title": "hello",
         "url": "https://www.foo.bar/abc.mp3",
+        "tags": ["new"],
         "created_at": frozen_now.isoformat(),
         "updated_at": frozen_now.isoformat(),
         "downloaded_at": None,
