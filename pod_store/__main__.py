@@ -354,7 +354,7 @@ def tag_episodes(
     """Tag episodes in groups."""
     store = ctx.obj
     interactive_mode = interactive
-    podcasts = get_podcasts(store=store, has_new_episodes=True, title=podcast)
+    podcasts = get_podcasts(store=store, title=podcast)
 
     click.echo(f"Tagging: {tag}.")
 
@@ -404,7 +404,7 @@ def untag_episodes(
     """Untag episodes in groups."""
     store = ctx.obj
     interactive_mode = interactive
-    podcasts = get_podcasts(store=store, has_new_episodes=True, title=podcast)
+    podcasts = get_podcasts(store=store, title=podcast)
 
     click.echo(f"Untagging: {tag}.")
 
