@@ -108,6 +108,14 @@ class Episode:
         for key, value in data.items():
             setattr(self, key, value)
 
+    def tag(self, tag_name: str) -> None:
+        """Apply a tag to the episode."""
+        self.tags.append(tag_name)
+
+    def untag(self, tag_name: str) -> None:
+        """Remove a tag from the episode."""
+        self.tags = [t for t in self.tags if t != tag_name]
+
     def to_json(self) -> dict:
         """Convert episode data into a json-able dict.
 

@@ -83,6 +83,16 @@ def test_episode_update(episode):
     assert episode.url == "https://www.new.bar/"
 
 
+def test_episide_tag(episode):
+    episode.tag("foobar")
+    assert episode.tags == ["new", "foobar"]
+
+
+def test_episode_untag(episode):
+    episode.untag("new")
+    assert episode.tags == []
+
+
 def test_episode_to_json(frozen_now, episode):
     assert episode.to_json() == {
         "id": "abc",
