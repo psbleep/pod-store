@@ -107,6 +107,16 @@ def test_podcast_refresh(frozen_now, mocked_feedparser_parse, podcast):
     assert new_episode.episode_number == "0002"
 
 
+def test_podcast_tag(podcast):
+    podcast.tag("hello")
+    assert podcast.tags == ["greetings", "hello"]
+
+
+def test_podcast_untag(podcast):
+    podcast.untag("greetings")
+    assert podcast.tags == []
+
+
 def test_podcast_to_json(frozen_now, podcast_episode_data, podcast):
     assert podcast.to_json() == {
         "title": "hello",

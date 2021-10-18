@@ -223,6 +223,14 @@ class Podcast:
             if episode.id not in episodes_seen:
                 self.episodes.delete(episode.id)
 
+    def tag(self, tag_name: str) -> None:
+        """Apply a tag to the podcast."""
+        self.tags.append(tag_name)
+
+    def untag(self, tag_name: str) -> None:
+        """Remove a tag from the podcast."""
+        self.tags = [t for t in self.tags if t != tag_name]
+
     def to_json(self) -> dict:
         """Convert podcast data into a json-able dict.
 
