@@ -206,7 +206,7 @@ def ls(ctx: click.Context, new: bool, episodes: bool, podcast: Optional[str]):
     "-p",
     "--podcast",
     default=None,
-    help="Untag episodes for only the specified podcast.",
+    help="Mark episodes for only the specified podcast.",
 )
 @click.option(
     "--interactive/--bulk",
