@@ -321,7 +321,8 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     help="Run this command in interactive mode to select which episodes to untag",
 )
 @git_add_and_commit(
-    "Untagged {} podcast episodes.",
+    "Untagged {} podcast episodes: {}.",
+    "tag",
     commit_message_builder=optional_podcast_commit_message_builder,
 )
 @save_store_changes

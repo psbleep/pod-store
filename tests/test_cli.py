@@ -155,7 +155,7 @@ def test_untag_episodes_interactive_untags_when_confirmed(
     assert result.exit_code == 0
     assert result.output.endswith("Untagged greetings -> [0023] hello\n")
     _assert_git_changes_commited(
-        mocked_run_git_command, "Untagged all podcast episodes."
+        mocked_run_git_command, "Untagged all podcast episodes: new."
     )
 
 
@@ -178,9 +178,6 @@ def test_untag_episodes_bulk(mocked_run_git_command, runner):
     result = runner.invoke(cli, ["untag-episodes", "new", "--bulk"])
     assert result.exit_code == 0
     assert result.output.endswith("Untagged greetings -> [0023] hello\n")
-    _assert_git_changes_commited(
-        mocked_run_git_command, "Untagged all podcast episodes."
-    )
 
 
 def test_untag_episodes_single_podcast_generates_correct_commit_message(
@@ -189,7 +186,7 @@ def test_untag_episodes_single_podcast_generates_correct_commit_message(
     result = runner.invoke(cli, ["untag-episodes", "new", "-p", "greetings", "--bulk"])
     assert result.exit_code == 0
     _assert_git_changes_commited(
-        mocked_run_git_command, "Untagged greetings podcast episodes."
+        mocked_run_git_command, "Untagged greetings podcast episodes: new."
     )
 
 
