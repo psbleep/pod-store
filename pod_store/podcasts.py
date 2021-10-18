@@ -97,12 +97,27 @@ class PodcastEpisodes:
         check if the value matches "bar".
         """
         episodes = self._episodes.values()
+
         for key, value in filters.items():
-            episodes = [e for e in episodes if getattr(e, key) == value]
+            episodes = [
+                e for e in episodes if self._meets_filter_criteria(e, key, value)
+            ]
         if not episodes and not allow_empty:
             raise NoEpisodesFoundError()
 
         return sorted(episodes, key=lambda e: e.created_at, reverse=True)
+
+    @staticmethod
+    def _meets_filter_criteria(e: Episode, key: str, value: Any):
+        try:
+            return getattr(e, key) == value
+        except AttributeError as err:
+            if value is True:
+                return key in e.tags
+            elif value is False:
+                return key not in e.tags
+            else:
+                raise err
 
     def to_json(self):
         """Provide json data for all of the podcast episodes."""
