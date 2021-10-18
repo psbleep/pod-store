@@ -52,13 +52,13 @@ def test_store_podcasts_get_podcast_raises_error_if_not_found(store_podcasts):
         store_podcasts.get("ababababa")
 
 
-def test_store_podcasts_list_podcasts_sorts_by_order_created(store_podcasts):
+def test_store_podcasts_lists_podcasts_sorted_by_created_at(store_podcasts):
     pod1, pod2 = store_podcasts.list()
     assert pod1.title == "farewell"
     assert pod2.title == "greetings"
 
 
-def test_store_podcasts_list_with_filters(store_podcasts):
+def test_store_podcasts_lists_podcasts_filtered_by_attribute(store_podcasts):
     pods = store_podcasts.list(has_new_episodes=True)
     assert len(pods) == 1
     assert pods[0].title == "greetings"
