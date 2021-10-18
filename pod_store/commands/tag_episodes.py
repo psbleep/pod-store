@@ -32,8 +32,8 @@ def handle_episode_tagging(
             podcast=podcast, episode=episode
         )
     else:
-        # if we are not in interactive mode, we are in bulk-assignment mode.
-        # all untags are pre-confirmed.
+        # If we are not in interactive mode, we are in bulk-assignment mode.
+        # All actions are pre-confirmed.
         confirm = True
 
     if confirm:

@@ -148,6 +148,48 @@ def test_ls_new_episodes(runner):
     assert result.output == "greetings\n[0023] hello \n\n"
 
 
+def test_tag_episodes_interactive_mode_tags_episode_when_confirmed(
+    mocked_run_git_command, runner
+):
+    result = runner.invoke(cli, ["tag-episodes", "new", "--interactive"], input="y\n")
+    assert result.exit_code == 0
+    assert result.output.endswith("Tagged greetings -> [0011] goodbye\n")
+    _assert_git_changes_commited(
+        mocked_run_git_command, "Tagged all podcast episodes: new."
+    )
+
+
+def test_tag_episodes_interactive_mode_does_not_tag_episode_when_not_confirmed(
+    mocked_run_git_command, runner
+):
+    result = runner.invoke(cli, ["tag-episodes", "new", "--interactive"], input="n\n")
+    assert result.exit_code == 0
+    assert "Tagged" not in result.output
+
+
+def test_tag_episodes_interactive_mode_aborts_when_quit(runner):
+    result = runner.invoke(cli, ["tag-episodes", "foo", "--interactive"], input="q\n")
+    assert result.exit_code == 1
+    assert "Aborted!" in result.output
+    assert "Tagged" not in result.output
+
+
+def test_tag_episodes_bulk_mode(mocked_run_git_command, runner):
+    result = runner.invoke(cli, ["tag-episodes", "new", "--bulk"])
+    assert result.exit_code == 0
+    assert result.output.endswith("Tagged greetings -> [0011] goodbye\n")
+
+
+def test_tag_episodes_single_podcast_generates_correct_commit_message(
+    mocked_run_git_command, runner
+):
+    result = runner.invoke(cli, ["tag-episodes", "new", "-p", "greetings", "--bulk"])
+    assert result.exit_code == 0
+    _assert_git_changes_commited(
+        mocked_run_git_command, "Tagged greetings podcast episodes: new."
+    )
+
+
 def test_untag_episodes_interactive_untags_when_confirmed(
     mocked_run_git_command, runner
 ):
@@ -164,14 +206,14 @@ def test_untag_episodes_interactive_does_not_untag_when_not_confirmed(
 ):
     result = runner.invoke(cli, ["untag-episodes", "new", "--interactive"], input="n\n")
     assert result.exit_code == 0
-    assert "Untagged greetings" not in result.output
+    assert "Untagged" not in result.output
 
 
 def test_untag_episodes_interactive_aborts_when_quit(runner):
     result = runner.invoke(cli, ["untag-episodes", "new", "--interactive"], input="q\n")
     assert result.exit_code == 1
     assert "Aborted!" in result.output
-    assert "Untagged greetings" not in result.output
+    assert "Untagged" not in result.output
 
 
 def test_untag_episodes_bulk(mocked_run_git_command, runner):
