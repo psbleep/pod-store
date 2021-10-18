@@ -21,7 +21,7 @@ from .store_file_handlers import (
     StoreFileHandler,
     UnencryptedStoreFileHandler,
 )
-from .util import run_git_command
+from .util import meets_list_filter_criteria, run_git_command
 
 
 class StorePodcasts:
@@ -110,7 +110,9 @@ class StorePodcasts:
         """
         podcasts = [p for p in self._podcasts.values()]
         for key, value in filters.items():
-            podcasts = [p for p in podcasts if getattr(p, key) == value]
+            podcasts = [
+                p for p in podcasts if meets_list_filter_criteria(p, key, value)
+            ]
         if not podcasts and not allow_empty:
             raise NoPodcastsFoundError()
         return sorted(podcasts, key=lambda p: p.created_at)

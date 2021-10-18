@@ -64,6 +64,31 @@ def test_store_podcasts_lists_podcasts_filtered_by_attribute(store_podcasts):
     assert pods[0].title == "greetings"
 
 
+def test_store_podcasts_lists_podcasts_filtered_by_presence_of_tag(store_podcasts):
+    pod = store_podcasts.get("greetings")
+    pod.tags = ["zoobar"]
+
+    pods = store_podcasts.list(zoobar=True)
+    assert len(pods) == 1
+    assert pods[0].title == "greetings"
+
+
+def test_store_podcasts_lists_podcasts_filtered_by_absence_of_tag(store_podcasts):
+    pod = store_podcasts.get("greetings")
+    pod.tags = ["zoobar"]
+
+    pods = store_podcasts.list(zoobar=False)
+    assert len(pods) == 1
+    assert pods[0].title == "farewell"
+
+
+def test_store_podcasts_list_raises_attribute_error_if_filter_is_not_attribute_or_tag(
+    store_podcasts,
+):
+    with pytest.raises(AttributeError):
+        store_podcasts.list(zozo="hello")
+
+
 def test_store_podcasts_list_no_podcasts_found_raises_error_when_empty_not_allowed(
     store_podcasts,
 ):
