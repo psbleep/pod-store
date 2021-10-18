@@ -13,6 +13,7 @@ def podcast(frozen_now, podcast_episode_data):
     return Podcast(
         title="hello",
         feed="http://hello.world/rss",
+        tags=["greetings"],
         episode_downloads_path=TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
         created_at=frozen_now,
         updated_at=frozen_now,
@@ -24,6 +25,7 @@ def test_podcast_from_json_parses_datetimes(frozen_now):
     podcast = Podcast.from_json(
         title="hello",
         feed="http://hello.world/rss",
+        tags=["greetings"],
         episode_downloads_path=TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
         created_at=frozen_now.isoformat(),
         updated_at=frozen_now.isoformat(),
@@ -109,6 +111,7 @@ def test_podcast_to_json(frozen_now, podcast_episode_data, podcast):
     assert podcast.to_json() == {
         "title": "hello",
         "feed": "http://hello.world/rss",
+        "tags": ["greetings"],
         "episode_downloads_path": TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
         "created_at": frozen_now.isoformat(),
         "updated_at": frozen_now.isoformat(),
