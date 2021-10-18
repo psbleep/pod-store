@@ -26,7 +26,7 @@ def handle_episode_marking(
     interactive mode.
     """
     if interactive_mode:
-        confirm, interactive = _mark_episode_interactively(
+        confirm, interactive_mode = _mark_episode_interactively(
             podcast=podcast, episode=episode
         )
     else:
