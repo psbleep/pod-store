@@ -1,3 +1,4 @@
+"""Define a CLI for `pod-store`. Uses the `Click` library."""
 import os
 from typing import Optional
 
@@ -20,7 +21,7 @@ from .util import run_git_command
 
 @click.group()
 @click.pass_context
-def cli(ctx) -> None:
+def cli(ctx):
     if os.path.exists(STORE_FILE_PATH):
         if GPG_ID:
             file_handler = EncryptedStoreFileHandler(
@@ -43,7 +44,7 @@ def cli(ctx) -> None:
 @click.option("-u", "--git-url", default=None, help="remote URL for the git repo")
 @click.option("-g", "--gpg-id", default=None, help="GPG ID for store encryption keys")
 @catch_pod_store_errors
-def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]) -> None:
+def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
     """Set up the pod store.
 
     `pod-store` tracks changes using `git`.
@@ -117,7 +118,7 @@ def unencrypt_store(ctx: click.Context):
 @git_add_and_commit("Added podcast: {}.", "title")
 @save_store_changes
 @catch_pod_store_errors
-def add(ctx: click.Context, title: str, feed: str) -> None:
+def add(ctx: click.Context, title: str, feed: str):
     """Add a podcast to the store.
 
     TITLE: title that will be used for tracking in the store
@@ -141,7 +142,7 @@ def add(ctx: click.Context, title: str, feed: str) -> None:
 )
 @save_store_changes
 @catch_pod_store_errors
-def download(ctx: click.Context, podcast: Optional[str]) -> None:
+def download(ctx: click.Context, podcast: Optional[str]):
     """Download podcast episode(s)"""
     store = ctx.obj
     episodes = get_episodes(store=store, new=True, podcast_title=podcast)
@@ -154,7 +155,7 @@ def download(ctx: click.Context, podcast: Optional[str]) -> None:
 @cli.command()
 @click.argument("cmd", nargs=-1)
 @catch_pod_store_errors
-def git(cmd: str) -> None:
+def git(cmd: str):
     """Run arbitrary git commands in the `pod-store` repo."""
     output = run_git_command(" ".join(cmd))
     click.echo(output)
@@ -173,7 +174,7 @@ def git(cmd: str) -> None:
     help="(podcast title) if listing episodes, limit results to the specified podcast",
 )
 @catch_pod_store_errors
-def ls(ctx: click.Context, new: bool, episodes: bool, podcast: Optional[str]) -> None:
+def ls(ctx: click.Context, new: bool, episodes: bool, podcast: Optional[str]):
     """List store entries.
 
     By default, this will list podcasts that have new episodes. Adjust the output using
@@ -217,7 +218,7 @@ def ls(ctx: click.Context, new: bool, episodes: bool, podcast: Optional[str]) ->
 )
 @save_store_changes
 @catch_pod_store_errors
-def mark(ctx: click.Context, podcast: Optional[str], interactive: bool) -> None:
+def mark(ctx: click.Context, podcast: Optional[str], interactive: bool):
     """Mark 'new' episodes as old."""
     store = ctx.obj
     podcasts = get_podcasts(store=store, has_new_episodes=True, title=podcast)
@@ -244,7 +245,7 @@ def mark(ctx: click.Context, podcast: Optional[str], interactive: bool) -> None:
 @git_add_and_commit("Renamed podcast: {} -> {}", "old", "new")
 @save_store_changes
 @catch_pod_store_errors
-def mv(ctx: click.Context, old: str, new: str) -> None:
+def mv(ctx: click.Context, old: str, new: str):
     """Rename a podcast in the store."""
     store = ctx.obj
     store.podcasts.rename(old, new)
@@ -261,7 +262,7 @@ def mv(ctx: click.Context, old: str, new: str) -> None:
 )
 @save_store_changes
 @catch_pod_store_errors
-def refresh(ctx: click.Context, podcast: Optional[str]) -> None:
+def refresh(ctx: click.Context, podcast: Optional[str]):
     """Refresh podcast data from RSS feeds."""
     store = ctx.obj
     podcasts = get_podcasts(store=store, title=podcast)
@@ -285,13 +286,14 @@ def refresh(ctx: click.Context, podcast: Optional[str]) -> None:
 @git_add_and_commit("Removed podcast: {}.", "title")
 @save_store_changes
 @catch_pod_store_errors
-def rm(ctx: click.Context, title: str) -> None:
+def rm(ctx: click.Context, title: str):
     """Remove specified podcast from the store."""
     store = ctx.obj
     store.podcasts.delete(title)
 
 
 def main() -> None:
+    """Run the Click application."""
     cli()
 
 

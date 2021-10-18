@@ -1,3 +1,6 @@
+"""Podcasts tracked in the pod store.
+
+Podcast objects are created/managed using the `pod_store.store.StorePodcasts` class."""
 import os
 import re
 from datetime import datetime
@@ -23,7 +26,7 @@ class PodcastEpisodes:
         {id: `pod_store.episodes.Episode`}
     """
 
-    def __init__(self, episode_data: dict, episode_downloads_path: str):
+    def __init__(self, episode_downloads_path: str, episode_data: dict):
         self._episode_downloads_path = episode_downloads_path
 
         self._episodes = {

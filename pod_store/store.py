@@ -1,3 +1,10 @@
+"""Store that tracks your podcasts.
+
+Store data for all podcasts (and associated episodes) is persisted in a JSON file.
+
+Reading/writing to the store file is delegated to the classes in the
+`store_file_handlers` module.
+"""
 import os
 from typing import List, Optional
 
