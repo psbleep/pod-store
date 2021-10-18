@@ -56,7 +56,7 @@ def catch_pod_store_errors(f: Callable):
 def _default_commit_message_builder(
     ctx_params: dict, commit_message_template: str, *param_names
 ) -> str:
-    """Helper to build `git` commit messages from the Click command context.
+    """Helper to build `git` commit messages from the `Click` command context.
 
     See the `git_add_and_commit` decorator for more information.
     """
