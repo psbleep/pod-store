@@ -148,6 +148,81 @@ def test_ls_new_episodes(runner):
     assert result.output == "greetings\n[0023] hello \n\n"
 
 
+def test_mark_as_old_works_as_alias_for_untag_new_episodes_command(
+    mocked_run_git_command, runner
+):
+    result = runner.invoke(cli, ["mark-as-old", "-p", "greetings", "--bulk"])
+    assert result.exit_code == 0
+    assert result.output.endswith("Untagged greetings -> [0023] hello\n")
+
+
+def test_mv(mocked_run_git_command, runner):
+    result = runner.invoke(cli, ["mv", "farewell", "foowell"])
+    assert result.exit_code == 0
+    _assert_git_changes_commited(
+        mocked_run_git_command, "Renamed podcast: farewell -> foowell"
+    )
+
+
+def test_refresh_all_podcasts(mocked_run_git_command, runner):
+    result = runner.invoke(cli, ["refresh"])
+    assert result.exit_code == 0
+    assert result.output == "Refreshing farewell\nRefreshing greetings\n"
+    _assert_git_changes_commited(mocked_run_git_command, "Refreshed all podcast feed.")
+
+
+def test_refresh_single_podcast(mocked_run_git_command, runner):
+    result = runner.invoke(cli, ["refresh", "-p", "greetings"])
+    assert result.exit_code == 0
+    assert result.output == "Refreshing greetings\n"
+    _assert_git_changes_commited(
+        mocked_run_git_command, "Refreshed greetings podcast feed."
+    )
+
+
+def test_rm(mocked_run_git_command, runner):
+    result = runner.invoke(cli, ["rm", "greetings", "--force"])
+    assert result.exit_code == 0
+    _assert_git_changes_commited(mocked_run_git_command, "Removed podcast: greetings.")
+
+
+def test_rm_aborts_if_not_confirmed(runner):
+    result = runner.invoke(cli, ["rm", "greetings"], input="n\n")
+    assert result.exit_code == 1
+
+
+def test_tag_single_podcast(mocked_run_git_command, runner):
+    result = runner.invoke(cli, ["tag", "greetings", "foobar"])
+    assert result.exit_code == 0
+    assert result.output == "Tagged greetings -> foobar.\n"
+    _assert_git_changes_commited(mocked_run_git_command, "Tagged greetings -> foobar.")
+
+
+def test_tag_single_pocast_episode(mocked_run_git_command, runner):
+    result = runner.invoke(cli, ["tag", "greetings", "--episode", "aaa", "foobar"])
+    assert result.exit_code == 0
+    assert result.output == "Tagged greetings, episode aaa -> foobar.\n"
+    _assert_git_changes_commited(
+        mocked_run_git_command, "Tagged greetings, episode aaa -> foobar."
+    )
+
+
+def test_untag_single_podcast(mocked_run_git_command, runner):
+    result = runner.invoke(cli, ["untag", "greetings", "hello"])
+    assert result.exit_code == 0
+    assert result.output == "Untagged greetings -> hello.\n"
+    _assert_git_changes_commited(mocked_run_git_command, "Untagged greetings -> hello.")
+
+
+def test_untag_single_pocast_episode(mocked_run_git_command, runner):
+    result = runner.invoke(cli, ["untag", "greetings", "--episode", "aaa", "new"])
+    assert result.exit_code == 0
+    assert result.output == "Untagged greetings, episode aaa -> new.\n"
+    _assert_git_changes_commited(
+        mocked_run_git_command, "Untagged greetings, episode aaa -> new."
+    )
+
+
 def test_tag_episodes_interactive_mode_tags_episode_when_confirmed(
     mocked_run_git_command, runner
 ):
@@ -229,73 +304,6 @@ def test_untag_episodes_single_podcast_generates_correct_commit_message(
     assert result.exit_code == 0
     _assert_git_changes_commited(
         mocked_run_git_command, "Untagged greetings podcast episodes: new."
-    )
-
-
-def test_mv(mocked_run_git_command, runner):
-    result = runner.invoke(cli, ["mv", "farewell", "foowell"])
-    assert result.exit_code == 0
-    _assert_git_changes_commited(
-        mocked_run_git_command, "Renamed podcast: farewell -> foowell"
-    )
-
-
-def test_refresh_all_podcasts(mocked_run_git_command, runner):
-    result = runner.invoke(cli, ["refresh"])
-    assert result.exit_code == 0
-    assert result.output == "Refreshing farewell\nRefreshing greetings\n"
-    _assert_git_changes_commited(mocked_run_git_command, "Refreshed all podcast feed.")
-
-
-def test_refresh_single_podcast(mocked_run_git_command, runner):
-    result = runner.invoke(cli, ["refresh", "-p", "greetings"])
-    assert result.exit_code == 0
-    assert result.output == "Refreshing greetings\n"
-    _assert_git_changes_commited(
-        mocked_run_git_command, "Refreshed greetings podcast feed."
-    )
-
-
-def test_rm(mocked_run_git_command, runner):
-    result = runner.invoke(cli, ["rm", "greetings", "--force"])
-    assert result.exit_code == 0
-    _assert_git_changes_commited(mocked_run_git_command, "Removed podcast: greetings.")
-
-
-def test_rm_aborts_if_not_confirmed(runner):
-    result = runner.invoke(cli, ["rm", "greetings"], input="n\n")
-    assert result.exit_code == 1
-
-
-def test_tag_podcast(mocked_run_git_command, runner):
-    result = runner.invoke(cli, ["tag", "greetings", "foobar"])
-    assert result.exit_code == 0
-    assert result.output == "Tagged greetings -> foobar.\n"
-    _assert_git_changes_commited(mocked_run_git_command, "Tagged greetings -> foobar.")
-
-
-def test_tag_pocast_episode(mocked_run_git_command, runner):
-    result = runner.invoke(cli, ["tag", "greetings", "--episode", "aaa", "foobar"])
-    assert result.exit_code == 0
-    assert result.output == "Tagged greetings, episode aaa -> foobar.\n"
-    _assert_git_changes_commited(
-        mocked_run_git_command, "Tagged greetings, episode aaa -> foobar."
-    )
-
-
-def test_untag_podcast(mocked_run_git_command, runner):
-    result = runner.invoke(cli, ["untag", "greetings", "hello"])
-    assert result.exit_code == 0
-    assert result.output == "Untagged greetings -> hello.\n"
-    _assert_git_changes_commited(mocked_run_git_command, "Untagged greetings -> hello.")
-
-
-def test_untag_pocast_episode(mocked_run_git_command, runner):
-    result = runner.invoke(cli, ["untag", "greetings", "--episode", "aaa", "new"])
-    assert result.exit_code == 0
-    assert result.output == "Untagged greetings, episode aaa -> new.\n"
-    _assert_git_changes_commited(
-        mocked_run_git_command, "Untagged greetings, episode aaa -> new."
     )
 
 

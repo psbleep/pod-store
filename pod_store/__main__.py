@@ -202,6 +202,27 @@ def ls(ctx: click.Context, new: bool, episodes: bool, podcast: Optional[str]):
 
 @cli.command()
 @click.pass_context
+@click.option(
+    "-p",
+    "--podcast",
+    default=None,
+    help="Untag episodes for only the specified podcast.",
+)
+@click.option(
+    "--interactive/--bulk",
+    default=True,
+    help="Run this command in interactive mode to select which episodes to untag",
+)
+def mark_as_old(ctx: click.Context, podcast: Optional[str], interactive: bool):
+    """Remove the `new` tag from a group of episodes. Alias for the `untag` command."""
+    # Many of the common decorators are missing from this command. This is to avoid
+    # doubling up the same decorators when we invoke the `untag_episodes` function
+    # below.
+    ctx.invoke(untag_episodes, tag="new", podcast=podcast, interactive=interactive)
+
+
+@cli.command()
+@click.pass_context
 @click.argument("old")
 @click.argument("new")
 @git_add_and_commit("Renamed podcast: {} -> {}", "old", "new")
