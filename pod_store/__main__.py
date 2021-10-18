@@ -318,6 +318,32 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
         podcast.tag(tag)
 
 
+@cli.command()
+@click.pass_context
+@click.argument("podcast")
+@click.argument("tag")
+@click.option("-e", "--episode", default=None)
+@git_add_and_commit(
+    "Untagged {}{}-> {}.",
+    "tag",
+    commit_message_builder=required_podcast_optional_episode_commit_message_builder,
+)
+@save_store_changes
+@catch_pod_store_errors
+def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
+    """Untag a podcast or episode."""
+    store = ctx.obj
+
+    podcast = store.podcasts.get(podcast)
+    if episode:
+        ep = podcast.episodes.get(episode)
+        ep.untag(tag)
+        click.echo(f"Untagged {podcast.title}, episode {episode} -> {tag}.")
+    else:
+        click.echo(f"Untagged {podcast.title} -> {tag}.")
+        podcast.untag(tag)
+
+
 def main() -> None:
     cli()
 

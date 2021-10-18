@@ -239,6 +239,22 @@ def test_tag_pocast_episode(mocked_run_git_command, runner):
     )
 
 
+def test_untag_podcast(mocked_run_git_command, runner):
+    result = runner.invoke(cli, ["untag", "greetings", "hello"])
+    assert result.exit_code == 0
+    assert result.output == "Untagged greetings -> hello.\n"
+    _assert_git_changes_commited(mocked_run_git_command, "Untagged greetings -> hello.")
+
+
+def test_untag_pocast_episode(mocked_run_git_command, runner):
+    result = runner.invoke(cli, ["untag", "greetings", "--episode", "aaa", "new"])
+    assert result.exit_code == 0
+    assert result.output == "Untagged greetings, episode aaa -> new.\n"
+    _assert_git_changes_commited(
+        mocked_run_git_command, "Untagged greetings, episode aaa -> new."
+    )
+
+
 def test_git_add_and_commit_decorated_commands_work_if_git_is_not_set_up(
     start_with_no_store, mocked_run_git_command, runner
 ):
