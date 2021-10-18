@@ -228,7 +228,7 @@ def mark(ctx: click.Context, podcast: Optional[str], interactive: bool):
         click.echo(INTERACTIVE_MODE_HELP)
 
     for pod in podcasts:
-        for ep in pod.episodes.list(downloaded_at=None):
+        for ep in pod.episodes.list(new=True):
             # `interactive` can get switched from True -> False here, if the user
             # decides to switch from interactive to bulk-assignment partway through
             # the list of episodes.
