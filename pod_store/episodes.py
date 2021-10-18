@@ -115,6 +115,7 @@ class Episode:
     def mark_as_downloaded(self) -> None:
         """Mark the episode as 'already downloaded'."""
         self.downloaded_at = datetime.utcnow()
+        self.untag("new")
 
     def update(self, **data: Any) -> None:
         """Update arbitrary attributes by passing in a dict."""

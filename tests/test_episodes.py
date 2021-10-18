@@ -84,6 +84,7 @@ def test_episode_download(frozen_now, mocked_requests_get, episode):
 def test_episode_mark_as_downloaded(frozen_now, episode):
     episode.mark_as_downloaded()
     assert episode.downloaded_at == frozen_now
+    assert "new" not in episode.tags
 
 
 def test_episode_update(episode):
