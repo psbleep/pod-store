@@ -19,6 +19,7 @@ def get_episodes(
     new: Optional[bool] = None,
     podcast_title: Optional[str] = None,
     allow_empty: bool = False,
+    **episode_filters,
 ) -> List[Episode]:
     """Helper method for filtering a list of episodes in the store from cli args.
 
@@ -32,9 +33,8 @@ def get_episodes(
     if new:
         podcast_filters["has_new_episodes"] = True
 
-    episode_filters = {}
     if new:
-        episode_filters = {"new": True}
+        episode_filters["new"] = True
 
     podcasts = store.podcasts.list(allow_empty=allow_empty, **podcast_filters)
     episodes = []
@@ -48,12 +48,12 @@ def get_podcasts(
     has_new_episodes: Optional[bool] = None,
     title: Optional[str] = None,
     allow_empty: bool = False,
+    **podcast_filters,
 ) -> List[Podcast]:
     """Helper method for filtering a list of podcasts in the store from cli args.
 
     Builds the filters used by the `pod_store.Store.StorePodcasts.list` method.
     """
-    podcast_filters = {}
     if has_new_episodes:
         podcast_filters["has_new_episodes"] = True
     if title:
