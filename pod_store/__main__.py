@@ -12,7 +12,12 @@ from .commands.decorators import (
     required_podcast_optional_episode_commit_message_builder,
     save_store_changes,
 )
-from .commands.helpers import abort_if_false, get_episodes, get_podcasts
+from .commands.helpers import (
+    abort_if_false,
+    get_episodes,
+    get_podcasts,
+    get_tag_filters,
+)
 from .commands.ls import list_podcast_episodes
 from .commands.tag_episodes import INTERACTIVE_MODE_HELP, handle_episode_tagging
 from .store import Store
@@ -194,11 +199,7 @@ def ls(
 
     # Assume we are listing episodes if an individual podcast was specified.
     list_episodes = episodes or podcast
-
-    if is_tagged:
-        tag_filters = {t: True for t in tag}
-    else:
-        tag_filters = {t: False for t in tag}
+    tag_filters = get_tag_filters(tags=tag, is_tagged=is_tagged)
 
     if list_episodes:
         episode_filters = tag_filters

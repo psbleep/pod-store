@@ -60,3 +60,15 @@ def get_podcasts(
         podcast_filters["title"] = title
 
     return store.podcasts.list(allow_empty=allow_empty, **podcast_filters)
+
+
+def get_tag_filters(tags: List[str], is_tagged: bool) -> dict:
+    """Helper method for building tag filters.
+
+    `is_tagged` boolean determines whether to filter for presence of tag (True)
+    or absence of tag (False).
+    """
+    if is_tagged:
+        return {t: True for t in tags}
+    else:
+        return {t: False for t in tags}
