@@ -6,13 +6,19 @@ from ..store import Store
 from .helpers import get_episodes
 
 
-def list_podcast_episodes(store: Store, new: bool, podcast_title: str) -> Optional[str]:
+def list_podcast_episodes(
+    store: Store, new: bool, podcast_title: str, **episode_filters
+) -> Optional[str]:
     """Return a formatted string of podcast episodes output.
 
-    If no episodes matching the criteria exist fro the podcast, returns `None`.
+    If no episodes matching the criteria exist for the podcast, returns `None`.
     """
     episodes = get_episodes(
-        store=store, new=new, podcast_title=podcast_title, allow_empty=True
+        store=store,
+        new=new,
+        podcast_title=podcast_title,
+        allow_empty=True,
+        **episode_filters,
     )
     if not episodes:
         return
