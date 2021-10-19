@@ -1,6 +1,6 @@
 """Define a CLI for `pod-store`. Uses the `Click` library."""
 import os
-from typing import Optional
+from typing import List, Optional
 
 import click
 
@@ -174,8 +174,17 @@ def git(cmd: str):
     default=None,
     help="(podcast title) if listing episodes, limit results to the specified podcast",
 )
+@click.option("--is-tagged/--not-tagged", default=True)
+@click.option("--tag", "-t", multiple=True, default=[])
 @catch_pod_store_errors
-def ls(ctx: click.Context, new: bool, episodes: bool, podcast: Optional[str]):
+def ls(
+    ctx: click.Context,
+    new: bool,
+    episodes: bool,
+    podcast: Optional[str],
+    is_tagged: bool,
+    tag: List[str],
+):
     """List store entries.
 
     By default, this will list podcasts that have new episodes. Adjust the output using
@@ -183,15 +192,28 @@ def ls(ctx: click.Context, new: bool, episodes: bool, podcast: Optional[str]):
     """
     store = ctx.obj
 
-    # assume we are listing episodes if an individual podcast was specified
+    # Assume we are listing episodes if an individual podcast was specified.
     list_episodes = episodes or podcast
 
-    podcasts = get_podcasts(store=store, has_new_episodes=new, title=podcast)
+    if is_tagged:
+        tag_filters = {t: True for t in tag}
+    else:
+        tag_filters = {t: False for t in tag}
+
+    if list_episodes:
+        episode_filters = tag_filters
+        podcast_filters = {}
+    else:
+        podcast_filters = tag_filters
+
+    podcasts = get_podcasts(
+        store=store, has_new_episodes=new, title=podcast, **podcast_filters
+    )
 
     if list_episodes:
         for pod in podcasts:
             episode_listing = list_podcast_episodes(
-                store=store, new=new, podcast_title=pod.title
+                store=store, new=new, podcast_title=pod.title, **episode_filters
             )
             if episode_listing:
                 click.echo(episode_listing)
