@@ -76,7 +76,7 @@ def podcast_episode_data(frozen_now):
             "episode_number": "0011",
             "title": "goodbye",
             "url": "http://foo.bar/zzz.mp3",
-            "tags": [],
+            "tags": ["foo"],
             "created_at": (frozen_now - timedelta(days=1)).isoformat(),
             "updated_at": (frozen_now - timedelta(days=1)).isoformat(),
             "downloaded_at": frozen_now.isoformat(),
