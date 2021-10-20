@@ -262,16 +262,21 @@ def mv(ctx: click.Context, old: str, new: str):
 @click.option(
     "-p", "--podcast", default=None, help="Refresh only the specified podcast."
 )
+@click.option("--is-tagged/--not-tagged", default=True)
+@click.option("--tag", "-t", multiple=True, default=[])
 @git_add_and_commit(
     "Refreshed {} podcast feed.",
     commit_message_builder=optional_podcast_commit_message_builder,
 )
 @save_store_changes
 @catch_pod_store_errors
-def refresh(ctx: click.Context, podcast: Optional[str]):
+def refresh(
+    ctx: click.Context, podcast: Optional[str], is_tagged: bool, tag: List[str]
+):
     """Refresh podcast data from RSS feeds."""
     store = ctx.obj
-    podcasts = get_podcasts(store=store, title=podcast)
+    tag_filters = get_tag_filters(tags=tag, is_tagged=is_tagged)
+    podcasts = get_podcasts(store=store, title=podcast, **tag_filters)
 
     for podcast in podcasts:
         click.echo(f"Refreshing {podcast.title}")

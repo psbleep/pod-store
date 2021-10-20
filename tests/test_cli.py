@@ -206,6 +206,20 @@ def test_refresh_single_podcast(mocked_run_git_command, runner):
     )
 
 
+def test_refresh_with_tag(mocked_run_git_command, runner):
+    result = runner.invoke(cli, ["refresh", "-t", "hello"])
+    assert result.exit_code == 0
+    assert result.output == "Refreshing greetings\n"
+    _assert_git_changes_commited(mocked_run_git_command, "Refreshed all podcast feed.")
+
+
+def test_refresh_without_tag(mocked_run_git_command, runner):
+    result = runner.invoke(cli, ["refresh", "--not-tagged", "-t", "hello"])
+    assert result.exit_code == 0
+    assert result.output == "Refreshing farewell\n"
+    _assert_git_changes_commited(mocked_run_git_command, "Refreshed all podcast feed.")
+
+
 def test_rm(mocked_run_git_command, runner):
     result = runner.invoke(cli, ["rm", "greetings", "--force"])
     assert result.exit_code == 0
