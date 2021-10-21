@@ -22,7 +22,7 @@ def list_episodes_by_podcast(
     return "\n".join(output)
 
 
-def _get_podcast_episode_listing(e: Episode):
+def _get_podcast_episode_listing(e: Episode) -> str:
     if e.downloaded_at:
         downloaded_msg = " [X]"
     else:
@@ -40,7 +40,7 @@ def list_podcasts(podcasts: List[Podcast]) -> str:
     return "\n".join([_get_podcast_listing(p) for p in podcasts])
 
 
-def _get_podcast_listing(p: Podcast):
+def _get_podcast_listing(p: Podcast) -> str:
     new_episodes = p.number_of_new_episodes
     if new_episodes:
         episodes_msg = f"[{new_episodes}]"
