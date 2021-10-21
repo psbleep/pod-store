@@ -1,5 +1,6 @@
 """Helpers for the `ls` Click command defined in `pod_store.__main__`."""
 import shutil
+import string
 from typing import List
 
 from ..episodes import Episode
@@ -55,7 +56,14 @@ def _get_episode_summary_msg(summary: str, **template_kwargs):
     summary_length = TERMINAL_WIDTH - len(
         EPISODE_LISTING.format(summary_msg="", **template_kwargs)
     )
-    return summary[:summary_length]
+    summary_words = summary.split()
+    summary_msg = summary_words[0]
+    for word in summary_words[1:]:
+        new_summary_msg = summary_msg + f" {word}"
+        if len(new_summary_msg) > summary_length:
+            break
+        summary_msg = new_summary_msg
+    return summary_msg.rstrip(string.punctuation)
 
 
 def list_podcasts(podcasts: List[Podcast]) -> str:
