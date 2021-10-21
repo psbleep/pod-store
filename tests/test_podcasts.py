@@ -67,12 +67,14 @@ def test_podcast_refresh(mocked_feedparser_parse, now, podcast):
                         "links": [
                             {"href": "https://www.foo.bar/ccc.mp3", "type": "audio/mp3"}
                         ],
+                        "summary": "this is a short description",
                         "published_parsed": now_parsed,
                     },
                     {
                         "id": "https://www.foo.bar/aaa",
                         "itunes_episode": "0023",
                         "title": "hello-updated",
+                        "summary": "hello world",
                         "links": [
                             {
                                 "href": "http://www.foo.bar/aaa.mp3",
@@ -99,6 +101,8 @@ def test_podcast_refresh(mocked_feedparser_parse, now, podcast):
         TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0002-no-number-provided.mp3"
     )
     assert new_episode.episode_number == "0002"
+    assert new_episode.summary == "this is a short descripti"
+    assert new_episode.description == "this is a short description"
 
 
 def test_podcast_tag(podcast):

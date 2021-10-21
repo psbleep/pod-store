@@ -256,6 +256,7 @@ class Podcast:
         self,
         id: str,
         title: str,
+        summary: str,
         links: list,
         published_parsed: tuple,
         updated_parsed: Optional[tuple] = None,
@@ -286,6 +287,8 @@ class Podcast:
             "id": self._parse_store_episode_id(id),
             "episode_number": episode_number,
             "title": title,
+            "summary": summary[:25],
+            "description": summary,
             "url": [
                 u["href"] for u in links if u["type"] in ("audio/mpeg", "audio/mp3")
             ][0],
