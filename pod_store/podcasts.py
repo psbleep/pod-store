@@ -276,11 +276,13 @@ class Podcast:
           objects.
         """
         id = self._parse_store_episode_id(id)
-
         episode_number = itunes_episode or self._parse_episode_number_from_rss_title(
             title
         )
-
+        summary = re.sub(
+            "<[^<]+?>", "", summary.encode("ascii", "ignore").decode("utf-8")
+        )
+        url = [u["href"] for u in links if u["type"] in ("audio/mpeg", "audio/mp3")][0]
         updated_parsed = updated_parsed or published_parsed
 
         return {
@@ -288,9 +290,7 @@ class Podcast:
             "episode_number": episode_number,
             "title": title,
             "summary": summary,
-            "url": [
-                u["href"] for u in links if u["type"] in ("audio/mpeg", "audio/mp3")
-            ][0],
+            "url": url,
             "created_at": datetime(*published_parsed[:6]),
             "updated_at": datetime(*updated_parsed[:6]),
         }

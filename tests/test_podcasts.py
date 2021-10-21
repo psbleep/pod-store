@@ -67,7 +67,7 @@ def test_podcast_refresh(mocked_feedparser_parse, now, podcast):
                         "links": [
                             {"href": "https://www.foo.bar/ccc.mp3", "type": "audio/mp3"}
                         ],
-                        "summary": "this is a short description",
+                        "summary": "this is a short description<html>\xa0",
                         "published_parsed": now_parsed,
                     },
                     {
