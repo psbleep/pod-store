@@ -1,10 +1,16 @@
 """Helpers for the `ls` Click command defined in `pod_store.__main__`."""
-
+import shutil
 from typing import List
 
 from ..episodes import Episode
 from ..podcasts import Podcast
 from ..store import Store
+
+TERMINAL_WIDTH = shutil.get_terminal_size().columns
+
+EPISODE_LISTING = (
+    "[{episode_number}] {title}: {summary_msg!r}{downloaded_msg}{tags_msg}"
+)
 
 
 def list_episodes_by_podcast(
@@ -32,7 +38,24 @@ def _get_podcast_episode_listing(e: Episode) -> str:
         tags_msg = f" -> {tags}"
     else:
         tags_msg = ""
-    return f"[{e.episode_number}] {e.title}: {e.summary!r}{downloaded_msg}{tags_msg}"
+
+    template_kwargs = {
+        "episode_number": e.episode_number,
+        "title": e.title,
+        "downloaded_msg": downloaded_msg,
+        "tags_msg": tags_msg,
+    }
+    template_kwargs["summary_msg"] = _get_episode_summary_msg(
+        e.summary, **template_kwargs
+    )
+    return EPISODE_LISTING.format(**template_kwargs)
+
+
+def _get_episode_summary_msg(summary: str, **template_kwargs):
+    summary_length = TERMINAL_WIDTH - len(
+        EPISODE_LISTING.format(summary_msg="", **template_kwargs)
+    )
+    return summary[:summary_length]
 
 
 def list_podcasts(podcasts: List[Podcast]) -> str:
