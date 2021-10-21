@@ -254,13 +254,14 @@ class Podcast:
 
     def _parse_episode_feed_data(
         self,
-        id: str,
         title: str,
+        id: str,
         summary: str,
         links: list,
         published_parsed: tuple,
-        updated_parsed: Optional[tuple] = None,
+        subtitle: Optional[str] = None,
         itunes_episode: Optional[str] = None,
+        updated_parsed: Optional[tuple] = None,
         **kwargs,
     ) -> dict:
         """Converts the raw RSS feed data into a dict of valid `pod.episode.Episode`
@@ -268,36 +269,42 @@ class Podcast:
 
         - Parses an ID for use in the store from the RSS feed ID.
 
-        - Gathers an episode number (if available).
+        - Strips HTML/non-ASCII characters from episode descriptions.
 
         - Determines a download URL from the available links in the RSS feed data.
 
         - Converts the `published` and `updated` data from the RSS feed into `datetime`
           objects.
+
+        - Gathers an episode number (if available).
         """
         id = self._parse_store_episode_id(id)
+        long_description = self._strip_html_and_non_ascii_characters(summary)
+        url = [u["href"] for u in links if u["type"] in ("audio/mpeg", "audio/mp3")][0]
+        published_parsed = datetime(*published_parsed[:6])
+
+        if subtitle:
+            short_description = self._strip_html_and_non_ascii_characters(subtitle)
+        else:
+            short_description = long_description
+
         episode_number = itunes_episode or self._parse_episode_number_from_rss_title(
             title
         )
-        short_description = re.sub(
-            "<[^<]+?>", "", summary.encode("ascii", "ignore").decode("utf-8")
-        )
-        long_description = short_description
-        url = [u["href"] for u in links if u["type"] in ("audio/mpeg", "audio/mp3")][0]
-        published_parsed = datetime(*published_parsed[:6])
+
         if updated_parsed:
             updated_parsed = datetime(*updated_parsed[:6])
         else:
             updated_parsed = published_parsed
 
         return {
-            "id": id,
-            "episode_number": episode_number,
             "title": title,
-            "short_description": short_description,
+            "id": id,
             "long_description": long_description,
             "url": url,
             "created_at": published_parsed,
+            "short_description": short_description,
+            "episode_number": episode_number,
             "updated_at": updated_parsed,
         }
 
@@ -331,3 +338,8 @@ class Podcast:
     def _pad_episode_number(episode_number: str) -> str:
         """Create an episode number padded with up to 3 zeros."""
         return episode_number.rjust(4, "0")
+
+    @staticmethod
+    def _strip_html_and_non_ascii_characters(text: str) -> str:
+        """Strip HTML tags and non-ASCII characters from RSS feed data."""
+        return re.sub("<[^<]+?>", "", text.encode("ascii", "ignore").decode("utf-8"))

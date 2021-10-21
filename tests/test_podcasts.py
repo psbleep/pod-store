@@ -67,7 +67,8 @@ def test_podcast_refresh(mocked_feedparser_parse, now, podcast):
                         "links": [
                             {"href": "https://www.foo.bar/ccc.mp3", "type": "audio/mp3"}
                         ],
-                        "summary": "this is a short description<html>\xa0",
+                        "subtitle": "this is a short description<html>\xa0",
+                        "summary": "this is a \xa0<b>long</b> description",
                         "published_parsed": now_parsed,
                     },
                     {
@@ -102,6 +103,7 @@ def test_podcast_refresh(mocked_feedparser_parse, now, podcast):
     )
     assert new_episode.episode_number == "0002"
     assert new_episode.short_description == "this is a short description"
+    assert new_episode.long_description == "this is a long description"
 
 
 def test_podcast_tag(podcast):
