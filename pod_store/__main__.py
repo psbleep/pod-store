@@ -1,6 +1,6 @@
 """Define a CLI for `pod-store`. Uses the `Click` library."""
 import os
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import click
 
@@ -14,6 +14,7 @@ from .commands.decorators import (
 )
 from .commands.helpers import (
     abort_if_false,
+    display_pod_store_error_from_exception,
     get_episodes,
     get_podcasts,
     get_tag_filters,
@@ -25,7 +26,64 @@ from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFile
 from .util import run_git_command
 
 
-@click.group()
+class PodStoreGroup(click.Group):
+    """Custom `click.Group` class that enables properly handling the `pod git` command.
+
+    The purpose of the `pod git` command is to conveniently run `git` commands against
+    the pod store repo without having to navigate to the correct file path or do another
+    workaround:
+
+        cd ~/.pod-store
+        git push
+
+    Because Click will intercept and parse any options/flags passed to this command,
+    without intervention this command breaks on any `git` commands the user runs that
+    include options/flags intended for `git`:
+
+        pod git push -u origin master
+
+    The solution here is to intercept any invocation of `pod git <args>` and manually
+    run the `git` command, display the output, and handle error messages outside the
+    normal Click cycle.
+
+    `pod git --help` still uses the default Click behavior for displaying the help
+    message.
+
+    Note: the pod `git` command is still defined below, so that it will appear in the
+    list of available commands/provide a help message.
+    """
+
+    def invoke(self, ctx: click.Context) -> Any:
+        """Custom group behavior: intercept `pod git <args>` and handle that manually.
+
+        Standard `click.Group.invoke` behavior in all other situations.
+        """
+        if ctx.protected_args == ["git"] and "--help" not in ctx.args:
+            self._handle_pod_store_git_command(ctx.args)
+        else:
+            return super().invoke(ctx)
+
+    @staticmethod
+    def _handle_pod_store_git_command(ctx_args: List[str]) -> None:
+        """Constructs and executes the intended `git` command, displaying output and
+        errors to the user.
+        """
+        git_cmd_args = []
+        for a in ctx_args:
+            # Parse multi-word `args` tokens back into quote-enclosed strings for
+            # consumption by `git`.
+            if " " in a:
+                git_cmd_args.append(f"{a!r}")
+            else:
+                git_cmd_args.append(a)
+        git_cmd = " ".join(git_cmd_args)
+        try:
+            click.echo(run_git_command(git_cmd))
+        except Exception as exception:
+            display_pod_store_error_from_exception(exception)
+
+
+@click.command(cls=PodStoreGroup)
 @click.pass_context
 def cli(ctx):
     if os.path.exists(STORE_FILE_PATH):
@@ -161,15 +219,6 @@ def download(
     for ep in episodes:
         click.echo(f"Downloading: {ep.download_path}")
         ep.download()
-
-
-@cli.command()
-@click.argument("cmd", nargs=-1)
-@catch_pod_store_errors
-def git(cmd: str):
-    """Run arbitrary git commands in the `pod-store` repo."""
-    output = run_git_command(" ".join(cmd))
-    click.echo(output)
 
 
 @cli.command()
@@ -458,6 +507,15 @@ def untag_episodes(
             )
             if confirmed:
                 click.echo(f"Untagged {pod.title} -> [{ep.episode_number}] {ep.title}")
+
+
+@cli.command()
+@click.argument("cmd", nargs=-1)
+def git(cmd: str):
+    """Run a `git` command against the pod store repo."""
+    # To deal with flags passed in to the `git` command, this is handled with custom
+    # behavior in the `PodStoreGroup` class.
+    pass
 
 
 def main() -> None:

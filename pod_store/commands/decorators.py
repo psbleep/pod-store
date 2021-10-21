@@ -7,28 +7,9 @@ from typing import Any, Callable
 import click
 
 from .. import STORE_GIT_REPO
-from ..exc import (
-    EpisodeDoesNotExistError,
-    GPGCommandError,
-    NoEpisodesFoundError,
-    NoPodcastsFoundError,
-    PodcastDoesNotExistError,
-    PodcastExistsError,
-    ShellCommandError,
-    StoreExistsError,
-)
+from ..exc import ShellCommandError
 from ..util import run_git_command
-
-POD_STORE_EXCEPTIONS_AND_ERROR_MESSAGE_TEMPLATES = {
-    EpisodeDoesNotExistError: "Episode not found: {}.",
-    GPGCommandError: "Error encountered when running GPG commands: {}.",
-    NoEpisodesFoundError: "No episodes found. {}",
-    NoPodcastsFoundError: "No podcasts found. {}",
-    PodcastDoesNotExistError: "Podcast not found: {}.",
-    PodcastExistsError: "Podcast with title already exists: {}.",
-    ShellCommandError: "Error running shell command: {}.",
-    StoreExistsError: "Store already initialized: {}.",
-}
+from .helpers import display_pod_store_error_from_exception
 
 
 def catch_pod_store_errors(f: Callable) -> Callable:
@@ -41,14 +22,7 @@ def catch_pod_store_errors(f: Callable) -> Callable:
         try:
             return f(*args, **kwargs)
         except Exception as err:
-            try:
-                error_msg_template = POD_STORE_EXCEPTIONS_AND_ERROR_MESSAGE_TEMPLATES[
-                    err.__class__
-                ]
-                click.secho(error_msg_template.format(str(err)), fg="red")
-                raise click.Abort()
-            except KeyError:
-                raise err
+            display_pod_store_error_from_exception(err)
 
     return catch_pod_store_errors_inner
 
