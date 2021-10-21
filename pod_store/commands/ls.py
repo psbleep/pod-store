@@ -1,27 +1,26 @@
 """Helpers for the `ls` Click command defined in `pod_store.__main__`."""
 
-from typing import Optional
+from typing import List
 
+from ..episodes import Episode
+from ..podcasts import Podcast
 from ..store import Store
-from .helpers import get_episodes
 
 
-def list_podcast_episodes(
-    store: Store, new: bool, podcast_title: str, **episode_filters
-) -> Optional[str]:
-    """Return a formatted string of podcast episodes output.
+def list_episodes_by_podcast(
+    podcasts: List[Podcast], store: Store, **episode_filters
+) -> str:
+    """Return a formatted string of podcast episode output for the `ls` command."""
+    output = []
+    for pod in podcasts:
+        episodes = pod.episodes.list(allow_empty=True, **episode_filters)
+        if episodes:
+            output.append(pod.title)
+            output.extend([_get_podcast_episode_listing(e) for e in episodes])
+            output.append("")
+    output = output[:-1]  # remove extra newline at end of output
+    return "\n".join(output)
 
-    If no episodes matching the criteria exist for the podcast, returns `None`.
-    """
-    episodes = get_episodes(
-        store=store,
-        new=new,
-        podcast_title=podcast_title,
-        allow_empty=True,
-        **episode_filters,
-    )
-    if not episodes:
-        return
 
-    episode_listing = "\n".join([str(e) for e in episodes])
-    return f"{podcast_title}\n{episode_listing}\n"
+def _get_podcast_episode_listing(e: Episode):
+    return str(e)

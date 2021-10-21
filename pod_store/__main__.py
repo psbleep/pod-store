@@ -19,7 +19,7 @@ from .commands.helpers import (
     get_podcasts,
     get_tag_filters,
 )
-from .commands.ls import list_podcast_episodes
+from .commands.ls import list_episodes_by_podcast
 from .commands.tag_episodes import INTERACTIVE_MODE_HELP, handle_episode_tagging
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
@@ -250,6 +250,7 @@ def ls(
     the provided flags and command options.
     """
     store = ctx.obj
+    podcast_title = podcast
 
     # Assume we are listing episodes if an individual podcast was specified.
     list_episodes = episodes or podcast
@@ -258,23 +259,24 @@ def ls(
     if list_episodes:
         episode_filters = tag_filters
         podcast_filters = {}
+        if new:
+            episode_filters["new"] = True
     else:
         podcast_filters = tag_filters
 
-    podcasts = get_podcasts(
-        store=store, has_new_episodes=new, title=podcast, **podcast_filters
-    )
+    if new:
+        podcast_filters["has_new_episodes"] = True
+
+    podcasts = get_podcasts(store=store, title=podcast_title, **podcast_filters)
 
     if list_episodes:
-        for pod in podcasts:
-            episode_listing = list_podcast_episodes(
-                store=store, new=new, podcast_title=pod.title, **episode_filters
-            )
-            if episode_listing:
-                click.echo(episode_listing)
+        output = list_episodes_by_podcast(
+            podcasts=podcasts, store=store, **episode_filters
+        )
     else:
-        podcast_listing = "\n".join([str(p) for p in podcasts])
-        click.echo(podcast_listing)
+        output = "\n".join([str(p) for p in podcasts])
+
+    click.echo(output)
 
 
 @cli.command()
