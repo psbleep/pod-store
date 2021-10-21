@@ -43,7 +43,7 @@ def list_podcasts(podcasts: List[Podcast]) -> str:
 def _get_podcast_listing(p: Podcast) -> str:
     new_episodes = p.number_of_new_episodes
     if new_episodes:
-        episodes_msg = f"[{new_episodes}]"
+        episodes_msg = f" [{new_episodes}]"
     else:
         episodes_msg = ""
     if p.tags:
@@ -51,4 +51,4 @@ def _get_podcast_listing(p: Podcast) -> str:
         tags_msg = f" -> {tags}"
     else:
         tags_msg = ""
-    return f"{p.title} {episodes_msg}{tags_msg}"
+    return f"{p.title}{episodes_msg}{tags_msg}"

@@ -145,7 +145,7 @@ def test_download_new_episodes_without_tag(mocked_git_decorator_command, runner)
 def test_ls_all_podcasts(runner):
     result = runner.invoke(cli, ["ls", "--all"])
     assert result.exit_code == 0
-    assert result.output == "farewell [1]\nother \ngreetings [1] -> hello\n"
+    assert result.output == "farewell [1]\nother\ngreetings [1] -> hello\n"
 
 
 def test_ls_podcasts_with_new_episodes(runner):
@@ -163,7 +163,7 @@ def test_ls_podcasts_with_tag(runner):
 def test_ls_podcasts_without_tag(runner):
     result = runner.invoke(cli, ["ls", "--all", "--not-tagged", "-t", "hello"])
     assert result.exit_code == 0
-    assert result.output == "farewell [1]\nother \n"
+    assert result.output == "farewell [1]\nother\n"
 
 
 def test_ls_all_episodes(runner):
