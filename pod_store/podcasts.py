@@ -283,16 +283,20 @@ class Podcast:
             "<[^<]+?>", "", summary.encode("ascii", "ignore").decode("utf-8")
         )
         url = [u["href"] for u in links if u["type"] in ("audio/mpeg", "audio/mp3")][0]
-        updated_parsed = updated_parsed or published_parsed
+        published_parsed = datetime(*published_parsed[:6])
+        if updated_parsed:
+            updated_parsed = datetime(*updated_parsed[:6])
+        else:
+            updated_parsed = published_parsed
 
         return {
-            "id": self._parse_store_episode_id(id),
+            "id": id,
             "episode_number": episode_number,
             "title": title,
             "summary": summary,
             "url": url,
-            "created_at": datetime(*published_parsed[:6]),
-            "updated_at": datetime(*updated_parsed[:6]),
+            "created_at": published_parsed,
+            "updated_at": updated_parsed,
         }
 
     @staticmethod
