@@ -45,15 +45,6 @@ def test_episode_from_json_parses_datetimes(now):
     assert episode.updated_at == now
 
 
-def test_episode_string_not_downloaded_yet(episode):
-    assert str(episode) == "[0092] hello "
-
-
-def test_episode_string_has_been_downloaded(now, episode):
-    episode.downloaded_at = now
-    assert str(episode) == "[0092] hello [X]"
-
-
 def test_episode_download(now, mocked_requests_get, episode):
     def iter_content(_):
         for chunk in (b"hello ", b"world"):

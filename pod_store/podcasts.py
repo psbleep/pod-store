@@ -179,14 +179,6 @@ class Podcast:
     def __repr__(self) -> str:
         return f"Podcast({self.title!r})"
 
-    def __str__(self) -> str:
-        new_episodes = self.number_of_new_episodes
-        if new_episodes:
-            episodes_msg = f"[{new_episodes}]"
-        else:
-            episodes_msg = ""
-        return f"{self.title} {episodes_msg}"
-
     @property
     def has_new_episodes(self) -> bool:
         """Inidicates if the podcast has any new episodes."""

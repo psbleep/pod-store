@@ -36,11 +36,6 @@ def test_podcast_from_json_parses_datetimes(now):
     assert podcast.updated_at == now
 
 
-def test_podcast_str(podcast):
-    # title [n]  where `n` is number of new episodes
-    assert str(podcast) == "hello [1]"
-
-
 def test_podcast_has_new_episodes(podcast):
     assert podcast.has_new_episodes is True
 

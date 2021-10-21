@@ -23,7 +23,11 @@ def list_episodes_by_podcast(
 
 
 def _get_podcast_episode_listing(e: Episode):
-    return str(e)
+    if e.downloaded_at:
+        downloaded_msg = "[X]"
+    else:
+        downloaded_msg = ""
+    return f"[{e.episode_number}] {e.title} {downloaded_msg}"
 
 
 def list_podcasts(podcasts: List[Podcast]) -> str:
@@ -32,4 +36,9 @@ def list_podcasts(podcasts: List[Podcast]) -> str:
 
 
 def _get_podcast_listing(p: Podcast):
-    return str(p)
+    new_episodes = p.number_of_new_episodes
+    if new_episodes:
+        episodes_msg = f"[{new_episodes}]"
+    else:
+        episodes_msg = ""
+    return f"{p.title} {episodes_msg}"

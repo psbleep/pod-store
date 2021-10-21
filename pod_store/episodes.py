@@ -87,13 +87,6 @@ class Episode:
     def __repr__(self) -> str:
         return f"Episode({self.episode_number}, {self.title})"
 
-    def __str__(self) -> str:
-        if self.downloaded_at:
-            downloaded_msg = "[X]"
-        else:
-            downloaded_msg = ""
-        return f"[{self.episode_number}] {self.title} {downloaded_msg}"
-
     def download(self) -> None:
         """Download the audio file of the episode to the file system."""
         os.makedirs(os.path.dirname(self.download_path), exist_ok=True)
