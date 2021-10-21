@@ -13,7 +13,7 @@ TEST_EPISODE_DOWNLOAD_PATH = os.path.join(
 
 
 @pytest.fixture
-def episode(frozen_now):
+def episode(now):
     return Episode(
         download_path=TEST_EPISODE_DOWNLOAD_PATH,
         id="abc",
@@ -21,14 +21,14 @@ def episode(frozen_now):
         title="hello",
         url="https://www.foo.bar/abc.mp3",
         tags=["new"],
-        created_at=frozen_now,
-        updated_at=frozen_now,
+        created_at=now,
+        updated_at=now,
         downloaded_at=None,
     )
 
 
-def test_episode_from_json_parses_datetimes(frozen_now):
-    ts = frozen_now.isoformat()
+def test_episode_from_json_parses_datetimes(now):
+    ts = now.isoformat()
 
     episode = Episode.from_json(
         download_path=TEST_EPISODE_DOWNLOAD_PATH,
@@ -41,32 +41,32 @@ def test_episode_from_json_parses_datetimes(frozen_now):
         downloaded_at=None,
     )
 
-    assert episode.created_at == frozen_now
-    assert episode.updated_at == frozen_now
+    assert episode.created_at == now
+    assert episode.updated_at == now
 
 
 def test_episode_string_not_downloaded_yet(episode):
     assert str(episode) == "[0092] hello "
 
 
-def test_episode_string_has_been_downloaded(frozen_now, episode):
-    episode.downloaded_at = frozen_now
+def test_episode_string_has_been_downloaded(now, episode):
+    episode.downloaded_at = now
     assert str(episode) == "[0092] hello [X]"
 
 
-def test_episode_download(frozen_now, mocked_requests_get, episode):
+def test_episode_download(now, mocked_requests_get, episode):
     def iter_content(_):
         for chunk in (b"hello ", b"world"):
             yield chunk
 
-    response = namedtuple("FakeResponse", "iter_content")
-    resp = response(iter_content=iter_content)
+    fake_response = namedtuple("FakeResponse", "iter_content")
+    resp = fake_response(iter_content=iter_content)
     mocked_requests_get.configure_mock(**{"return_value": resp})
 
     episode.download()
     mocked_requests_get.assert_called_with(episode.url, stream=True)
 
-    assert episode.downloaded_at == frozen_now
+    assert episode.downloaded_at == now
     assert "new" not in episode.tags
 
     with open(episode.download_path, "rb") as f:
@@ -89,7 +89,7 @@ def test_episode_untag(episode):
     assert episode.tags == []
 
 
-def test_episode_to_json(frozen_now, episode):
+def test_episode_to_json(now, episode):
     assert episode.to_json() == {
         "id": "abc",
         "download_path": TEST_EPISODE_DOWNLOAD_PATH,
@@ -97,7 +97,7 @@ def test_episode_to_json(frozen_now, episode):
         "title": "hello",
         "url": "https://www.foo.bar/abc.mp3",
         "tags": ["new"],
-        "created_at": frozen_now.isoformat(),
-        "updated_at": frozen_now.isoformat(),
+        "created_at": now.isoformat(),
+        "updated_at": now.isoformat(),
         "downloaded_at": None,
     }

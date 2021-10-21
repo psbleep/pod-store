@@ -92,7 +92,7 @@ def test_init_store_with_gpg_id_sets_gpg_id_file_and_creates_encrypted_store_fil
 
 def test_store_encrypt_reads_existing_store_data_and_sets_up_encrypted_store_and_file(
     mocker,
-    store_podcasts_data,
+    store_data,
     store,
 ):
     mocked_create_encrypted_store_file = mocker.patch(
@@ -107,12 +107,12 @@ def test_store_encrypt_reads_existing_store_data_and_sets_up_encrypted_store_and
     mocked_create_encrypted_store_file.assert_called_with(
         gpg_id="zoo@baz.com",
         store_file_path=TEST_STORE_FILE_PATH,
-        store_data=store_podcasts_data,
+        store_data=store_data,
     )
 
 
 def test_unencrypt_reads_existing_store_data_and_writes_unencrypted_store_file(
-    mocker, start_with_no_store, store_podcasts_data
+    mocker, start_with_no_store, store_data
 ):
     Store.init(
         store_path=TEST_STORE_PATH,
@@ -125,7 +125,7 @@ def test_unencrypt_reads_existing_store_data_and_writes_unencrypted_store_file(
     file_handler = EncryptedStoreFileHandler(
         store_file_path=TEST_STORE_FILE_PATH, gpg_id="oof@rab.com"
     )
-    file_handler.read_data = mocker.Mock(return_value=store_podcasts_data)
+    file_handler.read_data = mocker.Mock(return_value=store_data)
 
     store = Store(
         store_path=TEST_STORE_PATH,
@@ -138,11 +138,11 @@ def test_unencrypt_reads_existing_store_data_and_writes_unencrypted_store_file(
     assert not os.path.exists(TEST_GPG_ID_FILE_PATH)
 
     with open(TEST_STORE_FILE_PATH) as f:
-        assert json.load(f) == store_podcasts_data
+        assert json.load(f) == store_data
 
 
-def test_save_writes_data_to_file(store_podcasts_data, store):
-    store.podcasts._podcasts["greetings"].title = "updated"
+def test_save_writes_data_to_file(store_data, store):
+    store.podcasts.get("greetings").title = "updated"
     store.save()
     with open(TEST_STORE_FILE_PATH) as f:
         assert json.load(f)["greetings"]["title"] == "updated"

@@ -7,12 +7,17 @@ import pytest
 
 from pod_store.store import Store
 from pod_store.store_file_handlers import UnencryptedStoreFileHandler
-from tests import TEST_PODCAST_DOWNLOADS_PATH, TEST_STORE_FILE_PATH, TEST_STORE_PATH
+from tests import (
+    TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
+    TEST_PODCAST_DOWNLOADS_PATH,
+    TEST_STORE_FILE_PATH,
+    TEST_STORE_PATH,
+)
 
 
 # Autouse to establish fresh store data for every test.
 @pytest.fixture(autouse=True)
-def setup_test_store_data_and_downloads_path(request, store_podcasts_data):
+def setup_test_store_data_and_downloads_path(request, store_data):
     def cleanup():
         if os.path.exists(TEST_STORE_PATH):
             shutil.rmtree(TEST_STORE_PATH)
@@ -25,7 +30,7 @@ def setup_test_store_data_and_downloads_path(request, store_podcasts_data):
     os.makedirs(os.path.join(TEST_STORE_PATH, ".git"))  # register as "git enabled"
     os.makedirs(TEST_PODCAST_DOWNLOADS_PATH)
     with open(TEST_STORE_FILE_PATH, "w") as f:
-        json.dump(store_podcasts_data, f, indent=2)
+        json.dump(store_data, f, indent=2)
     request.addfinalizer(cleanup)
 
 
@@ -48,62 +53,91 @@ def mocked_subprocess_run(mocker):
 
 
 @pytest.fixture
-def frozen_now(freezer):
+def now(freezer):
     return datetime.utcnow()
 
 
 @pytest.fixture
-def podcast_episode_data(frozen_now):
+def podcast_episode_data(now):
     return {
         "aaa": {
             "id": "aaa",
             "download_path": os.path.join(
-                TEST_PODCAST_DOWNLOADS_PATH, "greetings/0023-hello.mp3"
+                TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0023-hello.mp3"
             ),
             "episode_number": "0023",
             "title": "hello",
             "url": "http://foo.bar/aaa.mp3",
             "tags": ["new"],
-            "created_at": frozen_now.isoformat(),
-            "updated_at": frozen_now.isoformat(),
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat(),
             "downloaded_at": None,
         },
         "zzz": {
             "id": "zzz",
             "download_path": os.path.join(
-                TEST_PODCAST_DOWNLOADS_PATH, "greetings/0011-goodbye.mp3"
+                TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0011-goodbye.mp3"
             ),
             "episode_number": "0011",
             "title": "goodbye",
             "url": "http://foo.bar/zzz.mp3",
             "tags": ["foo"],
-            "created_at": (frozen_now - timedelta(days=1)).isoformat(),
-            "updated_at": (frozen_now - timedelta(days=1)).isoformat(),
-            "downloaded_at": frozen_now.isoformat(),
+            "created_at": (now - timedelta(days=1)).isoformat(),
+            "updated_at": (now - timedelta(days=1)).isoformat(),
+            "downloaded_at": now.isoformat(),
         },
     }
 
 
 @pytest.fixture
-def store_podcasts_data(frozen_now, podcast_episode_data):
+def store_data(now, podcast_episode_data):
     return {
         "greetings": {
             "title": "greetings",
-            "episode_downloads_path": "/foo/podcasts",
+            "episode_downloads_path": os.path.join(
+                TEST_PODCAST_DOWNLOADS_PATH, "greetings"
+            ),
             "feed": "http://hello.world/rss",
             "tags": ["hello"],
             "episode_data": podcast_episode_data,
-            "created_at": frozen_now.isoformat(),
-            "updated_at": frozen_now.isoformat(),
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat(),
         },
         "farewell": {
             "title": "farewell",
-            "episode_downloads_path": "/bar/podcasts",
+            "episode_downloads_path": os.path.join(
+                TEST_PODCAST_DOWNLOADS_PATH, "farewell"
+            ),
             "feed": "http://goodbye.world/rss",
             "tags": [],
+            "episode_data": {
+                "111": {
+                    "id": "111",
+                    "download_path": os.path.join(
+                        TEST_PODCAST_DOWNLOADS_PATH, "farewell/0001-gone.mp3"
+                    ),
+                    "episode_number": "0001",
+                    "title": "gone",
+                    "url": "http://foo.bar/111.mp3",
+                    "tags": ["new", "bar"],
+                    "created_at": now.isoformat(),
+                    "updated_at": now.isoformat(),
+                    "downloaded_at": None,
+                },
+            },
+            "created_at": (now - timedelta(days=1)).isoformat(),
+            "updated_at": now.isoformat(),
+        },
+        "other": {
+            "title": "other",
+            "episode_downloads_path": os.path.join(
+                TEST_PODCAST_DOWNLOADS_PATH, "other"
+            ),
+            "feed": "http://other.thing/rss",
+            "tags": [],
             "episode_data": {},
-            "created_at": (frozen_now - timedelta(days=1)).isoformat(),
-            "updated_at": frozen_now.isoformat(),
+            "created_at": (now - timedelta(days=1)).isoformat(),
+            "updated_at": now.isoformat(),
         },
     }
 

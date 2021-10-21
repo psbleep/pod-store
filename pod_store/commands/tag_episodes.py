@@ -1,6 +1,7 @@
 """Helpers for the `tag-episodes` and `untag-episodes` Click commands defined in
 `pod_store.__main__`.
 """
+from typing import Tuple
 
 import click
 
@@ -18,7 +19,7 @@ INTERACTIVE_MODE_HELP = """{action}ging in interactive mode. Options are:
 
 def handle_episode_tagging(
     tag: str, action: str, interactive_mode: bool, podcast: Podcast, episode: Episode
-) -> (bool, bool):
+) -> Tuple[bool]:
     """Helper method for the details of tagging or untagging an episode.
 
     `action` is a string indicating whether to tag or untag.
@@ -49,7 +50,7 @@ def handle_episode_tagging(
 
 def _determine_interactive_mode_action(
     podcast: Podcast, episode: Episode
-) -> (bool, bool):
+) -> Tuple[bool]:
     """Helper for prompting the user whether to untag an episode as downloaded.
 
     User can also choose to switch from interactive to bulk-assignment mode here.

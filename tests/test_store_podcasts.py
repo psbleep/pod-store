@@ -13,9 +13,9 @@ from . import TEST_PODCAST_DOWNLOADS_PATH
 
 
 @pytest.fixture
-def store_podcasts(store_podcasts_data):
+def store_podcasts(store_data):
     return StorePodcasts(
-        podcast_data=store_podcasts_data,
+        podcast_data=store_data,
         podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
     )
 
@@ -53,15 +53,16 @@ def test_store_podcasts_get_podcast_raises_error_if_not_found(store_podcasts):
 
 
 def test_store_podcasts_lists_podcasts_sorted_by_created_at(store_podcasts):
-    pod1, pod2 = store_podcasts.list()
+    pod1, pod2, pod3 = store_podcasts.list()
     assert pod1.title == "farewell"
-    assert pod2.title == "greetings"
+    assert pod2.title == "other"
+    assert pod3.title == "greetings"
 
 
 def test_store_podcasts_lists_podcasts_filtered_by_attribute(store_podcasts):
-    pods = store_podcasts.list(has_new_episodes=True)
-    assert len(pods) == 1
-    assert pods[0].title == "greetings"
+    pod1, pod2 = store_podcasts.list(has_new_episodes=True)
+    assert pod1.title == "farewell"
+    assert pod2.title == "greetings"
 
 
 def test_store_podcasts_lists_podcasts_filtered_by_presence_of_tag(store_podcasts):
@@ -78,8 +79,7 @@ def test_store_podcasts_lists_podcasts_filtered_by_absence_of_tag(store_podcasts
     pod.tags = ["zoobar"]
 
     pods = store_podcasts.list(zoobar=False)
-    assert len(pods) == 1
-    assert pods[0].title == "farewell"
+    assert len(pods) == 2
 
 
 def test_store_podcasts_list_raises_attribute_error_if_filter_is_not_attribute_or_tag(
@@ -120,5 +120,5 @@ def test_store_podcasts_rename_new_title_already_exists(store_podcasts):
         store_podcasts.rename("greetings", "farewell")
 
 
-def test_store_podcasts_to_json(store_podcasts, store_podcasts_data):
-    assert store_podcasts.to_json() == store_podcasts_data
+def test_store_podcasts_to_json(store_podcasts, store_data):
+    assert store_podcasts.to_json() == store_data

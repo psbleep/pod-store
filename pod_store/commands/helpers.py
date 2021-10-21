@@ -4,11 +4,12 @@ from typing import Any, List, Optional
 import click
 
 from ..episodes import Episode
+from ..exc import NoEpisodesFoundError
 from ..podcasts import Podcast
 from ..store import Store
 
 
-def abort_if_false(ctx: click.Context, _, value: Any):
+def abort_if_false(ctx: click.Context, _, value: Any) -> None:
     """Callback for aborting a Click command from within an argument or option."""
     if not value:
         ctx.abort()
@@ -39,7 +40,9 @@ def get_episodes(
     podcasts = store.podcasts.list(allow_empty=allow_empty, **podcast_filters)
     episodes = []
     for pod in podcasts:
-        episodes.extend(pod.episodes.list(allow_empty=allow_empty, **episode_filters))
+        episodes.extend(pod.episodes.list(**episode_filters))
+    if not episodes and not allow_empty:
+        raise NoEpisodesFoundError()
     return episodes
 
 
