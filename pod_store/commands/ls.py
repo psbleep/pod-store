@@ -24,3 +24,12 @@ def list_episodes_by_podcast(
 
 def _get_podcast_episode_listing(e: Episode):
     return str(e)
+
+
+def list_podcasts(podcasts: List[Podcast]) -> str:
+    """Return a formatted string of podcast output for the `ls` command."""
+    return "\n".join([_get_podcast_listing(p) for p in podcasts])
+
+
+def _get_podcast_listing(p: Podcast):
+    return str(p)

@@ -19,7 +19,7 @@ from .commands.helpers import (
     get_podcasts,
     get_tag_filters,
 )
-from .commands.ls import list_episodes_by_podcast
+from .commands.ls import list_episodes_by_podcast, list_podcasts
 from .commands.tag_episodes import INTERACTIVE_MODE_HELP, handle_episode_tagging
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
@@ -274,7 +274,7 @@ def ls(
             podcasts=podcasts, store=store, **episode_filters
         )
     else:
-        output = "\n".join([str(p) for p in podcasts])
+        output = list_podcasts(podcasts)
 
     click.echo(output)
 
