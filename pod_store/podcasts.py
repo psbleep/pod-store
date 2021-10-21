@@ -287,8 +287,7 @@ class Podcast:
             "id": self._parse_store_episode_id(id),
             "episode_number": episode_number,
             "title": title,
-            "summary": summary[:25],
-            "description": summary,
+            "summary": summary,
             "url": [
                 u["href"] for u in links if u["type"] in ("audio/mpeg", "audio/mp3")
             ][0],

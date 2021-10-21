@@ -24,7 +24,6 @@ def test_podcast_episodes_add_episode_sets_download_path_from_episode_number_and
         episode_number="0981",
         title="foo",
         summary="foo",
-        description="foo",
         url="http://foo.bar/bbb.mp3",
         created_at=now,
         updated_at=now,
