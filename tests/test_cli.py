@@ -148,6 +148,34 @@ def test_ls_all_podcasts(runner):
     assert result.output == "farewell [1]\nother\ngreetings [1] -> hello\n"
 
 
+def test_ls_podcasts_with_vebose_flag(now, runner):
+    now_formatted = now.isoformat()
+
+    result = runner.invoke(cli, ["ls", "--all", "--verbose"])
+    assert result.exit_code == 0
+    assert (
+        result.output
+        == """farewell
+1 new episodes
+feed: http://goodbye.world/rss
+updated at: {now_formatted}
+
+other
+0 new episodes
+feed: http://other.thing/rss
+updated at: {now_formatted}
+
+greetings
+1 new episodes
+tags: hello
+feed: http://hello.world/rss
+updated at: {now_formatted}
+""".format(
+            now_formatted=now_formatted
+        )
+    )
+
+
 def test_ls_podcasts_with_new_episodes(runner):
     result = runner.invoke(cli, ["ls", "--new"])
     assert result.exit_code == 0

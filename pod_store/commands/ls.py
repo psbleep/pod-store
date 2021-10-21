@@ -11,11 +11,16 @@ from ..store import Store
 SHORT_EPISODE_LISTING = (
     "[{episode_number}] {title}: {short_description_msg!r}{downloaded_msg}{tags_msg}"
 )
+SHORT_PODCAST_LISTING = "{title}{episodes_msg}{tags_msg}"
 
 TERMINAL_WIDTH = shutil.get_terminal_size().columns
 
 VERBOSE_EPISODE_LISTING = (
     "[{episode_number}] {title}\n{tags_msg}\n{downloaded_at_msg}{long_description}\n"
+)
+
+VERBOSE_PODCAST_LISTING = (
+    "{title}\n{episodes_msg}\n{tags_msg}feed: {feed}\nupdated at: {updated_at}\n"
 )
 
 
@@ -106,12 +111,38 @@ def _get_episode_short_description_msg(short_description: str, **template_kwargs
     return short_description_msg.rstrip(string.punctuation)
 
 
-def list_podcasts(podcasts: List[Podcast]) -> str:
+def list_podcasts(podcasts: List[Podcast], verbose: bool) -> str:
     """Return a formatted string of podcast output for the `ls` command."""
-    return "\n".join([_get_podcast_listing(p) for p in podcasts])
+    podcast_listings = [_get_podcast_listing(p, verbose=verbose) for p in podcasts]
+    if verbose:
+        podcast_listings[-1] = podcast_listings[-1][:-1]
+    return "\n".join(podcast_listings)
 
 
-def _get_podcast_listing(p: Podcast) -> str:
+def _get_podcast_listing(p: Podcast, verbose: bool) -> str:
+    if verbose:
+        return _get_verbose_podcast_listing(p)
+    else:
+        return _get_short_podcast_listing(p)
+
+
+def _get_verbose_podcast_listing(p: Podcast):
+    episodes_msg = f"{p.number_of_new_episodes} new episodes"
+    if p.tags:
+        tags = ", ".join(p.tags)
+        tags_msg = f"tags: {tags}\n"
+    else:
+        tags_msg = ""
+    return VERBOSE_PODCAST_LISTING.format(
+        title=p.title,
+        episodes_msg=episodes_msg,
+        tags_msg=tags_msg,
+        feed=p.feed,
+        updated_at=p.updated_at.isoformat(),
+    )
+
+
+def _get_short_podcast_listing(p: Podcast) -> str:
     new_episodes = p.number_of_new_episodes
     if new_episodes:
         episodes_msg = f" [{new_episodes}]"
@@ -122,4 +153,6 @@ def _get_podcast_listing(p: Podcast) -> str:
         tags_msg = f" -> {tags}"
     else:
         tags_msg = ""
-    return f"{p.title}{episodes_msg}{tags_msg}"
+    return SHORT_PODCAST_LISTING.format(
+        title=p.title, episodes_msg=episodes_msg, tags_msg=tags_msg
+    )

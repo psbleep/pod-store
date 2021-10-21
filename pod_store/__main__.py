@@ -276,7 +276,7 @@ def ls(
             podcasts=podcasts, store=store, verbose=verbose, **episode_filters
         )
     else:
-        output = list_podcasts(podcasts)
+        output = list_podcasts(podcasts, verbose=verbose)
 
     click.echo(output)
 
