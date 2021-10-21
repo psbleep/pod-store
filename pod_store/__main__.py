@@ -235,6 +235,7 @@ def download(
 )
 @click.option("--is-tagged/--not-tagged", default=True)
 @click.option("--tag", "-t", multiple=True, default=[])
+@click.option("--verbose/--not-verbose", default=False)
 @catch_pod_store_errors
 def ls(
     ctx: click.Context,
@@ -243,6 +244,7 @@ def ls(
     podcast: Optional[str],
     is_tagged: bool,
     tag: List[str],
+    verbose: bool,
 ):
     """List store entries.
 
@@ -271,7 +273,7 @@ def ls(
 
     if list_episodes:
         output = list_episodes_by_podcast(
-            podcasts=podcasts, store=store, **episode_filters
+            podcasts=podcasts, store=store, verbose=verbose, **episode_filters
         )
     else:
         output = list_podcasts(podcasts)

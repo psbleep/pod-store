@@ -9,27 +9,43 @@ from ..store import Store
 
 TERMINAL_WIDTH = shutil.get_terminal_size().columns
 
-EPISODE_LISTING = (
+SHORT_EPISODE_LISTING = (
     "[{episode_number}] {title}: {short_description_msg!r}{downloaded_msg}{tags_msg}"
 )
 
 
 def list_episodes_by_podcast(
-    podcasts: List[Podcast], store: Store, **episode_filters
+    podcasts: List[Podcast], store: Store, verbose: bool, **episode_filters
 ) -> str:
-    """Return a formatted string of podcast episode output for the `ls` command."""
+    """Return a formatted string of podcast episode output for the `ls` command.
+
+    `verbose` flag will list more detailed episode information.
+    """
     output = []
     for pod in podcasts:
         episodes = pod.episodes.list(allow_empty=True, **episode_filters)
         if episodes:
             output.append(pod.title)
-            output.extend([_get_podcast_episode_listing(e) for e in episodes])
+            output.extend(
+                [_get_podcast_episode_listing(e, verbose=verbose) for e in episodes]
+            )
             output.append("")
     output = output[:-1]  # remove extra newline at end of output
     return "\n".join(output)
 
 
-def _get_podcast_episode_listing(e: Episode) -> str:
+def _get_podcast_episode_listing(e: Episode, verbose: bool) -> str:
+    if verbose:
+        return _get_verbose_podcast_episode_listing(e)
+    else:
+        return _get_short_podcast_episode_listing(e)
+
+
+def _get_verbose_podcast_episode_listing(e: Episode):
+    pass
+
+
+def _get_short_podcast_episode_listing(e: Episode):
     if e.downloaded_at:
         downloaded_msg = " [X]"
     else:
@@ -49,12 +65,12 @@ def _get_podcast_episode_listing(e: Episode) -> str:
     template_kwargs["short_description_msg"] = _get_episode_short_description_msg(
         e.short_description, **template_kwargs
     )
-    return EPISODE_LISTING.format(**template_kwargs)
+    return SHORT_EPISODE_LISTING.format(**template_kwargs)
 
 
 def _get_episode_short_description_msg(short_description: str, **template_kwargs):
     short_description_length = TERMINAL_WIDTH - len(
-        EPISODE_LISTING.format(short_description_msg="", **template_kwargs)
+        SHORT_EPISODE_LISTING.format(short_description_msg="", **template_kwargs)
     )
     short_description_words = short_description.split()
     short_description_msg = short_description_words[0]
