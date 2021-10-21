@@ -24,7 +24,7 @@ TEST_OTHER_EPISODE_DOWNLOAD_PATH = os.path.join(
 
 
 @pytest.fixture
-def mocked_run_git_command(mocker):
+def mocked_git_decorator_command(mocker):
     return mocker.patch("pod_store.commands.decorators.run_git_command")
 
 
@@ -69,71 +69,77 @@ def test_init_with_gpg_id(start_with_no_store, runner):
     assert result.output.endswith("GPG ID set for store encryption.\n")
 
 
-def test_encrypt_store(mocked_run_git_command, runner):
+def test_encrypt_store(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["encrypt-store", "foo@bar.com", "--force"])
     assert result.exit_code == 0
     assert result.output.endswith("Store encrypted with GPG ID.\n")
-    _assert_git_changes_commited(mocked_run_git_command, "Encrypted the store.")
+    _assert_git_changes_commited(mocked_git_decorator_command, "Encrypted the store.")
 
 
-def test_encrypt_aborts_if_not_confirmed(mocked_run_git_command, runner):
+def test_encrypt_aborts_if_not_confirmed(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["encrypt-store", "foo@bar.com"], input="\n")
     assert result.exit_code == 1
-    mocked_run_git_command.assert_not_called()
+    mocked_git_decorator_command.assert_not_called()
 
 
-def test_unencrypt_store(mocked_run_git_command, runner):
+def test_unencrypt_store(mocked_git_decorator_command, runner):
     with open(TEST_GPG_ID_FILE_PATH, "w") as f:
         f.write("abc@xyz.com")
     result = runner.invoke(cli, ["unencrypt-store", "--force"])
     assert result.exit_code == 0
     assert result.output.endswith("Store was unencrypted.\n")
-    _assert_git_changes_commited(mocked_run_git_command, "Unencrypted the store.")
+    _assert_git_changes_commited(mocked_git_decorator_command, "Unencrypted the store.")
 
 
-def test_unencrypt_aborts_if_not_confirmed(mocked_run_git_command, runner):
+def test_unencrypt_aborts_if_not_confirmed(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["unencrypt-store"], input="\n")
     assert result.exit_code == 1
-    mocked_run_git_command.assert_not_called()
+    mocked_git_decorator_command.assert_not_called()
 
 
-def test_add(mocked_run_git_command, runner):
+def test_add(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["add", "hello", "https://www.hello.world/rss"])
     assert result.exit_code == 0
-    _assert_git_changes_commited(mocked_run_git_command, "Added podcast: hello.")
+    _assert_git_changes_commited(mocked_git_decorator_command, "Added podcast: hello.")
 
 
-def test_download_all_new_podcast_episodes(mocked_run_git_command, runner):
+def test_download_all_new_podcast_episodes(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["download"])
     assert result.exit_code == 0
     assert result.output == (
         f"Downloading: {TEST_OTHER_EPISODE_DOWNLOAD_PATH}\n"
         f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}\n"
     )
-    _assert_git_changes_commited(mocked_run_git_command, "Downloaded all new episodes.")
+    _assert_git_changes_commited(
+        mocked_git_decorator_command, "Downloaded all new episodes."
+    )
 
 
-def test_download_single_podcast_new_episodes(mocked_run_git_command, runner):
+def test_download_single_podcast_new_episodes(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["download", "-p", "greetings"])
     assert result.exit_code == 0
     assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}\n"
     _assert_git_changes_commited(
-        mocked_run_git_command, "Downloaded greetings new episodes."
+        mocked_git_decorator_command, "Downloaded greetings new episodes."
     )
 
 
-def test_download_new_episodes_with_tag(mocked_run_git_command, runner):
+def test_download_new_episodes_with_tag(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["download", "-t", "bar"])
     assert result.exit_code == 0
     assert result.output == f"Downloading: {TEST_OTHER_EPISODE_DOWNLOAD_PATH}\n"
-    _assert_git_changes_commited(mocked_run_git_command, "Downloaded all new episodes.")
+    _assert_git_changes_commited(
+        mocked_git_decorator_command, "Downloaded all new episodes."
+    )
 
 
-def test_download_new_episodes_without_tag(mocked_run_git_command, runner):
+def test_download_new_episodes_without_tag(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["download", "--not-tagged", "-t", "bar"])
     assert result.exit_code == 0
     assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}\n"
-    _assert_git_changes_commited(mocked_run_git_command, "Downloaded all new episodes.")
+    _assert_git_changes_commited(
+        mocked_git_decorator_command, "Downloaded all new episodes."
+    )
 
 
 def test_ls_all_podcasts(runner):
@@ -202,115 +208,127 @@ def test_ls_episodes_without_tag(runner):
 
 
 def test_mark_as_old_works_as_alias_for_untag_new_episodes_command(
-    mocked_run_git_command, runner
+    mocked_git_decorator_command, runner
 ):
     result = runner.invoke(cli, ["mark-as-old", "-p", "greetings", "--bulk"])
     assert result.exit_code == 0
     assert result.output.endswith("Untagged greetings -> [0023] hello\n")
     _assert_git_changes_commited(
-        mocked_run_git_command, "Untagged greetings podcast episodes: new."
+        mocked_git_decorator_command, "Untagged greetings podcast episodes: new."
     )
 
 
-def test_mv(mocked_run_git_command, runner):
+def test_mv(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["mv", "farewell", "foowell"])
     assert result.exit_code == 0
     _assert_git_changes_commited(
-        mocked_run_git_command, "Renamed podcast: farewell -> foowell."
+        mocked_git_decorator_command, "Renamed podcast: farewell -> foowell."
     )
 
 
-def test_refresh_all_podcasts(mocked_run_git_command, runner):
+def test_refresh_all_podcasts(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["refresh"])
     assert result.exit_code == 0
     assert (
         result.output == "Refreshing farewell\nRefreshing other\nRefreshing greetings\n"
     )
-    _assert_git_changes_commited(mocked_run_git_command, "Refreshed all podcast feed.")
+    _assert_git_changes_commited(
+        mocked_git_decorator_command, "Refreshed all podcast feed."
+    )
 
 
-def test_refresh_single_podcast(mocked_run_git_command, runner):
+def test_refresh_single_podcast(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["refresh", "-p", "greetings"])
     assert result.exit_code == 0
     assert result.output == "Refreshing greetings\n"
     _assert_git_changes_commited(
-        mocked_run_git_command, "Refreshed greetings podcast feed."
+        mocked_git_decorator_command, "Refreshed greetings podcast feed."
     )
 
 
-def test_refresh_podcasts_with_tag(mocked_run_git_command, runner):
+def test_refresh_podcasts_with_tag(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["refresh", "-t", "hello"])
     assert result.exit_code == 0
     assert result.output == "Refreshing greetings\n"
-    _assert_git_changes_commited(mocked_run_git_command, "Refreshed all podcast feed.")
+    _assert_git_changes_commited(
+        mocked_git_decorator_command, "Refreshed all podcast feed."
+    )
 
 
-def test_refresh_podcasts_without_tag(mocked_run_git_command, runner):
+def test_refresh_podcasts_without_tag(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["refresh", "--not-tagged", "-t", "hello"])
     assert result.exit_code == 0
     assert result.output == "Refreshing farewell\nRefreshing other\n"
-    _assert_git_changes_commited(mocked_run_git_command, "Refreshed all podcast feed.")
+    _assert_git_changes_commited(
+        mocked_git_decorator_command, "Refreshed all podcast feed."
+    )
 
 
-def test_rm(mocked_run_git_command, runner):
+def test_rm(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["rm", "greetings", "--force"])
     assert result.exit_code == 0
-    _assert_git_changes_commited(mocked_run_git_command, "Removed podcast: greetings.")
+    _assert_git_changes_commited(
+        mocked_git_decorator_command, "Removed podcast: greetings."
+    )
 
 
-def test_rm_aborts_if_not_confirmed(mocked_run_git_command, runner):
+def test_rm_aborts_if_not_confirmed(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["rm", "greetings"], input="n\n")
     assert result.exit_code == 1
-    mocked_run_git_command.assert_not_called()
+    mocked_git_decorator_command.assert_not_called()
 
 
-def test_tag_single_podcast(mocked_run_git_command, runner):
+def test_tag_single_podcast(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["tag", "greetings", "foobar"])
     assert result.exit_code == 0
     assert result.output == "Tagged greetings -> foobar.\n"
-    _assert_git_changes_commited(mocked_run_git_command, "Tagged greetings -> foobar.")
+    _assert_git_changes_commited(
+        mocked_git_decorator_command, "Tagged greetings -> foobar."
+    )
 
 
-def test_tag_single_pocast_episode(mocked_run_git_command, runner):
+def test_tag_single_pocast_episode(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["tag", "greetings", "--episode", "aaa", "foobar"])
     assert result.exit_code == 0
     assert result.output == "Tagged greetings, episode aaa -> foobar.\n"
     _assert_git_changes_commited(
-        mocked_run_git_command, "Tagged greetings, episode aaa -> foobar."
+        mocked_git_decorator_command, "Tagged greetings, episode aaa -> foobar."
     )
 
 
-def test_untag_single_podcast(mocked_run_git_command, runner):
+def test_untag_single_podcast(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["untag", "greetings", "hello"])
     assert result.exit_code == 0
     assert result.output == "Untagged greetings -> hello.\n"
-    _assert_git_changes_commited(mocked_run_git_command, "Untagged greetings -> hello.")
+    _assert_git_changes_commited(
+        mocked_git_decorator_command, "Untagged greetings -> hello."
+    )
 
 
-def test_untag_single_pocast_episode(mocked_run_git_command, runner):
+def test_untag_single_pocast_episode(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["untag", "greetings", "--episode", "aaa", "new"])
     assert result.exit_code == 0
     assert result.output == "Untagged greetings, episode aaa -> new.\n"
     _assert_git_changes_commited(
-        mocked_run_git_command, "Untagged greetings, episode aaa -> new."
+        mocked_git_decorator_command, "Untagged greetings, episode aaa -> new."
     )
 
 
 def test_tag_episodes_for_all_podcasts_generates_correct_commit_message(
-    mocked_run_git_command, runner
+    mocked_git_decorator_command, runner
 ):
     runner.invoke(cli, ["tag-episodes", "zozo", "--bulk"])
     _assert_git_changes_commited(
-        mocked_run_git_command, "Tagged all podcast episodes: zozo."
+        mocked_git_decorator_command, "Tagged all podcast episodes: zozo."
     )
 
 
 def test_tag_episodes_for_single_podcast_generates_correct_commit_message(
-    mocked_run_git_command, runner
+    mocked_git_decorator_command, runner
 ):
     runner.invoke(cli, ["tag-episodes", "zozo", "-p", "greetings", "--bulk"])
     _assert_git_changes_commited(
-        mocked_run_git_command, "Tagged greetings podcast episodes: zozo."
+        mocked_git_decorator_command, "Tagged greetings podcast episodes: zozo."
     )
 
 
@@ -353,20 +371,20 @@ def test_tag_episodes_bulk_mode(runner):
 
 
 def test_untag_episodes_for_all_podcasts_generates_correct_commit_message(
-    mocked_run_git_command, runner
+    mocked_git_decorator_command, runner
 ):
     runner.invoke(cli, ["untag-episodes", "zozo", "--bulk"])
     _assert_git_changes_commited(
-        mocked_run_git_command, "Untagged all podcast episodes: zozo."
+        mocked_git_decorator_command, "Untagged all podcast episodes: zozo."
     )
 
 
 def test_untag_episodes_for_single_podcast_generates_correct_commit_message(
-    mocked_run_git_command, runner
+    mocked_git_decorator_command, runner
 ):
     runner.invoke(cli, ["untag-episodes", "zozo", "-p", "greetings", "--bulk"])
     _assert_git_changes_commited(
-        mocked_run_git_command, "Untagged greetings podcast episodes: zozo."
+        mocked_git_decorator_command, "Untagged greetings podcast episodes: zozo."
     )
 
 
@@ -388,7 +406,7 @@ def test_untag_episodes_interactive_aborts_when_quit(runner):
     assert "Untagged" not in result.output
 
 
-def test_untag_episodes_bulk(mocked_run_git_command, runner):
+def test_untag_episodes_bulk(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["untag-episodes", "new", "--bulk"])
     assert result.exit_code == 0
     assert result.output.endswith(
@@ -396,13 +414,26 @@ def test_untag_episodes_bulk(mocked_run_git_command, runner):
     )
 
 
+def test_git_runs_git_command(mocker, runner):
+    mocked_run_git_command = mocker.patch("pod_store.__main__.run_git_command")
+    result = runner.invoke(cli, ["git", "push", "-u", "origin", "master"])
+    assert result.exit_code == 0
+    mocked_run_git_command.assert_called_with("push -u origin master")
+
+
+def test_git_help_still_works(runner):
+    result = runner.invoke(cli, ["git", "--help"])
+    assert result.exit_code == 0
+    assert "Run a `git` command" in result.output
+
+
 def test_git_add_and_commit_decorated_commands_work_if_git_is_not_set_up(
-    start_with_no_store, mocked_run_git_command, runner
+    start_with_no_store, mocked_git_decorator_command, runner
 ):
     runner.invoke(cli, ["init", "--no-git"])
     result = runner.invoke(cli, ["add", "not-git-tracked", "http://fake.url.com/rss"])
     assert result.exit_code == 0
-    mocked_run_git_command.assert_not_called()
+    mocked_git_decorator_command.assert_not_called()
 
 
 def test_error_handling_gpg_command_error(mocker, runner):
