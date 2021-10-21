@@ -32,7 +32,7 @@ def _get_podcast_episode_listing(e: Episode) -> str:
         tags_msg = f" -> {tags}"
     else:
         tags_msg = ""
-    return f"[{e.episode_number}] {e.title}{downloaded_msg}{tags_msg}"
+    return f"[{e.episode_number}] {e.title}: {e.summary!r}{downloaded_msg}{tags_msg}"
 
 
 def list_podcasts(podcasts: List[Podcast]) -> str:

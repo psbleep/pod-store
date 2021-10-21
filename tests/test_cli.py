@@ -171,10 +171,10 @@ def test_ls_all_episodes(runner):
     assert result.exit_code == 0
     assert result.output == (
         "farewell\n"
-        "[0001] gone -> new, bar\n\n"
+        "[0001] gone: 'all gone' -> new, bar\n\n"
         "greetings\n"
-        "[0023] hello -> new\n"
-        "[0011] goodbye [X] -> foo\n"
+        "[0023] hello: 'hello world' -> new\n"
+        "[0011] goodbye: 'goodbye world' [X] -> foo\n"
     )
 
 
@@ -182,14 +182,17 @@ def test_ls_all_new_episodes(runner):
     result = runner.invoke(cli, ["ls", "--episodes", "--new"])
     assert result.exit_code == 0
     assert result.output == (
-        "farewell\n" "[0001] gone -> new, bar\n\n" "greetings\n" "[0023] hello -> new\n"
+        "farewell\n"
+        "[0001] gone: 'all gone' -> new, bar\n\n"
+        "greetings\n"
+        "[0023] hello: 'hello world' -> new\n"
     )
 
 
 def test_ls_all_episodes_with_tag(runner):
     result = runner.invoke(cli, ["ls", "--episodes", "--all", "-t", "foo"])
     assert result.exit_code == 0
-    assert result.output == "greetings\n[0011] goodbye [X] -> foo\n"
+    assert result.output == "greetings\n[0011] goodbye: 'goodbye world' [X] -> foo\n"
 
 
 def test_ls_all_episodes_without_tag(runner):
@@ -197,24 +200,28 @@ def test_ls_all_episodes_without_tag(runner):
         cli, ["ls", "--episodes", "--all", "--not-tagged", "-t", "foo"]
     )
     assert result.exit_code == 0
-    assert (
-        result.output
-        == "farewell\n[0001] gone -> new, bar\n\ngreetings\n[0023] hello -> new\n"
+    assert result.output == (
+        "farewell\n"
+        "[0001] gone: 'all gone' -> new, bar\n\n"
+        "greetings\n"
+        "[0023] hello: 'hello world' -> new\n"
     )
 
 
 def test_ls_all_podcast_episodes(runner):
     result = runner.invoke(cli, ["ls", "--episodes", "-p", "greetings", "--all"])
     assert result.exit_code == 0
-    assert (
-        result.output == "greetings\n[0023] hello -> new\n[0011] goodbye [X] -> foo\n"
+    assert result.output == (
+        "greetings\n"
+        "[0023] hello: 'hello world' -> new\n"
+        "[0011] goodbye: 'goodbye world' [X] -> foo\n"
     )
 
 
 def test_ls_new_podcast_episodes(runner):
     result = runner.invoke(cli, ["ls", "--episodes", "-p", "greetings", "--new"])
     assert result.exit_code == 0
-    assert result.output == "greetings\n[0023] hello -> new\n"
+    assert result.output == "greetings\n[0023] hello: 'hello world' -> new\n"
 
 
 def test_mark_as_old_works_as_alias_for_untag_new_episodes_command(
