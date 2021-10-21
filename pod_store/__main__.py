@@ -142,16 +142,21 @@ def add(ctx: click.Context, title: str, feed: str):
     default=None,
     help="(podcast title) Download only episodes for the specified podcast.",
 )
+@click.option("--is-tagged/--not-tagged", default=True)
+@click.option("--tag", "-t", multiple=True, default=[])
 @git_add_and_commit(
     "Downloaded {} new episodes.",
     commit_message_builder=optional_podcast_commit_message_builder,
 )
 @save_store_changes
 @catch_pod_store_errors
-def download(ctx: click.Context, podcast: Optional[str]):
+def download(
+    ctx: click.Context, podcast: Optional[str], is_tagged: bool, tag: List[str]
+):
     """Download podcast episode(s)"""
     store = ctx.obj
-    episodes = get_episodes(store=store, new=True, podcast_title=podcast)
+    tag_filters = get_tag_filters(tags=tag, is_tagged=is_tagged)
+    episodes = get_episodes(store=store, new=True, podcast_title=podcast, **tag_filters)
 
     for ep in episodes:
         click.echo(f"Downloading: {ep.download_path}")
@@ -248,7 +253,7 @@ def mark_as_old(ctx: click.Context, podcast: Optional[str], interactive: bool):
 @click.pass_context
 @click.argument("old")
 @click.argument("new")
-@git_add_and_commit("Renamed podcast: {} -> {}", "old", "new")
+@git_add_and_commit("Renamed podcast: {} -> {}.", "old", "new")
 @save_store_changes
 @catch_pod_store_errors
 def mv(ctx: click.Context, old: str, new: str):

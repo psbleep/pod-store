@@ -43,7 +43,7 @@ class Episode:
         updated_at: datetime,
         tags: List[str] = None,
         downloaded_at: Optional[datetime] = None,
-    ):
+    ) -> None:
         self.id = id
         self.download_path = download_path
         self.episode_number = episode_number

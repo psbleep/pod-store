@@ -44,7 +44,21 @@ def test_util_run_git_command(mocked_subprocess_run):
     )
 
 
-def test_util_run_git_command_encounters_git_error(mocked_subprocess_run):
+def test_util_run_shell_command(mocked_subprocess_run):
+    mocked_subprocess_run.configure_mock(
+        **{"return_value": fake_process(stdout=b"command was good", stderr=b"")}
+    )
+    assert util.run_shell_command("hello world") == "command was good"
+    mocked_subprocess_run.assert_called_with(
+        "hello world",
+        cwd=None,
+        capture_output=True,
+        check=True,
+        shell=True,
+    )
+
+
+def test_util_run_shell_command_encounters_error(mocked_subprocess_run):
     mocked_subprocess_run.configure_mock(
         **{
             "side_effect": CalledProcessError(
@@ -53,4 +67,4 @@ def test_util_run_git_command_encounters_git_error(mocked_subprocess_run):
         }
     )
     with pytest.raises(ShellCommandError):
-        util.run_git_command("zzzzz")
+        util.run_shell_command("zzzzz")

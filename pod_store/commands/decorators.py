@@ -31,7 +31,7 @@ POD_STORE_EXCEPTIONS_AND_ERROR_MESSAGE_TEMPLATES = {
 }
 
 
-def catch_pod_store_errors(f: Callable):
+def catch_pod_store_errors(f: Callable) -> Callable:
     """Decorator for catching pod store errors and rendering a more-friendly error
     message to the user.
     """
@@ -67,7 +67,7 @@ def _default_commit_message_builder(
 def git_add_and_commit(
     *builder_args,
     commit_message_builder: Callable = _default_commit_message_builder,
-):
+) -> Callable:
     """Decorator for checking in and commiting git changes made after running a command.
 
     If no git repo is detected within the pod store, this will be a no-op.
@@ -109,7 +109,7 @@ def git_add_and_commit(
         "This commit message is arbitrary."
     """
 
-    def git_add_and_commit_wrapper(f: Callable):
+    def git_add_and_commit_wrapper(f: Callable) -> Callable:
         @functools.wraps(f)
         def git_add_and_commit_inner(ctx: click.Context, *args, **kwargs) -> Any:
             resp = f(ctx, *args, **kwargs)
@@ -144,7 +144,7 @@ def optional_podcast_commit_message_builder(
 
 def required_podcast_optional_episode_commit_message_builder(
     ctx_params: dict, commit_message_template: str, *param_names
-):
+) -> str:
     """Helper to build `git` commit messages for Click commands that
     have a required `podcast` argument and an optional `episode` argument.
 
@@ -160,7 +160,7 @@ def required_podcast_optional_episode_commit_message_builder(
     return commit_message_template.format(podcast, episode_msg, *template_args)
 
 
-def save_store_changes(f: Callable):
+def save_store_changes(f: Callable) -> Callable:
     """Decorator for saving changes to the store after running a command.
 
     Requires a `click.Context` object as the first positional argument to the wrapped

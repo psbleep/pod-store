@@ -34,7 +34,7 @@ class StorePodcasts:
         {title: `pod_store.podcasts.Podcast`}
     """
 
-    def __init__(self, podcast_downloads_path: str, podcast_data: dict):
+    def __init__(self, podcast_downloads_path: str, podcast_data: dict) -> None:
         self._podcast_downloads_path = podcast_downloads_path
 
         self._podcasts = {
@@ -42,7 +42,7 @@ class StorePodcasts:
             for title, podcast in podcast_data.items()
         }
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "<StorePodcasts>"
 
     def add(
@@ -132,7 +132,7 @@ class StorePodcasts:
         self._podcasts[new_title] = podcast
         del self._podcasts[old_title]
 
-    def to_json(self):
+    def to_json(self) -> dict:
         """Convert store podcasts to json data for writing to the store file."""
         return {title: podcast.to_json() for title, podcast in self._podcasts.items()}
 
@@ -176,7 +176,7 @@ class Store:
         setup_git: bool,
         git_url: Optional[str] = None,
         gpg_id: Optional[str] = None,
-    ):
+    ) -> None:
         """Initialize a new pod store.
 
         Optionally set up the `git` repo for the store.
@@ -202,10 +202,10 @@ class Store:
         else:
             UnencryptedStoreFileHandler.create_store_file(store_file_path)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Store({self._store_path!r})>"
 
-    def encrypt(self, gpg_id: str):
+    def encrypt(self, gpg_id: str) -> None:
         """Encrypt an existing store that is currently stored in plaintext."""
         store_file_path = self._file_handler.store_file_path
         store_data = self._file_handler.read_data()
@@ -213,7 +213,7 @@ class Store:
             gpg_id=gpg_id, store_file_path=store_file_path, store_data=store_data
         )
 
-    def unencrypt(self):
+    def unencrypt(self) -> None:
         """Unencrypt an existing store that is currently stored as encrypted data.
 
         Unsets the GPG ID for the store and writes the existing encrypted store data
@@ -226,7 +226,7 @@ class Store:
         )
         os.remove(GPG_ID_FILE_PATH)
 
-    def save(self):
+    def save(self) -> None:
         """Save data to the store json file."""
         podcast_data = self.podcasts.to_json()
         self._file_handler.write_data(podcast_data)
@@ -234,12 +234,14 @@ class Store:
     @staticmethod
     def _setup_encrypted_store(
         gpg_id: str, store_file_path: str, store_data: dict = None
-    ):
+    ) -> None:
         """Set up the store as a GPG encrypted store.
 
         Sets the GPG ID that will be used by the store, and writes the store data
         passed in as GPG encrypted data to the store file.
         """
+        store_data = store_data or {}
+
         with open(os.path.join(GPG_ID_FILE_PATH), "w") as f:
             f.write(gpg_id)
         EncryptedStoreFileHandler.create_store_file(

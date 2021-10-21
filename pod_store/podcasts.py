@@ -26,12 +26,17 @@ class PodcastEpisodes:
         {id: `pod_store.episodes.Episode`}
     """
 
-    def __init__(self, episode_downloads_path: str, episode_data: dict):
+    def __init__(self, episode_downloads_path: str, episode_data: dict) -> None:
         self._episode_downloads_path = episode_downloads_path
 
         self._episodes = {
             id: Episode.from_json(**episode) for id, episode in episode_data.items()
         }
+
+    @property
+    def ids(self) -> List[str]:
+        """All the IDs of tracked episodes."""
+        return [episode.id for episode in self.list()]
 
     def add(
         self,
@@ -107,7 +112,7 @@ class PodcastEpisodes:
 
         return sorted(episodes, key=lambda e: e.created_at, reverse=True)
 
-    def to_json(self):
+    def to_json(self) -> dict:
         """Provide json data for all of the podcast episodes."""
         return {id: episode.to_json() for id, episode in self._episodes.items()}
 
@@ -138,7 +143,7 @@ class Podcast:
         tags: List[str] = None,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
-    ):
+    ) -> None:
         tags = tags or []
 
         self.title = title
@@ -323,6 +328,6 @@ class Podcast:
             return end_token
 
     @staticmethod
-    def _pad_episode_number(episode_number: str):
+    def _pad_episode_number(episode_number: str) -> str:
         """Create an episode number padded with up to 3 zeros."""
         return episode_number.rjust(4, "0")

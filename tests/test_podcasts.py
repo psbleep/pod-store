@@ -9,31 +9,31 @@ from . import TEST_PODCAST_EPISODE_DOWNLOADS_PATH
 
 
 @pytest.fixture
-def podcast(frozen_now, podcast_episode_data):
+def podcast(now, podcast_episode_data):
     return Podcast(
         title="hello",
         feed="http://hello.world/rss",
         tags=["greetings"],
         episode_downloads_path=TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
-        created_at=frozen_now,
-        updated_at=frozen_now,
+        created_at=now,
+        updated_at=now,
         episode_data=podcast_episode_data,
     )
 
 
-def test_podcast_from_json_parses_datetimes(frozen_now):
+def test_podcast_from_json_parses_datetimes(now):
     podcast = Podcast.from_json(
         title="hello",
         feed="http://hello.world/rss",
         tags=["greetings"],
         episode_downloads_path=TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
-        created_at=frozen_now.isoformat(),
-        updated_at=frozen_now.isoformat(),
+        created_at=now.isoformat(),
+        updated_at=now.isoformat(),
         episode_data={},
     )
 
-    assert podcast.created_at == frozen_now
-    assert podcast.updated_at == frozen_now
+    assert podcast.created_at == now
+    assert podcast.updated_at == now
 
 
 def test_podcast_str(podcast):
@@ -45,20 +45,20 @@ def test_podcast_has_new_episodes(podcast):
     assert podcast.has_new_episodes is True
 
 
-def test_podcast_does_not_have_new_episodes(frozen_now, podcast):
+def test_podcast_does_not_have_new_episodes(now, podcast):
     episode = podcast.episodes.get("aaa")
     episode.tags = []
     assert podcast.has_new_episodes is False
 
 
-def test_podcast_refresh(frozen_now, mocked_feedparser_parse, podcast):
+def test_podcast_refresh(mocked_feedparser_parse, now, podcast):
     now_parsed = (
-        frozen_now.year,
-        frozen_now.month,
-        frozen_now.day,
-        frozen_now.hour,
-        frozen_now.minute,
-        frozen_now.second,
+        now.year,
+        now.month,
+        now.day,
+        now.hour,
+        now.minute,
+        now.second,
     )
 
     parsed_feed = namedtuple("parsed", ["entries"])
@@ -94,9 +94,8 @@ def test_podcast_refresh(frozen_now, mocked_feedparser_parse, podcast):
 
     podcast.refresh()
 
-    assert podcast.updated_at == frozen_now
-
-    assert "zzz" not in podcast.episodes._episodes
+    assert podcast.updated_at == now
+    assert podcast.episodes.ids == ["aaa", "ccc"]
 
     assert podcast.episodes.get("aaa").title == "hello-updated"
 
@@ -117,13 +116,13 @@ def test_podcast_untag(podcast):
     assert podcast.tags == []
 
 
-def test_podcast_to_json(frozen_now, podcast_episode_data, podcast):
+def test_podcast_to_json(now, podcast_episode_data, podcast):
     assert podcast.to_json() == {
         "title": "hello",
         "feed": "http://hello.world/rss",
         "tags": ["greetings"],
         "episode_downloads_path": TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
-        "created_at": frozen_now.isoformat(),
-        "updated_at": frozen_now.isoformat(),
+        "created_at": now.isoformat(),
+        "updated_at": now.isoformat(),
         "episode_data": podcast_episode_data,
     }

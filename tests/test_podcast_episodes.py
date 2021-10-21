@@ -17,15 +17,15 @@ def podcast_episodes(podcast_episode_data):
 
 
 def test_podcast_episodes_add_episode_sets_download_path_from_episode_number_and_title(
-    frozen_now, podcast_episodes
+    now, podcast_episodes
 ):
     episode = podcast_episodes.add(
         id="bbb",
         episode_number="0981",
         title="foo",
         url="http://foo.bar/bbb.mp3",
-        created_at=frozen_now,
-        updated_at=frozen_now,
+        created_at=now,
+        updated_at=now,
     )
 
     assert episode.download_path == os.path.join(
