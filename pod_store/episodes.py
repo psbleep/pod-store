@@ -23,6 +23,7 @@ class Episode:
     download_path (str): where episode will be downloaded on file system
     episode_number (str): zero-padded episode number from podcast feed
     title (str): episode title
+    summary (str): description of episode
     url (str): download URL
     tags (list): arbitrary text tags. `new` tag is used to determine if an episode has
         been downloaded yet.
@@ -38,6 +39,7 @@ class Episode:
         download_path: str,
         episode_number: str,
         title: str,
+        summary: str,
         url: str,
         created_at: datetime,
         updated_at: datetime,
@@ -48,6 +50,7 @@ class Episode:
         self.download_path = download_path
         self.episode_number = episode_number
         self.title = title
+        self.summary = summary
         self.url = url
         self.tags = tags or []
         self.created_at = created_at
@@ -87,13 +90,6 @@ class Episode:
     def __repr__(self) -> str:
         return f"Episode({self.episode_number}, {self.title})"
 
-    def __str__(self) -> str:
-        if self.downloaded_at:
-            downloaded_msg = "[X]"
-        else:
-            downloaded_msg = ""
-        return f"[{self.episode_number}] {self.title} {downloaded_msg}"
-
     def download(self) -> None:
         """Download the audio file of the episode to the file system."""
         os.makedirs(os.path.dirname(self.download_path), exist_ok=True)
@@ -132,6 +128,7 @@ class Episode:
             "download_path": self.download_path,
             "episode_number": self.episode_number,
             "title": self.title,
+            "summary": self.summary,
             "url": self.url,
             "tags": self.tags,
             "created_at": created_at,

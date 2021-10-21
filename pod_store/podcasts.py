@@ -179,14 +179,6 @@ class Podcast:
     def __repr__(self) -> str:
         return f"Podcast({self.title!r})"
 
-    def __str__(self) -> str:
-        new_episodes = self.number_of_new_episodes
-        if new_episodes:
-            episodes_msg = f"[{new_episodes}]"
-        else:
-            episodes_msg = ""
-        return f"{self.title} {episodes_msg}"
-
     @property
     def has_new_episodes(self) -> bool:
         """Inidicates if the podcast has any new episodes."""
@@ -264,6 +256,7 @@ class Podcast:
         self,
         id: str,
         title: str,
+        summary: str,
         links: list,
         published_parsed: tuple,
         updated_parsed: Optional[tuple] = None,
@@ -283,22 +276,27 @@ class Podcast:
           objects.
         """
         id = self._parse_store_episode_id(id)
-
         episode_number = itunes_episode or self._parse_episode_number_from_rss_title(
             title
         )
-
-        updated_parsed = updated_parsed or published_parsed
+        summary = re.sub(
+            "<[^<]+?>", "", summary.encode("ascii", "ignore").decode("utf-8")
+        )
+        url = [u["href"] for u in links if u["type"] in ("audio/mpeg", "audio/mp3")][0]
+        published_parsed = datetime(*published_parsed[:6])
+        if updated_parsed:
+            updated_parsed = datetime(*updated_parsed[:6])
+        else:
+            updated_parsed = published_parsed
 
         return {
-            "id": self._parse_store_episode_id(id),
+            "id": id,
             "episode_number": episode_number,
             "title": title,
-            "url": [
-                u["href"] for u in links if u["type"] in ("audio/mpeg", "audio/mp3")
-            ][0],
-            "created_at": datetime(*published_parsed[:6]),
-            "updated_at": datetime(*updated_parsed[:6]),
+            "summary": summary,
+            "url": url,
+            "created_at": published_parsed,
+            "updated_at": updated_parsed,
         }
 
     @staticmethod

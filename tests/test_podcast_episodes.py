@@ -23,6 +23,7 @@ def test_podcast_episodes_add_episode_sets_download_path_from_episode_number_and
         id="bbb",
         episode_number="0981",
         title="foo",
+        summary="foo",
         url="http://foo.bar/bbb.mp3",
         created_at=now,
         updated_at=now,
@@ -32,12 +33,12 @@ def test_podcast_episodes_add_episode_sets_download_path_from_episode_number_and
         TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0981-foo.mp3"
     )
 
-    assert podcast_episodes._episodes["bbb"] == episode
+    assert podcast_episodes.get("bbb").title == "foo"
 
 
 def test_podcast_episodes_delete_episode(podcast_episodes):
     podcast_episodes.delete("zzz")
-    assert "zzz" not in podcast_episodes._episodes
+    assert "zzz" not in podcast_episodes.ids
 
 
 def test_podcast_episodes_delete_episode_not_found(podcast_episodes):

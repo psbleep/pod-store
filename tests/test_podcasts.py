@@ -36,11 +36,6 @@ def test_podcast_from_json_parses_datetimes(now):
     assert podcast.updated_at == now
 
 
-def test_podcast_str(podcast):
-    # title [n]  where `n` is number of new episodes
-    assert str(podcast) == "hello [1]"
-
-
 def test_podcast_has_new_episodes(podcast):
     assert podcast.has_new_episodes is True
 
@@ -72,12 +67,14 @@ def test_podcast_refresh(mocked_feedparser_parse, now, podcast):
                         "links": [
                             {"href": "https://www.foo.bar/ccc.mp3", "type": "audio/mp3"}
                         ],
+                        "summary": "this is a short description<html>\xa0",
                         "published_parsed": now_parsed,
                     },
                     {
                         "id": "https://www.foo.bar/aaa",
                         "itunes_episode": "0023",
                         "title": "hello-updated",
+                        "summary": "hello world",
                         "links": [
                             {
                                 "href": "http://www.foo.bar/aaa.mp3",
@@ -104,6 +101,7 @@ def test_podcast_refresh(mocked_feedparser_parse, now, podcast):
         TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0002-no-number-provided.mp3"
     )
     assert new_episode.episode_number == "0002"
+    assert new_episode.summary == "this is a short description"
 
 
 def test_podcast_tag(podcast):

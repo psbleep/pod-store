@@ -19,6 +19,7 @@ def episode(now):
         id="abc",
         episode_number="0092",
         title="hello",
+        summary="hello world",
         url="https://www.foo.bar/abc.mp3",
         tags=["new"],
         created_at=now,
@@ -35,6 +36,7 @@ def test_episode_from_json_parses_datetimes(now):
         id="abc",
         episode_number="0092",
         title="hello",
+        summary="hello world",
         url="https://www.foo.bar/abc.mp3",
         created_at=ts,
         updated_at=ts,
@@ -43,15 +45,6 @@ def test_episode_from_json_parses_datetimes(now):
 
     assert episode.created_at == now
     assert episode.updated_at == now
-
-
-def test_episode_string_not_downloaded_yet(episode):
-    assert str(episode) == "[0092] hello "
-
-
-def test_episode_string_has_been_downloaded(now, episode):
-    episode.downloaded_at = now
-    assert str(episode) == "[0092] hello [X]"
 
 
 def test_episode_download(now, mocked_requests_get, episode):
@@ -95,6 +88,7 @@ def test_episode_to_json(now, episode):
         "download_path": TEST_EPISODE_DOWNLOAD_PATH,
         "episode_number": "0092",
         "title": "hello",
+        "summary": "hello world",
         "url": "https://www.foo.bar/abc.mp3",
         "tags": ["new"],
         "created_at": now.isoformat(),
