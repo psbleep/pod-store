@@ -17,7 +17,6 @@ from ..exc import (
 from ..podcasts import Podcast
 from ..store import Store
 
-
 POD_STORE_EXCEPTIONS_AND_ERROR_MESSAGE_TEMPLATES = {
     EpisodeDoesNotExistError: "Episode not found: {}.",
     GPGCommandError: "Error encountered when running GPG commands: {}.",
