@@ -41,4 +41,9 @@ def _get_podcast_listing(p: Podcast):
         episodes_msg = f"[{new_episodes}]"
     else:
         episodes_msg = ""
-    return f"{p.title} {episodes_msg}"
+    if p.tags:
+        tags = ", ".join(p.tags)
+        tags_msg = f" -> {tags}"
+    else:
+        tags_msg = ""
+    return f"{p.title} {episodes_msg}{tags_msg}"
