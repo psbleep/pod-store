@@ -24,10 +24,15 @@ def list_episodes_by_podcast(
 
 def _get_podcast_episode_listing(e: Episode):
     if e.downloaded_at:
-        downloaded_msg = "[X]"
+        downloaded_msg = " [X]"
     else:
         downloaded_msg = ""
-    return f"[{e.episode_number}] {e.title} {downloaded_msg}"
+    if e.tags:
+        tags = ", ".join(e.tags)
+        tags_msg = f" -> {tags}"
+    else:
+        tags_msg = ""
+    return f"[{e.episode_number}] {e.title}{downloaded_msg}{tags_msg}"
 
 
 def list_podcasts(podcasts: List[Podcast]) -> str:
