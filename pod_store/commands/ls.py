@@ -7,10 +7,15 @@ from ..episodes import Episode
 from ..podcasts import Podcast
 from ..store import Store
 
-TERMINAL_WIDTH = shutil.get_terminal_size().columns
 
 SHORT_EPISODE_LISTING = (
     "[{episode_number}] {title}: {short_description_msg!r}{downloaded_msg}{tags_msg}"
+)
+
+TERMINAL_WIDTH = shutil.get_terminal_size().columns
+
+VERBOSE_EPISODE_LISTING = (
+    "[{episode_number}] {title}\n{tags_msg}\n{downloaded_at_msg}{long_description}\n"
 )
 
 
@@ -29,8 +34,12 @@ def list_episodes_by_podcast(
             output.extend(
                 [_get_podcast_episode_listing(e, verbose=verbose) for e in episodes]
             )
-            output.append("")
-    output = output[:-1]  # remove extra newline at end of output
+            if not verbose:
+                output.append("")
+    if verbose:
+        output[-1] = output[-1][:-1]
+    else:
+        output = output[:-1]  # remove extra newline at end of output
     return "\n".join(output)
 
 
@@ -42,7 +51,22 @@ def _get_podcast_episode_listing(e: Episode, verbose: bool) -> str:
 
 
 def _get_verbose_podcast_episode_listing(e: Episode):
-    pass
+    tags = ", ".join(e.tags)
+    tags_msg = f"tags: {tags}"
+
+    if e.downloaded_at:
+        downloaded_at = e.downloaded_at.isoformat()
+        downloaded_at_msg = f"downloaded at: {downloaded_at}\n"
+    else:
+        downloaded_at_msg = ""
+
+    return VERBOSE_EPISODE_LISTING.format(
+        episode_number=e.episode_number,
+        title=e.title,
+        tags_msg=tags_msg,
+        downloaded_at_msg=downloaded_at_msg,
+        long_description=e.long_description,
+    )
 
 
 def _get_short_podcast_episode_listing(e: Episode):
