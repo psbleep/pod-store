@@ -279,9 +279,10 @@ class Podcast:
         episode_number = itunes_episode or self._parse_episode_number_from_rss_title(
             title
         )
-        summary = re.sub(
+        short_description = re.sub(
             "<[^<]+?>", "", summary.encode("ascii", "ignore").decode("utf-8")
         )
+        long_description = short_description
         url = [u["href"] for u in links if u["type"] in ("audio/mpeg", "audio/mp3")][0]
         published_parsed = datetime(*published_parsed[:6])
         if updated_parsed:
@@ -293,7 +294,8 @@ class Podcast:
             "id": id,
             "episode_number": episode_number,
             "title": title,
-            "summary": summary,
+            "short_description": short_description,
+            "long_description": long_description,
             "url": url,
             "created_at": published_parsed,
             "updated_at": updated_parsed,

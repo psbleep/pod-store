@@ -10,7 +10,7 @@ from ..store import Store
 TERMINAL_WIDTH = shutil.get_terminal_size().columns
 
 EPISODE_LISTING = (
-    "[{episode_number}] {title}: {summary_msg!r}{downloaded_msg}{tags_msg}"
+    "[{episode_number}] {title}: {short_description_msg!r}{downloaded_msg}{tags_msg}"
 )
 
 
@@ -46,24 +46,24 @@ def _get_podcast_episode_listing(e: Episode) -> str:
         "downloaded_msg": downloaded_msg,
         "tags_msg": tags_msg,
     }
-    template_kwargs["summary_msg"] = _get_episode_summary_msg(
-        e.summary, **template_kwargs
+    template_kwargs["short_description_msg"] = _get_episode_short_description_msg(
+        e.short_description, **template_kwargs
     )
     return EPISODE_LISTING.format(**template_kwargs)
 
 
-def _get_episode_summary_msg(summary: str, **template_kwargs):
-    summary_length = TERMINAL_WIDTH - len(
-        EPISODE_LISTING.format(summary_msg="", **template_kwargs)
+def _get_episode_short_description_msg(short_description: str, **template_kwargs):
+    short_description_length = TERMINAL_WIDTH - len(
+        EPISODE_LISTING.format(short_description_msg="", **template_kwargs)
     )
-    summary_words = summary.split()
-    summary_msg = summary_words[0]
-    for word in summary_words[1:]:
-        new_summary_msg = summary_msg + f" {word}"
-        if len(new_summary_msg) > summary_length:
+    short_description_words = short_description.split()
+    short_description_msg = short_description_words[0]
+    for word in short_description_words[1:]:
+        new_short_description_msg = short_description_msg + f" {word}"
+        if len(new_short_description_msg) > short_description_length:
             break
-        summary_msg = new_summary_msg
-    return summary_msg.rstrip(string.punctuation)
+        short_description_msg = new_short_description_msg
+    return short_description_msg.rstrip(string.punctuation)
 
 
 def list_podcasts(podcasts: List[Podcast]) -> str:
