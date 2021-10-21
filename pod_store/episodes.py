@@ -23,7 +23,8 @@ class Episode:
     download_path (str): where episode will be downloaded on file system
     episode_number (str): zero-padded episode number from podcast feed
     title (str): episode title
-    summary (str): description of episode
+    short_description (str): short description of episode
+    long_description (str): longer description of episode
     url (str): download URL
     tags (list): arbitrary text tags. `new` tag is used to determine if an episode has
         been downloaded yet.
@@ -39,7 +40,8 @@ class Episode:
         download_path: str,
         episode_number: str,
         title: str,
-        summary: str,
+        short_description: str,
+        long_description: str,
         url: str,
         created_at: datetime,
         updated_at: datetime,
@@ -50,7 +52,8 @@ class Episode:
         self.download_path = download_path
         self.episode_number = episode_number
         self.title = title
-        self.summary = summary
+        self.short_description = short_description
+        self.long_description = long_description
         self.url = url
         self.tags = tags or []
         self.created_at = created_at
@@ -128,7 +131,8 @@ class Episode:
             "download_path": self.download_path,
             "episode_number": self.episode_number,
             "title": self.title,
-            "summary": self.summary,
+            "short_description": self.short_description,
+            "long_description": self.long_description,
             "url": self.url,
             "tags": self.tags,
             "created_at": created_at,
