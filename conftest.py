@@ -8,8 +8,8 @@ import pytest
 from pod_store.store import Store
 from pod_store.store_file_handlers import UnencryptedStoreFileHandler
 from tests import (
-    TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
     TEST_PODCAST_DOWNLOADS_PATH,
+    TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
     TEST_STORE_FILE_PATH,
     TEST_STORE_PATH,
 )
