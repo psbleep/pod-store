@@ -186,7 +186,7 @@ class Podcast:
 
     @property
     def number_of_new_episodes(self) -> int:
-        return len(self.episodes.list(downloaded_at=None))
+        return len(self.episodes.list(new=True))
 
     def refresh(self) -> None:
         """Refresh the episode data tracked in the pod store for this podcast.
