@@ -110,102 +110,6 @@ def cli(ctx):
 
 
 @cli.command()
-@click.option(
-    "--git/--no-git",
-    default=True,
-    help="(flag): Indicates whether to initialize a git repo for tracking changes. "
-    "Defaults to `--git`.",
-)
-@click.option(
-    "-u", "--git-url", default=None, help="(optional): Remote URL for the git repo."
-)
-@click.option(
-    "-g",
-    "--gpg-id",
-    default=None,
-    help="(optional) GPG ID for the keys to encrypt the store with. "
-    "If not provided, the store will not be encrypted. You can still encrypt the "
-    "store later using the `encrypt-store` command.",
-)
-@catch_pod_store_errors
-def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
-    """Set up the pod store.
-
-    pod-store tracks changes using `git` and encrypts data using `gpg`. Use the command
-    flags to configure your git repo and gpg encryption.
-    """
-    git = git or git_url
-    Store.init(
-        store_path=STORE_PATH,
-        store_file_path=STORE_FILE_PATH,
-        podcast_downloads_path=PODCAST_DOWNLOADS_PATH,
-        setup_git=git,
-        git_url=git_url,
-        gpg_id=gpg_id,
-    )
-    click.echo(f"Store created: {STORE_PATH}")
-    click.echo(f"Podcast episodes will be downloaded to {PODCAST_DOWNLOADS_PATH}")
-
-    if git:
-        if git_url:
-            git_msg = git_url
-        else:
-            git_msg = "no remote repo specified. You can manually add one later."
-        click.echo(f"Git tracking enabled: {git_msg}")
-
-    if gpg_id:
-        click.echo("GPG ID set for store encryption.")
-
-
-@cli.command()
-@click.pass_context
-@click.argument("gpg-id")
-@click.option(
-    "-f",
-    "--force",
-    is_flag=True,
-    callback=abort_if_false,
-    expose_value=False,
-    prompt="Are you sure you want to encrypt the pod store?",
-    help="Skip the confirmation prompt.",
-)
-@git_add_and_commit("Encrypted the store.")
-def encrypt_store(ctx: click.Context, gpg_id: str):
-    """Encrypt the pod store file with the provided gpg keys.
-
-    GPG_ID: Keys to use for encryption.
-
-    This command works to encrypt a previously unencrypted store, or to
-    re-encrypt an already encrypted store using new keys (assuming you have access to
-    both the old and new keys).
-    """
-    store = ctx.obj
-
-    store.encrypt(gpg_id=gpg_id)
-    click.echo("Store encrypted with GPG ID.")
-
-
-@cli.command()
-@click.pass_context
-@click.option(
-    "-f",
-    "--force",
-    is_flag=True,
-    callback=abort_if_false,
-    expose_value=False,
-    prompt="Are you sure you want to unencrypt the pod store?",
-    help="Skip the confirmation prompt.",
-)
-@git_add_and_commit("Unencrypted the store.")
-def unencrypt_store(ctx: click.Context):
-    """Unencrypt the pod store, saving the data in plaintext instead."""
-    store = ctx.obj
-
-    store.unencrypt()
-    click.echo("Store was unencrypted.")
-
-
-@cli.command()
 @click.pass_context
 @click.argument("title")
 @click.argument("feed")
@@ -261,6 +165,94 @@ def download(
     for ep in episodes:
         click.echo(f"Downloading: {ep.download_path}")
         ep.download()
+
+
+@cli.command()
+@click.pass_context
+@click.argument("gpg-id")
+@click.option(
+    "-f",
+    "--force",
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt="Are you sure you want to encrypt the pod store?",
+    help="Skip the confirmation prompt.",
+)
+@git_add_and_commit("Encrypted the store.")
+def encrypt_store(ctx: click.Context, gpg_id: str):
+    """Encrypt the pod store file with the provided gpg keys.
+
+    GPG_ID: Keys to use for encryption.
+
+    This command works to encrypt a previously unencrypted store, or to
+    re-encrypt an already encrypted store using new keys (assuming you have access to
+    both the old and new keys).
+    """
+    store = ctx.obj
+
+    store.encrypt(gpg_id=gpg_id)
+    click.echo("Store encrypted with GPG ID.")
+
+
+@cli.command()
+@click.argument("cmd", nargs=-1)
+def git(cmd: str):
+    """Run a `git` command against the pod store repo.
+
+    CMD: any `git` command
+    """
+    # To deal with flags passed in to the `git` command, this is handled with custom
+    # behavior in the `PodStoreGroup` class.
+    pass
+
+
+@cli.command()
+@click.option(
+    "--git/--no-git",
+    default=True,
+    help="(flag): Indicates whether to initialize a git repo for tracking changes. "
+    "Defaults to `--git`.",
+)
+@click.option(
+    "-u", "--git-url", default=None, help="(optional): Remote URL for the git repo."
+)
+@click.option(
+    "-g",
+    "--gpg-id",
+    default=None,
+    help="(optional) GPG ID for the keys to encrypt the store with. "
+    "If not provided, the store will not be encrypted. You can still encrypt the "
+    "store later using the `encrypt-store` command.",
+)
+@catch_pod_store_errors
+def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
+    """Set up the pod store.
+
+    pod-store tracks changes using `git` and encrypts data using `gpg`. Use the command
+    flags to configure your git repo and gpg encryption.
+    """
+    git = git or git_url
+    Store.init(
+        store_path=STORE_PATH,
+        store_file_path=STORE_FILE_PATH,
+        podcast_downloads_path=PODCAST_DOWNLOADS_PATH,
+        setup_git=git,
+        git_url=git_url,
+        gpg_id=gpg_id,
+    )
+    click.echo(f"Store created: {STORE_PATH}")
+    click.echo(f"Podcast episodes will be downloaded to {PODCAST_DOWNLOADS_PATH}")
+
+    if git:
+        if git_url:
+            git_msg = git_url
+        else:
+            git_msg = "no remote repo specified. You can manually add one later."
+        click.echo(f"Git tracking enabled: {git_msg}")
+
+    if gpg_id:
+        click.echo("GPG ID set for store encryption.")
 
 
 @cli.command()
@@ -494,48 +486,6 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
 
 @cli.command()
 @click.pass_context
-@click.argument("podcast")
-@click.argument("tag")
-@click.option(
-    "-e",
-    "--episode",
-    default=None,
-    help="(episode ID): Episode to untag. "
-    "Note that this is the ID from the `ls --episodes --verbose` listing, not the "
-    "episode number.",
-)
-@git_add_and_commit(
-    "Untagged {}{}-> {}.",
-    "tag",
-    commit_message_builder=required_podcast_optional_episode_commit_message_builder,
-)
-@save_store_changes
-@catch_pod_store_errors
-def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
-    """Untag a single podcast or episode. If the optional episode ID is provided,
-    it will be untagged. Otherwise, the podcast itself will be untagged.
-
-    Note that untagging an episode requires the user to provide both the podcast
-    AND episode.
-
-    PODCAST: title of podcast
-    TAG: arbitrary text tag
-    """
-
-    store = ctx.obj
-
-    podcast = store.podcasts.get(podcast)
-    if episode:
-        ep = podcast.episodes.get(episode)
-        ep.untag(tag)
-        click.echo(f"Untagged {podcast.title}, episode {episode} -> {tag}.")
-    else:
-        click.echo(f"Untagged {podcast.title} -> {tag}.")
-        podcast.untag(tag)
-
-
-@cli.command()
-@click.pass_context
 @click.argument("tag")
 @click.option(
     "-p",
@@ -586,6 +536,68 @@ def tag_episodes(
             )
             if confirmed:
                 click.echo(f"Tagged {pod.title} -> [{ep.episode_number}] {ep.title}")
+
+
+@cli.command()
+@click.pass_context
+@click.option(
+    "-f",
+    "--force",
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt="Are you sure you want to unencrypt the pod store?",
+    help="Skip the confirmation prompt.",
+)
+@git_add_and_commit("Unencrypted the store.")
+def unencrypt_store(ctx: click.Context):
+    """Unencrypt the pod store, saving the data in plaintext instead."""
+    store = ctx.obj
+
+    store.unencrypt()
+    click.echo("Store was unencrypted.")
+
+
+@cli.command()
+@click.pass_context
+@click.argument("podcast")
+@click.argument("tag")
+@click.option(
+    "-e",
+    "--episode",
+    default=None,
+    help="(episode ID): Episode to untag. "
+    "Note that this is the ID from the `ls --episodes --verbose` listing, not the "
+    "episode number.",
+)
+@git_add_and_commit(
+    "Untagged {}{}-> {}.",
+    "tag",
+    commit_message_builder=required_podcast_optional_episode_commit_message_builder,
+)
+@save_store_changes
+@catch_pod_store_errors
+def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
+    """Untag a single podcast or episode. If the optional episode ID is provided,
+    it will be untagged. Otherwise, the podcast itself will be untagged.
+
+    Note that untagging an episode requires the user to provide both the podcast
+    AND episode.
+
+    PODCAST: title of podcast
+    TAG: arbitrary text tag
+    """
+
+    store = ctx.obj
+
+    podcast = store.podcasts.get(podcast)
+    if episode:
+        ep = podcast.episodes.get(episode)
+        ep.untag(tag)
+        click.echo(f"Untagged {podcast.title}, episode {episode} -> {tag}.")
+    else:
+        click.echo(f"Untagged {podcast.title} -> {tag}.")
+        podcast.untag(tag)
 
 
 @cli.command()
@@ -641,18 +653,6 @@ def untag_episodes(
             )
             if confirmed:
                 click.echo(f"Untagged {pod.title} -> [{ep.episode_number}] {ep.title}")
-
-
-@cli.command()
-@click.argument("cmd", nargs=-1)
-def git(cmd: str):
-    """Run a `git` command against the pod store repo.
-
-    CMD: any `git` command
-    """
-    # To deal with flags passed in to the `git` command, this is handled with custom
-    # behavior in the `PodStoreGroup` class.
-    pass
 
 
 def main() -> None:
