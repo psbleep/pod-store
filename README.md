@@ -57,6 +57,10 @@ You can list which podcasts in your store have new episodes, or list all podcast
     pod ls
     pod ls --all
 
+Get more detail with any `ls` command by adding the `--verbose` flag:
+
+    pod ls --verbose --all
+
 List new episodes, list all episodes, list new episodes for a specific podcast:
 
     pod ls --episodes
@@ -77,11 +81,11 @@ By default podcast episodes will be downloaded to e.g. `/home/<username>/Podcast
 
 Sometimes you may want to mark an episode as being not-new without actually downloading it. Do that using the `mark` command. By default you will interactively choose which episodes to mark, or you can bulk-mark all episodes. Either of these strategies can be applied to _all_ new episodes, or just the episodes of a specific podcast:
 
-    pod mark
-    pod mark --bulk
+    pod mark-as-old
+    pod mark-as-old --bulk
 
-    pod mark -p podcast-name
-    pod mark --bulk -p podcast-name
+    pod mark-as-old -p podcast-name
+    pod mark-as-old --bulk -p podcast-name
 
 Rename a podcast in the store:
 
@@ -91,7 +95,7 @@ Remove a podcast from the store:
 
     pod rm podcast-name
 
-Run an arbitrary git command from inside the `pod-store` repo. (This command is pretty limited at the moment, it does not work with any flags).
+Run an arbitrary git command within the `pod-store` repo:
 
     pod git push
 
@@ -104,6 +108,36 @@ This command works either to encrypt a previously-unencrypted store, or to switc
 Unencrypt a store that is set up as encrypted:
 
     pod unencrypt-store
+
+Podcasts and episodes can be marked with tags:
+
+    pod tag podcast-name tag-name
+    pod tag podcast-name tag-name --episode episode-id
+
+Note that to reference an episode to tag you will need the episode ID. You can get that using the `ls --verbose --episodes` command.
+
+Podcasts and episodes can be untagged with a similar command:
+
+    pod untag podcast-name tag-name
+    pod untag podcast-name tag-name --episode episode-id
+
+Episodes can be tagged in groups:
+
+    pod tag-episodes tag-name
+
+By default you will be prompted to select which episodes to apply the tag too, but you can bulk aply the tag to every episode in the group without being prompted:
+
+    pod tag-episodes tag-name --bulk
+
+Either mode can be restricted to episodes for a single podcast:
+
+    pod tag-episodes -p podcast-name tag-name
+
+A similar command allows untagging episodes in groups:
+
+    pod untag-episodes tag-name
+    pod untag-episodes tag-name --bulk
+    pod untag-episodes -p podcast-name tag-name
 
 ## Configuration
 

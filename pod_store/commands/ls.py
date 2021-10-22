@@ -16,6 +16,7 @@ TERMINAL_WIDTH = shutil.get_terminal_size().columns
 
 VERBOSE_EPISODE_LISTING = (
     "[{episode_number}] {title}\n"
+    "id: {id}\n"
     "{tags_msg}\n"
     "created at: {created_at}\n"
     "updated at: {updated_at}\n"
@@ -74,6 +75,7 @@ def _get_verbose_podcast_episode_listing(e: Episode) -> List[str]:
         VERBOSE_EPISODE_LISTING.format(
             episode_number=e.episode_number,
             title=e.title,
+            id=e.id,
             tags_msg=tags_msg,
             created_at=e.created_at.isoformat(),
             updated_at=e.updated_at.isoformat(),
