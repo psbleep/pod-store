@@ -15,11 +15,21 @@ SHORT_PODCAST_LISTING = "{title}{episodes_msg}{tags_msg}"
 TERMINAL_WIDTH = shutil.get_terminal_size().columns
 
 VERBOSE_EPISODE_LISTING = (
-    "[{episode_number}] {title}\n{tags_msg}\n{downloaded_at_msg}{long_description}\n"
+    "[{episode_number}] {title}\n"
+    "{tags_msg}\n"
+    "created at: {created_at}\n"
+    "updated at: {updated_at}\n"
+    "{downloaded_at_msg}"
+    "{long_description}"
 )
 
 VERBOSE_PODCAST_LISTING = (
-    "{title}\n{episodes_msg}\n{tags_msg}feed: {feed}\nupdated at: {updated_at}\n"
+    "{title}\n"
+    "{episodes_msg}\n"
+    "{tags_msg}"
+    "feed: {feed}\n"
+    "created at: {created_at}\n"
+    "updated at: {updated_at}"
 )
 
 
@@ -35,26 +45,22 @@ def list_episodes_by_podcast(
         episodes = pod.episodes.list(allow_empty=True, **episode_filters)
         if episodes:
             output.append(pod.title)
-            output.extend(
-                [_get_podcast_episode_listing(e, verbose=verbose) for e in episodes]
-            )
+            for e in episodes:
+                output.extend(_get_podcast_episode_listing(e, verbose=verbose))
             if not verbose:
                 output.append("")
-    if verbose:
-        output[-1] = output[-1][:-1]
-    else:
-        output = output[:-1]  # remove extra newline at end of output
+    output = output[:-1]  # remove extra newline at end of output
     return "\n".join(output)
 
 
-def _get_podcast_episode_listing(e: Episode, verbose: bool) -> str:
+def _get_podcast_episode_listing(e: Episode, verbose: bool) -> List[str]:
     if verbose:
         return _get_verbose_podcast_episode_listing(e)
     else:
         return _get_short_podcast_episode_listing(e)
 
 
-def _get_verbose_podcast_episode_listing(e: Episode):
+def _get_verbose_podcast_episode_listing(e: Episode) -> List[str]:
     tags = ", ".join(e.tags)
     tags_msg = f"tags: {tags}"
 
@@ -64,16 +70,21 @@ def _get_verbose_podcast_episode_listing(e: Episode):
     else:
         downloaded_at_msg = ""
 
-    return VERBOSE_EPISODE_LISTING.format(
-        episode_number=e.episode_number,
-        title=e.title,
-        tags_msg=tags_msg,
-        downloaded_at_msg=downloaded_at_msg,
-        long_description=e.long_description,
+    return (
+        VERBOSE_EPISODE_LISTING.format(
+            episode_number=e.episode_number,
+            title=e.title,
+            tags_msg=tags_msg,
+            created_at=e.created_at.isoformat(),
+            updated_at=e.updated_at.isoformat(),
+            downloaded_at_msg=downloaded_at_msg,
+            long_description=e.long_description,
+        ).splitlines()
+        + [""]
     )
 
 
-def _get_short_podcast_episode_listing(e: Episode):
+def _get_short_podcast_episode_listing(e: Episode) -> List[str]:
     if e.downloaded_at:
         downloaded_msg = " [X]"
     else:
@@ -93,10 +104,12 @@ def _get_short_podcast_episode_listing(e: Episode):
     template_kwargs["short_description_msg"] = _get_episode_short_description_msg(
         e.short_description, **template_kwargs
     )
-    return SHORT_EPISODE_LISTING.format(**template_kwargs)
+    return SHORT_EPISODE_LISTING.format(**template_kwargs).splitlines()
 
 
-def _get_episode_short_description_msg(short_description: str, **template_kwargs):
+def _get_episode_short_description_msg(
+    short_description: str, **template_kwargs
+) -> str:
     short_description_length = TERMINAL_WIDTH - len(
         SHORT_EPISODE_LISTING.format(short_description_msg="", **template_kwargs)
     )
@@ -112,36 +125,42 @@ def _get_episode_short_description_msg(short_description: str, **template_kwargs
 
 def list_podcasts(podcasts: List[Podcast], verbose: bool) -> str:
     """Return a formatted string of podcast output for the `ls` command."""
-    podcast_listings = [_get_podcast_listing(p, verbose=verbose) for p in podcasts]
+    podcast_listings = []
+    for pod in podcasts:
+        podcast_listings.extend(_get_podcast_listing(pod, verbose=verbose))
     if verbose:
-        podcast_listings[-1] = podcast_listings[-1][:-1]
+        podcast_listings = podcast_listings[:-1]
     return "\n".join(podcast_listings)
 
 
-def _get_podcast_listing(p: Podcast, verbose: bool) -> str:
+def _get_podcast_listing(p: Podcast, verbose: bool) -> List[str]:
     if verbose:
         return _get_verbose_podcast_listing(p)
     else:
         return _get_short_podcast_listing(p)
 
 
-def _get_verbose_podcast_listing(p: Podcast):
+def _get_verbose_podcast_listing(p: Podcast) -> List[str]:
     episodes_msg = f"{p.number_of_new_episodes} new episodes"
     if p.tags:
         tags = ", ".join(p.tags)
         tags_msg = f"tags: {tags}\n"
     else:
         tags_msg = ""
-    return VERBOSE_PODCAST_LISTING.format(
-        title=p.title,
-        episodes_msg=episodes_msg,
-        tags_msg=tags_msg,
-        feed=p.feed,
-        updated_at=p.updated_at.isoformat(),
+    return (
+        VERBOSE_PODCAST_LISTING.format(
+            title=p.title,
+            episodes_msg=episodes_msg,
+            tags_msg=tags_msg,
+            feed=p.feed,
+            created_at=p.created_at.isoformat(),
+            updated_at=p.updated_at.isoformat(),
+        ).splitlines()
+        + [""]
     )
 
 
-def _get_short_podcast_listing(p: Podcast) -> str:
+def _get_short_podcast_listing(p: Podcast) -> List[str]:
     new_episodes = p.number_of_new_episodes
     if new_episodes:
         episodes_msg = f" [{new_episodes}]"
@@ -154,4 +173,4 @@ def _get_short_podcast_listing(p: Podcast) -> str:
         tags_msg = ""
     return SHORT_PODCAST_LISTING.format(
         title=p.title, episodes_msg=episodes_msg, tags_msg=tags_msg
-    )
+    ).splitlines()

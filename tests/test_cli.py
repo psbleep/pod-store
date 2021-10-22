@@ -148,32 +148,34 @@ def test_ls_all_podcasts(runner):
     assert result.output == "farewell [1]\nother\ngreetings [1] -> hello\n"
 
 
-def test_ls_podcasts_with_vebose_flag(now, runner):
+def test_ls_podcasts_verbose_mode(now, yesterday, runner):
     now_formatted = now.isoformat()
+    yesterday_formatted = yesterday.isoformat()
 
     result = runner.invoke(cli, ["ls", "--all", "--verbose"])
-    assert result.exit_code == 0
-    assert (
-        result.output
-        == """farewell
+    expected = """farewell
 1 new episodes
 feed: http://goodbye.world/rss
+created at: {yesterday_formatted}
 updated at: {now_formatted}
 
 other
 0 new episodes
 feed: http://other.thing/rss
+created at: {yesterday_formatted}
 updated at: {now_formatted}
 
 greetings
 1 new episodes
 tags: hello
 feed: http://hello.world/rss
+created at: {now_formatted}
 updated at: {now_formatted}
 """.format(
-            now_formatted=now_formatted
-        )
+        now_formatted=now_formatted, yesterday_formatted=yesterday_formatted
     )
+    assert result.exit_code == 0
+    assert result.output == expected
 
 
 def test_ls_podcasts_with_new_episodes(runner):
@@ -206,28 +208,38 @@ def test_ls_all_episodes(runner):
     )
 
 
-def test_ls_episodes_verbose_mode(now, runner):
+def test_ls_episodes_verbose_mode(now, yesterday, runner):
     now_formatted = now.isoformat()
+    yesterday_formatted = yesterday.isoformat()
+
     result = runner.invoke(cli, ["ls", "--episodes", "--all", "--verbose"])
     assert result.exit_code == 0
-    expected = """farewell
+    assert (
+        result.output
+        == """farewell
 [0001] gone
 tags: new, bar
+created at: {now_formatted}
+updated at: {now_formatted}
 all gone (longer description)
 
 greetings
 [0023] hello
 tags: new
+created at: {now_formatted}
+updated at: {now_formatted}
 hello world (longer description)
 
 [0011] goodbye
 tags: foo
-downloaded at: {}
+created at: {yesterday_formatted}
+updated at: {yesterday_formatted}
+downloaded at: {now_formatted}
 goodbye world (longer description)
 """.format(
-        now_formatted
+            yesterday_formatted=yesterday_formatted, now_formatted=now_formatted
+        )
     )
-    assert result.output == expected
 
 
 def test_ls_all_new_episodes(runner):

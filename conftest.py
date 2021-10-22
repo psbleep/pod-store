@@ -58,7 +58,12 @@ def now(freezer):
 
 
 @pytest.fixture
-def podcast_episode_data(now):
+def yesterday(now):
+    return now - timedelta(days=1)
+
+
+@pytest.fixture
+def podcast_episode_data(now, yesterday):
     return {
         "aaa": {
             "id": "aaa",
@@ -86,15 +91,15 @@ def podcast_episode_data(now):
             "long_description": "goodbye world (longer description)",
             "url": "http://foo.bar/zzz.mp3",
             "tags": ["foo"],
-            "created_at": (now - timedelta(days=1)).isoformat(),
-            "updated_at": (now - timedelta(days=1)).isoformat(),
+            "created_at": yesterday.isoformat(),
+            "updated_at": yesterday.isoformat(),
             "downloaded_at": now.isoformat(),
         },
     }
 
 
 @pytest.fixture
-def store_data(now, podcast_episode_data):
+def store_data(now, yesterday, podcast_episode_data):
     return {
         "greetings": {
             "title": "greetings",
@@ -131,7 +136,7 @@ def store_data(now, podcast_episode_data):
                     "downloaded_at": None,
                 },
             },
-            "created_at": (now - timedelta(days=1)).isoformat(),
+            "created_at": yesterday.isoformat(),
             "updated_at": now.isoformat(),
         },
         "other": {
@@ -142,7 +147,7 @@ def store_data(now, podcast_episode_data):
             "feed": "http://other.thing/rss",
             "tags": [],
             "episode_data": {},
-            "created_at": (now - timedelta(days=1)).isoformat(),
+            "created_at": yesterday.isoformat(),
             "updated_at": now.isoformat(),
         },
     }
