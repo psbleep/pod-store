@@ -58,7 +58,12 @@ def now(freezer):
 
 
 @pytest.fixture
-def podcast_episode_data(now):
+def yesterday(now):
+    return now - timedelta(days=1)
+
+
+@pytest.fixture
+def podcast_episode_data(now, yesterday):
     return {
         "aaa": {
             "id": "aaa",
@@ -68,7 +73,7 @@ def podcast_episode_data(now):
             "episode_number": "0023",
             "title": "hello",
             "short_description": "hello world",
-            "long_description": "hello world (longer)",
+            "long_description": "hello world (longer description)",
             "url": "http://foo.bar/aaa.mp3",
             "tags": ["new"],
             "created_at": now.isoformat(),
@@ -83,18 +88,18 @@ def podcast_episode_data(now):
             "episode_number": "0011",
             "title": "goodbye",
             "short_description": "goodbye world",
-            "long_description": "goodbye world (longer)",
+            "long_description": "goodbye world (longer description)",
             "url": "http://foo.bar/zzz.mp3",
             "tags": ["foo"],
-            "created_at": (now - timedelta(days=1)).isoformat(),
-            "updated_at": (now - timedelta(days=1)).isoformat(),
+            "created_at": yesterday.isoformat(),
+            "updated_at": yesterday.isoformat(),
             "downloaded_at": now.isoformat(),
         },
     }
 
 
 @pytest.fixture
-def store_data(now, podcast_episode_data):
+def store_data(now, yesterday, podcast_episode_data):
     return {
         "greetings": {
             "title": "greetings",
@@ -123,7 +128,7 @@ def store_data(now, podcast_episode_data):
                     "episode_number": "0001",
                     "title": "gone",
                     "short_description": "all gone",
-                    "long_description": "all gone (longer)",
+                    "long_description": "all gone (longer description)",
                     "url": "http://foo.bar/111.mp3",
                     "tags": ["new", "bar"],
                     "created_at": now.isoformat(),
@@ -131,7 +136,7 @@ def store_data(now, podcast_episode_data):
                     "downloaded_at": None,
                 },
             },
-            "created_at": (now - timedelta(days=1)).isoformat(),
+            "created_at": yesterday.isoformat(),
             "updated_at": now.isoformat(),
         },
         "other": {
@@ -142,7 +147,7 @@ def store_data(now, podcast_episode_data):
             "feed": "http://other.thing/rss",
             "tags": [],
             "episode_data": {},
-            "created_at": (now - timedelta(days=1)).isoformat(),
+            "created_at": yesterday.isoformat(),
             "updated_at": now.isoformat(),
         },
     }
