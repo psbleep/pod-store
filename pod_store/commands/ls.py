@@ -7,7 +7,6 @@ from ..episodes import Episode
 from ..podcasts import Podcast
 from ..store import Store
 
-
 SHORT_EPISODE_LISTING = (
     "[{episode_number}] {title}: {short_description_msg!r}{downloaded_msg}{tags_msg}"
 )
