@@ -77,11 +77,11 @@ By default podcast episodes will be downloaded to e.g. `/home/<username>/Podcast
 
 Sometimes you may want to mark an episode as being not-new without actually downloading it. Do that using the `mark` command. By default you will interactively choose which episodes to mark, or you can bulk-mark all episodes. Either of these strategies can be applied to _all_ new episodes, or just the episodes of a specific podcast:
 
-    pod mark
-    pod mark --bulk
+    pod mark-as-old
+    pod mark-as-old --bulk
 
-    pod mark -p podcast-name
-    pod mark --bulk -p podcast-name
+    pod mark-as-old -p podcast-name
+    pod mark-as-old --bulk -p podcast-name
 
 Rename a podcast in the store:
 
