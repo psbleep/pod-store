@@ -206,24 +206,24 @@ def test_ls_all_episodes(runner):
     )
 
 
-def test_ls_episodes_with_verbose_flag(now, runner):
+def test_ls_episodes_verbose_mode(now, runner):
     now_formatted = now.isoformat()
     result = runner.invoke(cli, ["ls", "--episodes", "--all", "--verbose"])
     assert result.exit_code == 0
     expected = """farewell
 [0001] gone
 tags: new, bar
-all gone (longer)
+all gone (longer description)
 
 greetings
 [0023] hello
 tags: new
-hello world (longer)
+hello world (longer description)
 
 [0011] goodbye
 tags: foo
 downloaded at: {}
-goodbye world (longer)
+goodbye world (longer description)
 """.format(
         now_formatted
     )
