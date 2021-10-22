@@ -86,6 +86,14 @@ class PodStoreGroup(click.Group):
 @click.command(cls=PodStoreGroup)
 @click.pass_context
 def cli(ctx):
+    """pod-store is an encrypted CLI podcast tracker that syncs your info accross
+    devices. Based on `git` and `gpg`. Inspired by `pass`, the universal UNIX password
+    manager.
+
+    Get started with the `--help` flag on any of the following commands.
+    Start with the `init` command to set up the store, the `add` command to track your
+    podcasts, and the `download` command to download your podcast episodes.
+    """
     if os.path.exists(STORE_FILE_PATH):
         if GPG_ID:
             file_handler = EncryptedStoreFileHandler(
@@ -103,15 +111,28 @@ def cli(ctx):
 
 @cli.command()
 @click.option(
-    "--git/--no-git", default=True, help="initialize git repo for tracking changes"
+    "--git/--no-git",
+    default=True,
+    help="(flag): Indicates whether to initialize a git repo for tracking changes. "
+    "Defaults to `--git`.",
 )
-@click.option("-u", "--git-url", default=None, help="remote URL for the git repo")
-@click.option("-g", "--gpg-id", default=None, help="GPG ID for store encryption keys")
+@click.option(
+    "-u", "--git-url", default=None, help="(optional): Remote URL for the git repo."
+)
+@click.option(
+    "-g",
+    "--gpg-id",
+    default=None,
+    help="(optional) GPG ID for the keys to encrypt the store with. "
+    "If not provided, the store will not be encrypted. You can still encrypt the "
+    "store later using the `encrypt-store` command.",
+)
 @catch_pod_store_errors
 def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
     """Set up the pod store.
 
-    `pod-store` tracks changes using `git`.
+    pod-store tracks changes using `git` and encrypts data using `gpg`. Use the command
+    flags to configure your git repo and gpg encryption.
     """
     git = git or git_url
     Store.init(
@@ -146,10 +167,18 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
     callback=abort_if_false,
     expose_value=False,
     prompt="Are you sure you want to encrypt the pod store?",
+    help="Skip the confirmation prompt.",
 )
 @git_add_and_commit("Encrypted the store.")
 def encrypt_store(ctx: click.Context, gpg_id: str):
-    """Encrypt the pod store file with the provided GPG ID keys."""
+    """Encrypt the pod store file with the provided gpg keys.
+
+    GPG_ID: Keys to use for encryption.
+
+    This command works to encrypt a previously unencrypted store, or to
+    re-encrypt an already encrypted store using new keys (assuming you have access to
+    both the old and new keys).
+    """
     store = ctx.obj
 
     store.encrypt(gpg_id=gpg_id)
@@ -165,6 +194,7 @@ def encrypt_store(ctx: click.Context, gpg_id: str):
     callback=abort_if_false,
     expose_value=False,
     prompt="Are you sure you want to unencrypt the pod store?",
+    help="Skip the confirmation prompt.",
 )
 @git_add_and_commit("Unencrypted the store.")
 def unencrypt_store(ctx: click.Context):
@@ -186,7 +216,8 @@ def add(ctx: click.Context, title: str, feed: str):
     """Add a podcast to the store.
 
     TITLE: title that will be used for tracking in the store
-    FEED: rss feed url for updating podcast info
+
+    FEED: rss url for updating podcast episode data
     """
     store = ctx.obj
     store.podcasts.add(title=title, feed=feed)
@@ -198,10 +229,21 @@ def add(ctx: click.Context, title: str, feed: str):
     "-p",
     "--podcast",
     default=None,
-    help="(podcast title) Download only episodes for the specified podcast.",
+    help="(podcast title): Download only episodes for the specified podcast.",
 )
-@click.option("--is-tagged/--not-tagged", default=True)
-@click.option("--tag", "-t", multiple=True, default=[])
+@click.option(
+    "--is-tagged/--not-tagged",
+    default=True,
+    help="(flag): Search for episodes with or without the supplied tags. "
+    "Defaults to `is-tagged`. Has no effect if no tags are indicated.",
+)
+@click.option(
+    "--tag",
+    "-t",
+    multiple=True,
+    default=[],
+    help="Supply tags to search for episodes with. Multiple tags can be provided.",
+)
 @git_add_and_commit(
     "Downloaded {} new episodes.",
     commit_message_builder=optional_podcast_commit_message_builder,
@@ -211,7 +253,7 @@ def add(ctx: click.Context, title: str, feed: str):
 def download(
     ctx: click.Context, podcast: Optional[str], is_tagged: bool, tag: List[str]
 ):
-    """Download podcast episode(s)"""
+    """Download podcast episodes."""
     store = ctx.obj
     tag_filters = get_tag_filters(tags=tag, is_tagged=is_tagged)
     episodes = get_episodes(store=store, new=True, podcast_title=podcast, **tag_filters)
@@ -224,18 +266,41 @@ def download(
 @cli.command()
 @click.pass_context
 @click.option(
-    "--new/--all", default=True, help="look for new episodes or include all episodes"
+    "--new/--all",
+    default=True,
+    help="(flag): Look for new episodes only, or include all episodes. "
+    "Defaults to `--new`.",
 )
-@click.option("--episodes/--podcasts", default=False, help="list episodes or podcasts")
+@click.option(
+    "--episodes/--podcasts",
+    default=False,
+    help="(flag): List episodes or podcasts. Defaults to `--podcasts`.",
+)
 @click.option(
     "-p",
     "--podcast",
     default=None,
-    help="(podcast title) if listing episodes, limit results to the specified podcast",
+    help="(podcast title): List only episodes for the specified podcast.",
 )
-@click.option("--is-tagged/--not-tagged", default=True)
-@click.option("--tag", "-t", multiple=True, default=[])
-@click.option("--verbose/--not-verbose", default=False)
+@click.option(
+    "--is-tagged/--not-tagged",
+    default=True,
+    help="(flag): Search for episodes with or without the supplied tags. "
+    "Defaults to `--is-tagged`. Has no effect if no tags are indicated.",
+)
+@click.option(
+    "--tag",
+    "-t",
+    multiple=True,
+    default=[],
+    help="Supply tags to search for episodes with. Multiple tags can be provided.",
+)
+@click.option(
+    "--verbose/--not-verbose",
+    default=False,
+    help="(flag): Determines how much detail to provide in the listing. "
+    "Defaults to `--not-verbose`.",
+)
 @catch_pod_store_errors
 def ls(
     ctx: click.Context,
@@ -246,7 +311,7 @@ def ls(
     tag: List[str],
     verbose: bool,
 ):
-    """List store entries.
+    """List data from the store.
 
     By default, this will list podcasts that have new episodes. Adjust the output using
     the provided flags and command options.
@@ -287,12 +352,13 @@ def ls(
     "-p",
     "--podcast",
     default=None,
-    help="Mark episodes for only the specified podcast.",
+    help="(podcast title): Mark episodes for only the specified podcast.",
 )
 @click.option(
     "--interactive/--bulk",
     default=True,
-    help="Run this command in interactive mode to select which episodes to mark",
+    help="(flag): Run this command in interactive mode to select which episodes to "
+    "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
 def mark_as_old(ctx: click.Context, podcast: Optional[str], interactive: bool):
     """Remove the `new` tag from a group of episodes. Alias for the `untag` command."""
@@ -310,7 +376,12 @@ def mark_as_old(ctx: click.Context, podcast: Optional[str], interactive: bool):
 @save_store_changes
 @catch_pod_store_errors
 def mv(ctx: click.Context, old: str, new: str):
-    """Rename a podcast in the store."""
+    """Rename a podcast in the store.
+
+    OLD: old podcast title
+
+    NEW: new podcast title
+    """
     store = ctx.obj
     store.podcasts.rename(old, new)
 
@@ -318,10 +389,24 @@ def mv(ctx: click.Context, old: str, new: str):
 @cli.command()
 @click.pass_context
 @click.option(
-    "-p", "--podcast", default=None, help="Refresh only the specified podcast."
+    "-p",
+    "--podcast",
+    default=None,
+    help="(podcast title): Refresh only the specified podcast.",
 )
-@click.option("--is-tagged/--not-tagged", default=True)
-@click.option("--tag", "-t", multiple=True, default=[])
+@click.option(
+    "--is-tagged/--not-tagged",
+    default=True,
+    help="(flag): Search for podcasts with or without the tags supplied. "
+    "Defaults to `--is-tagged`. Has no effect if no tags are indicated.",
+)
+@click.option(
+    "--tag",
+    "-t",
+    multiple=True,
+    default=[],
+    help="Filter podcasts by tag. Multiple tags can be provided.",
+)
 @git_add_and_commit(
     "Refreshed {} podcast feed.",
     commit_message_builder=optional_podcast_commit_message_builder,
@@ -331,7 +416,7 @@ def mv(ctx: click.Context, old: str, new: str):
 def refresh(
     ctx: click.Context, podcast: Optional[str], is_tagged: bool, tag: List[str]
 ):
-    """Refresh podcast data from RSS feeds."""
+    """Refresh podcast episode data from the RSS feed."""
     store = ctx.obj
     tag_filters = get_tag_filters(tags=tag, is_tagged=is_tagged)
     podcasts = get_podcasts(store=store, title=podcast, **tag_filters)
@@ -351,12 +436,17 @@ def refresh(
     callback=abort_if_false,
     expose_value=False,
     prompt="Are you sure you want to delete this podcast?",
+    help="Skip confirmation prompt.",
 )
 @git_add_and_commit("Removed podcast: {}.", "title")
 @save_store_changes
 @catch_pod_store_errors
 def rm(ctx: click.Context, title: str):
-    """Remove specified podcast from the store."""
+    """Remove a podcast from the store. This command will NOT delete the podcast
+    episodes that have been downloaded.
+
+    TITLE: title of podcast to remove
+    """
     store = ctx.obj
     store.podcasts.delete(title)
 
@@ -365,7 +455,7 @@ def rm(ctx: click.Context, title: str):
 @click.pass_context
 @click.argument("podcast")
 @click.argument("tag")
-@click.option("-e", "--episode", default=None)
+@click.option("-e", "--episode", default=None, help="(episode ID): Episode to tag.")
 @git_add_and_commit(
     "Tagged {}{}-> {}.",
     "tag",
@@ -374,7 +464,15 @@ def rm(ctx: click.Context, title: str):
 @save_store_changes
 @catch_pod_store_errors
 def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
-    """Tag a single podcast or episode with an arbitrary text tag."""
+    """Tag a single podcast or episode with an arbitrary text tag. If the optional
+    episode ID is provided, it will be tagged. Otherwise, the podcast itself will
+    be tagged.
+
+    Note that tagging an episode requires the user to provide the podcast AND episode.
+
+    PODCAST: title of podcast
+    TAG: arbitrary text tag
+    """
     store = ctx.obj
 
     podcast = store.podcasts.get(podcast)
@@ -391,7 +489,7 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
 @click.pass_context
 @click.argument("podcast")
 @click.argument("tag")
-@click.option("-e", "--episode", default=None)
+@click.option("-e", "--episode", default=None, help="(episode ID): Episode to untag.")
 @git_add_and_commit(
     "Untagged {}{}-> {}.",
     "tag",
@@ -400,7 +498,16 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
 @save_store_changes
 @catch_pod_store_errors
 def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
-    """Untag a single podcast or episode."""
+    """Untag a single podcast or episode. If the optional episode ID is provided,
+    it will be untagged. Otherwise, the podcast itself will be untagged.
+
+    Note that untagging an episode requires the user to provide both the podcast
+    AND episode.
+
+    PODCAST: title of podcast
+    TAG: arbitrary text tag
+    """
+
     store = ctx.obj
 
     podcast = store.podcasts.get(podcast)
@@ -420,12 +527,13 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     "-p",
     "--podcast",
     default=None,
-    help="Tag episodes for only the specified podcast.",
+    help="(podcast title): Tag episodes for only the specified podcast.",
 )
 @click.option(
     "--interactive/--bulk",
     default=True,
-    help="Run this command in interactive mode to select which episodes to tag.",
+    help="(flag): Run this command in interactive mode to select which episodes to "
+    "tag, or bulk mode to tag all episodes in the group. Defaults to `--interactive`.",
 )
 @git_add_and_commit(
     "Tagged {} podcast episodes: {}.",
@@ -437,7 +545,10 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
 def tag_episodes(
     ctx: click.Context, tag: str, podcast: Optional[str], interactive: bool
 ):
-    """Tag episodes in groups."""
+    """Tag episodes in groups.
+
+    TAG: arbitrary text tag to apply
+    """
     store = ctx.obj
     interactive_mode = interactive
     podcasts = get_podcasts(store=store, title=podcast)
@@ -470,12 +581,14 @@ def tag_episodes(
     "-p",
     "--podcast",
     default=None,
-    help="Untag episodes for only the specified podcast.",
+    help="(podcast title): Untag episodes for only the specified podcast.",
 )
 @click.option(
     "--interactive/--bulk",
     default=True,
-    help="Run this command in interactive mode to select which episodes to untag",
+    help="(flag): Run this command in interactive mode to select which episodes to "
+    "untag, or bulk mode to untag all episodes in the group. Defaults to "
+    "`--interactive`.",
 )
 @git_add_and_commit(
     "Untagged {} podcast episodes: {}.",
@@ -487,7 +600,10 @@ def tag_episodes(
 def untag_episodes(
     ctx: click.Context, tag: str, podcast: Optional[str], interactive: bool
 ):
-    """Untag episodes in groups."""
+    """Untag episodes in groups.
+
+    TAG: tag to remove
+    """
     store = ctx.obj
     interactive_mode = interactive
     podcasts = get_podcasts(store=store, title=podcast)
@@ -516,7 +632,10 @@ def untag_episodes(
 @cli.command()
 @click.argument("cmd", nargs=-1)
 def git(cmd: str):
-    """Run a `git` command against the pod store repo."""
+    """Run a `git` command against the pod store repo.
+
+    CMD: any `git` command
+    """
     # To deal with flags passed in to the `git` command, this is handled with custom
     # behavior in the `PodStoreGroup` class.
     pass
