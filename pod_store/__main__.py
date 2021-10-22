@@ -455,7 +455,14 @@ def rm(ctx: click.Context, title: str):
 @click.pass_context
 @click.argument("podcast")
 @click.argument("tag")
-@click.option("-e", "--episode", default=None, help="(episode ID): Episode to tag.")
+@click.option(
+    "-e",
+    "--episode",
+    default=None,
+    help="(episode ID): Episode to tag. "
+    "Note that this is the ID from the `ls --episodes --verbose` listing, not the "
+    "episode number.",
+)
 @git_add_and_commit(
     "Tagged {}{}-> {}.",
     "tag",
@@ -489,7 +496,14 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
 @click.pass_context
 @click.argument("podcast")
 @click.argument("tag")
-@click.option("-e", "--episode", default=None, help="(episode ID): Episode to untag.")
+@click.option(
+    "-e",
+    "--episode",
+    default=None,
+    help="(episode ID): Episode to untag. "
+    "Note that this is the ID from the `ls --episodes --verbose` listing, not the "
+    "episode number.",
+)
 @git_add_and_commit(
     "Untagged {}{}-> {}.",
     "tag",
