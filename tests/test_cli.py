@@ -218,6 +218,7 @@ def test_ls_episodes_verbose_mode(now, yesterday, runner):
         result.output
         == """farewell
 [0001] gone
+id: 111
 tags: new, bar
 created at: {now_formatted}
 updated at: {now_formatted}
@@ -225,12 +226,14 @@ all gone (longer description)
 
 greetings
 [0023] hello
+id: aaa
 tags: new
 created at: {now_formatted}
 updated at: {now_formatted}
 hello world (longer description)
 
 [0011] goodbye
+id: zzz
 tags: foo
 created at: {yesterday_formatted}
 updated at: {yesterday_formatted}
