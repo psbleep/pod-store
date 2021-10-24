@@ -478,7 +478,7 @@ def rm(ctx: click.Context, title: str):
 )
 @git_add_and_commit(
     commit_message_builder=tag_commit_message_builder,
-    action="Tag",
+    action="tagged",
 )
 @save_store_changes
 @catch_pod_store_errors
@@ -520,7 +520,7 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     "tag, or bulk mode to tag all episodes in the group. Defaults to `--interactive`.",
 )
 @git_add_and_commit(
-    commit_message_builder=tag_episodes_commit_message_builder, action="Tag"
+    commit_message_builder=tag_episodes_commit_message_builder, action="tagged"
 )
 @save_store_changes
 @catch_pod_store_errors
@@ -590,7 +590,7 @@ def unencrypt_store(ctx: click.Context):
 )
 @git_add_and_commit(
     commit_message_builder=tag_commit_message_builder,
-    action="Untag",
+    action="untagged",
 )
 @save_store_changes
 @catch_pod_store_errors
@@ -635,7 +635,7 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
 )
 @git_add_and_commit(
     commit_message_builder=tag_episodes_commit_message_builder,
-    action="Untag",
+    action="untagged",
 )
 @save_store_changes
 @catch_pod_store_errors
