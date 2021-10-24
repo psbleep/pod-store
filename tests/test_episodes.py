@@ -59,8 +59,8 @@ def test_episode_download(now, audio_file_content, episode):
     assert "new" not in episode.tags
 
     metadata = music_tag.load_file(episode.download_path)
-    assert not metadata["artist"].value
-    assert not metadata["album_artist"]
+    assert metadata["artist"].value == "greetings"
+    assert metadata["album_artist"].value == "greetings"
     assert metadata["title"].value == "hello"
     assert metadata["track_title"].value == "hello"
     assert metadata["genre"].value == "Podcast"

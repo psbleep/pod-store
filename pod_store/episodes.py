@@ -113,8 +113,8 @@ class Episode:
 
     def _set_metadata(self, download_path: str) -> None:
         f = music_tag.load_file(download_path)
-        f["artist"] = None
-        f["album_artist"] = None
+        f["artist"] = self._podcast.title
+        f["album_artist"] = self._podcast.title
         f["title"] = self.title
         f["track_title"] = self.title
         f["genre"] = "Podcast"
