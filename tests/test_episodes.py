@@ -59,7 +59,7 @@ def test_episode_download_path_is_correct_path_for_filetype_without_invalid_char
         title="foo/bar: the fin?al[ RE:^ckONing",
         short_description="foo",
         long_description="foo (longer description)",
-        url="http://foo.bar/bbb.ogg",
+        url="http://foo.bar/bbb.ogg?jd289ds89xchw",
         created_at=now,
         updated_at=now,
     )
