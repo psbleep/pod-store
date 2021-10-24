@@ -187,7 +187,7 @@ def store(unencrypted_store_file_handler):
 @pytest.fixture
 def podcast(now, podcast_episode_data):
     return Podcast(
-        title="hello",
+        title="greetings",
         feed="http://hello.world/rss",
         tags=["greetings"],
         episode_downloads_path=TEST_PODCAST_EPISODE_DOWNLOADS_PATH,

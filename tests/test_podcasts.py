@@ -103,7 +103,7 @@ def test_podcast_untag(podcast):
 
 def test_podcast_to_json(now, podcast_episode_data, podcast):
     assert podcast.to_json() == {
-        "title": "hello",
+        "title": "greetings",
         "feed": "http://hello.world/rss",
         "tags": ["greetings"],
         "episode_downloads_path": TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
