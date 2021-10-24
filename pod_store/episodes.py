@@ -15,11 +15,13 @@ from . import util
 DOWNLOAD_CHUNK_SIZE = 2000
 
 E = TypeVar("E", bound="Episode")
+P = TypeVar("Podcast")
 
 
 class Episode:
     """Podcast episode tracked in the store.
 
+    podcast (`pod_store.podcasts.Podcast`): podcast this episode belongs to
     id (str): store ID (parsed from RSS feed ID)
     download_path (str): where episode will be downloaded on file system
     episode_number (str): zero-padded episode number from podcast feed
@@ -37,6 +39,7 @@ class Episode:
 
     def __init__(
         self,
+        podcast: P,
         id: str,
         download_path: str,
         episode_number: str,
@@ -49,6 +52,8 @@ class Episode:
         tags: List[str] = None,
         downloaded_at: Optional[datetime] = None,
     ) -> None:
+        self._podcast = podcast
+
         self.id = id
         self.download_path = download_path
         self.episode_number = episode_number

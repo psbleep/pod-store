@@ -14,10 +14,11 @@ TEST_EPISODE_DOWNLOAD_PATH = os.path.join(
 
 
 @pytest.fixture
-def episode(now):
+def episode(now, podcast):
     return Episode(
-        download_path=TEST_EPISODE_DOWNLOAD_PATH,
+        podcast=podcast,
         id="abc",
+        download_path=TEST_EPISODE_DOWNLOAD_PATH,
         episode_number="0092",
         title="hello",
         short_description="hello world",
@@ -30,12 +31,13 @@ def episode(now):
     )
 
 
-def test_episode_from_json_parses_datetimes(now):
+def test_episode_from_json_parses_datetimes(now, podcast):
     ts = now.isoformat()
 
     episode = Episode.from_json(
-        download_path=TEST_EPISODE_DOWNLOAD_PATH,
+        podcast=podcast,
         id="abc",
+        download_path=TEST_EPISODE_DOWNLOAD_PATH,
         episode_number="0092",
         title="hello",
         short_description="hello world",
@@ -58,7 +60,7 @@ def test_episode_download(now, audio_file_content, episode):
 
     metadata = music_tag.load_file(episode.download_path)
     assert not metadata["artist"].value
-    assert not metadata["album_artist"].value
+    assert not metadata["album_artist"]
     assert metadata["title"].value == "hello"
     assert metadata["track_title"].value == "hello"
     assert metadata["genre"].value == "Podcast"

@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
+from pod_store.podcasts import Podcast
 from pod_store.store import Store
 from pod_store.store_file_handlers import UnencryptedStoreFileHandler
 from tests import (
@@ -180,6 +181,19 @@ def store(unencrypted_store_file_handler):
         store_path=TEST_STORE_PATH,
         podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
         file_handler=unencrypted_store_file_handler,
+    )
+
+
+@pytest.fixture
+def podcast(now, podcast_episode_data):
+    return Podcast(
+        title="hello",
+        feed="http://hello.world/rss",
+        tags=["greetings"],
+        episode_downloads_path=TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
+        created_at=now,
+        updated_at=now,
+        episode_data=podcast_episode_data,
     )
 
 
