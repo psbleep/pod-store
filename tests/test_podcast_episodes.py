@@ -12,7 +12,6 @@ from . import TEST_PODCAST_EPISODE_DOWNLOADS_PATH
 def podcast_episodes(podcast, podcast_episode_data):
     return PodcastEpisodes(
         podcast=podcast,
-        episode_downloads_path=TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
         episode_data=podcast_episode_data,
     )
 
