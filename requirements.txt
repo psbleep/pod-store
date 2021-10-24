@@ -3,6 +3,7 @@ click==8.0.1
 feedparser==6.0.8
 flake8==4.0.1
 isort==5.9.3
+music-tag==0.4.3
 pytest==6.2.5
 pytest-env==0.6.2
 pytest-freezegun==0.4.2
