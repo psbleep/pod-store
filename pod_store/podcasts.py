@@ -267,7 +267,7 @@ class Podcast:
         """
         id = self._parse_store_episode_id(id)
         long_description = self._strip_html_and_non_ascii_characters(summary)
-        url = [u["href"] for u in links if u["type"] in ("audio/mpeg", "audio/mp3")][0]
+        url = self._get_download_url(links)
         published_parsed = datetime(*published_parsed[:6])
 
         if subtitle:
@@ -303,11 +303,24 @@ class Podcast:
         return rss_id.split("/")[-1]
 
     @staticmethod
-    def _pad_episode_number(episode_number: str) -> str:
-        """Create an episode number padded with up to 3 zeros."""
-        return episode_number.rjust(4, "0")
-
-    @staticmethod
     def _strip_html_and_non_ascii_characters(text: str) -> str:
         """Strip HTML tags and non-ASCII characters from RSS feed data."""
         return re.sub("<[^<]+?>", "", text.encode("ascii", "ignore").decode("utf-8"))
+
+    @staticmethod
+    def _get_download_url(links: List[dict]) -> str:
+        """Determines the download link for the episode audio from the RSS links data.
+
+        Prefers ogg format, otherwise selects the first audio link available.
+        """
+        download_urls = []
+        for audio_link in [al for al in links if al["type"].startswith("audio/")]:
+            if audio_link["type"] == "audio/ogg":
+                return audio_link["href"]
+            download_urls.append(audio_link["href"])
+        return download_urls[0]
+
+    @staticmethod
+    def _pad_episode_number(episode_number: str) -> str:
+        """Create an episode number padded with up to 3 zeros."""
+        return episode_number.rjust(4, "0")

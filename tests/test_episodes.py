@@ -49,7 +49,7 @@ def test_episode_from_json_parses_datetimes(now, podcast):
     assert episode.updated_at == now
 
 
-def test_episode_download_path_sets_correct_path_without_invalid_characters(
+def test_episode_download_path_is_correct_path_for_filetype_without_invalid_characters(
     now, podcast
 ):
     episode = Episode(
@@ -59,13 +59,13 @@ def test_episode_download_path_sets_correct_path_without_invalid_characters(
         title="foo/bar: the fin?al[ RE:^ckONing",
         short_description="foo",
         long_description="foo (longer description)",
-        url="http://foo.bar/bbb.mp3",
+        url="http://foo.bar/bbb.ogg",
         created_at=now,
         updated_at=now,
     )
 
     assert episode.download_path == os.path.join(
-        TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0981-foo-bar--the-fin-al--re--ckoning.mp3"
+        TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0981-foo-bar--the-fin-al--re--ckoning.ogg"
     )
 
 
