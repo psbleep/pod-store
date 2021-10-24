@@ -9,7 +9,6 @@ from .commands.decorators import (
     catch_pod_store_errors,
     git_add_and_commit,
     optional_podcast_commit_message_builder,
-    required_podcast_optional_episode_commit_message_builder,
     save_store_changes,
 )
 from .commands.download import download_commit_message_builder
@@ -590,9 +589,8 @@ def unencrypt_store(ctx: click.Context):
     "episode number.",
 )
 @git_add_and_commit(
-    "Untagged {}{}-> {}.",
-    "tag",
-    commit_message_builder=required_podcast_optional_episode_commit_message_builder,
+    "Untag",
+    commit_message_builder=tag_commit_message_builder,
 )
 @save_store_changes
 @catch_pod_store_errors

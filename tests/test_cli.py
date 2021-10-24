@@ -467,12 +467,12 @@ def test_unencrypt_aborts_if_not_confirmed(mocked_git_decorator_command, runner)
     mocked_git_decorator_command.assert_not_called()
 
 
-def test_untag_single_podcast(mocked_git_decorator_command, runner):
+def test_untag_a_podcast(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["untag", "greetings", "hello"])
     assert result.exit_code == 0
     assert result.output == "Untagged greetings -> hello.\n"
     _assert_git_changes_commited(
-        mocked_git_decorator_command, "Untagged greetings -> hello."
+        mocked_git_decorator_command, "Untagged podcast 'greetings' -> hello."
     )
 
 
@@ -481,7 +481,8 @@ def test_untag_single_pocast_episode(mocked_git_decorator_command, runner):
     assert result.exit_code == 0
     assert result.output == "Untagged greetings, episode aaa -> new.\n"
     _assert_git_changes_commited(
-        mocked_git_decorator_command, "Untagged greetings, episode aaa -> new."
+        mocked_git_decorator_command,
+        "Untagged podcast 'greetings', episode 'aaa' -> new.",
     )
 
 

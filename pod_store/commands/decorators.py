@@ -116,24 +116,6 @@ def optional_podcast_commit_message_builder(
     return commit_message_template.format(podcast_name, *template_args)
 
 
-def required_podcast_optional_episode_commit_message_builder(
-    ctx_params: dict, commit_message_template: str, *param_names
-) -> str:
-    """Helper to build `git` commit messages for Click commands that
-    have a required `podcast` argument and an optional `episode` argument.
-
-    See the `git_add_and_commit` decorator for more information.
-    """
-    podcast = ctx_params["podcast"]
-    episode = ctx_params.get("episode")
-    if episode:
-        episode_msg = f", episode {episode} "
-    else:
-        episode_msg = " "
-    template_args = [ctx_params[p] for p in param_names]
-    return commit_message_template.format(podcast, episode_msg, *template_args)
-
-
 def save_store_changes(f: Callable) -> Callable:
     """Decorator for saving changes to the store after running a command.
 
