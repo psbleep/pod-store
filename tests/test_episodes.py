@@ -1,7 +1,6 @@
 import os
 
 import music_tag
-
 import pytest
 
 from pod_store.episodes import Episode
