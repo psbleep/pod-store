@@ -19,13 +19,13 @@ from .commands.helpers import (
     get_tag_filters,
 )
 from .commands.ls import list_episodes_by_podcast, list_podcasts
+from .commands.refresh import refresh_commit_message_builder
 from .commands.tag import tag_commit_message_builder
 from .commands.tag_episodes import (
     INTERACTIVE_MODE_HELP,
-    tag_episodes_commit_message_builder,
     handle_episode_tagging,
+    tag_episodes_commit_message_builder,
 )
-from .commands.refresh import refresh_commit_message_builder
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
 from .util import run_git_command
