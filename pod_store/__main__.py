@@ -117,7 +117,7 @@ def cli(ctx):
 @click.pass_context
 @click.argument("title")
 @click.argument("feed")
-@git_add_and_commit("Added podcast: {}.", "title")
+@git_add_and_commit(message="Added podcast: {title!r}.", params=["title"])
 @save_store_changes
 @catch_pod_store_errors
 def add(ctx: click.Context, title: str, feed: str):
@@ -180,7 +180,7 @@ def download(
     prompt="Are you sure you want to encrypt the pod store?",
     help="Skip the confirmation prompt.",
 )
-@git_add_and_commit("Encrypted the store.")
+@git_add_and_commit(message="Encrypted the store.")
 def encrypt_store(ctx: click.Context, gpg_id: str):
     """Encrypt the pod store file with the provided gpg keys.
 
@@ -386,7 +386,9 @@ def mark_as_old(ctx: click.Context, podcast: Optional[str], interactive: bool):
 @click.pass_context
 @click.argument("old")
 @click.argument("new")
-@git_add_and_commit("Renamed podcast: {} -> {}.", "old", "new")
+@git_add_and_commit(
+    message="Renamed podcast: {old!r} -> {new!r}.", params=["old", "new"]
+)
 @save_store_changes
 @catch_pod_store_errors
 def mv(ctx: click.Context, old: str, new: str):
@@ -449,7 +451,7 @@ def refresh(
     prompt="Are you sure you want to delete this podcast?",
     help="Skip confirmation prompt.",
 )
-@git_add_and_commit("Removed podcast: {}.", "title")
+@git_add_and_commit(message="Removed podcast: {title!r}.", params=["title"])
 @save_store_changes
 @catch_pod_store_errors
 def rm(ctx: click.Context, title: str):
@@ -475,8 +477,8 @@ def rm(ctx: click.Context, title: str):
     "episode number.",
 )
 @git_add_and_commit(
-    "Tag",
     commit_message_builder=tag_commit_message_builder,
+    action="Tag",
 )
 @save_store_changes
 @catch_pod_store_errors
@@ -518,8 +520,7 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     "tag, or bulk mode to tag all episodes in the group. Defaults to `--interactive`.",
 )
 @git_add_and_commit(
-    "Tag",
-    commit_message_builder=tag_episodes_commit_message_builder,
+    commit_message_builder=tag_episodes_commit_message_builder, action="Tag"
 )
 @save_store_changes
 @catch_pod_store_errors
@@ -566,7 +567,7 @@ def tag_episodes(
     prompt="Are you sure you want to unencrypt the pod store?",
     help="Skip the confirmation prompt.",
 )
-@git_add_and_commit("Unencrypted the store.")
+@git_add_and_commit(message="Unencrypted the store.")
 def unencrypt_store(ctx: click.Context):
     """Unencrypt the pod store, saving the data in plaintext instead."""
     store = ctx.obj
@@ -588,8 +589,8 @@ def unencrypt_store(ctx: click.Context):
     "episode number.",
 )
 @git_add_and_commit(
-    "Untag",
     commit_message_builder=tag_commit_message_builder,
+    action="Untag",
 )
 @save_store_changes
 @catch_pod_store_errors
@@ -633,8 +634,8 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     "`--interactive`.",
 )
 @git_add_and_commit(
-    "Untag",
     commit_message_builder=tag_episodes_commit_message_builder,
+    action="Untag",
 )
 @save_store_changes
 @catch_pod_store_errors

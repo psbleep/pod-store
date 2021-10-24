@@ -40,7 +40,9 @@ def runner():
 def test_add(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["add", "hello", "https://www.hello.world/rss"])
     assert result.exit_code == 0
-    _assert_git_changes_commited(mocked_git_decorator_command, "Added podcast: hello.")
+    _assert_git_changes_commited(
+        mocked_git_decorator_command, "Added podcast: 'hello'."
+    )
 
 
 def test_download_all_new_podcast_episodes(mocked_git_decorator_command, runner):
@@ -319,7 +321,7 @@ def test_mv(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["mv", "farewell", "foowell"])
     assert result.exit_code == 0
     _assert_git_changes_commited(
-        mocked_git_decorator_command, "Renamed podcast: farewell -> foowell."
+        mocked_git_decorator_command, "Renamed podcast: 'farewell' -> 'foowell'."
     )
 
 
@@ -366,7 +368,7 @@ def test_rm(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["rm", "greetings", "--force"])
     assert result.exit_code == 0
     _assert_git_changes_commited(
-        mocked_git_decorator_command, "Removed podcast: greetings."
+        mocked_git_decorator_command, "Removed podcast: 'greetings'."
     )
 
 
