@@ -20,19 +20,12 @@ class PodcastEpisodes:
     `pod_store.podcasts.Podcast` object.
 
     _podcast (pod_store.Podcasts.Podcast): podcast these episodes belong to
-    _episodes_download_path (str): location in file system the podcast will download
-        episodes to.
-
     _episodes (dict):
         {id: `pod_store.episodes.Episode`}
     """
 
-    def __init__(
-        self, podcast: P, episode_downloads_path: str, episode_data: dict
-    ) -> None:
+    def __init__(self, podcast: P, episode_data: dict) -> None:
         self._podcast = podcast
-        self._episode_downloads_path = episode_downloads_path
-
         self._episodes = {
             id: Episode.from_json(podcast=podcast, **episode)
             for id, episode in episode_data.items()
@@ -83,7 +76,8 @@ class PodcastEpisodes:
         lowercase_title = title.lower()
         cleaned_title = re.sub(r"[^a-zA-Z0-9]", "-", lowercase_title)
         return os.path.join(
-            self._episode_downloads_path, f"{episode_number}-{cleaned_title}.mp3"
+            self._podcast.episode_downloads_path,
+            f"{episode_number}-{cleaned_title}.mp3",
         )
 
     def delete(self, id: str) -> None:
@@ -174,11 +168,7 @@ class Podcast:
         self.created_at = created_at or datetime.utcnow()
         self.updated_at = updated_at or datetime.utcnow()
 
-        self.episodes = PodcastEpisodes(
-            podcast=self,
-            episode_data=episode_data,
-            episode_downloads_path=episode_downloads_path,
-        )
+        self.episodes = PodcastEpisodes(podcast=self, episode_data=episode_data)
 
     @classmethod
     def from_json(
