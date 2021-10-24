@@ -84,6 +84,32 @@ def test_download_new_episodes_without_tag(mocked_git_decorator_command, runner)
     )
 
 
+def test_encrypt_store(mocked_git_decorator_command, runner):
+    result = runner.invoke(cli, ["encrypt-store", "foo@bar.com", "--force"])
+    assert result.exit_code == 0
+    assert result.output.endswith("Store encrypted with GPG ID.\n")
+    _assert_git_changes_commited(mocked_git_decorator_command, "Encrypted the store.")
+
+
+def test_encrypt_aborts_if_not_confirmed(mocked_git_decorator_command, runner):
+    result = runner.invoke(cli, ["encrypt-store", "foo@bar.com"], input="\n")
+    assert result.exit_code == 1
+    mocked_git_decorator_command.assert_not_called()
+
+
+def test_git_runs_git_command(mocker, runner):
+    mocked_run_git_command = mocker.patch("pod_store.__main__.run_git_command")
+    result = runner.invoke(cli, ["git", "push", "-u", "origin", "master"])
+    assert result.exit_code == 0
+    mocked_run_git_command.assert_called_with("push -u origin master")
+
+
+def test_git_help_still_works(runner):
+    result = runner.invoke(cli, ["git", "--help"])
+    assert result.exit_code == 0
+    assert "Run a `git` command" in result.output
+
+
 def test_init(start_with_no_store, runner):
     result = runner.invoke(cli, ["init", "--no-git"])
     assert result.exit_code == 0
@@ -114,34 +140,6 @@ def test_init_with_gpg_id(start_with_no_store, runner):
     result = runner.invoke(cli, ["init", "--no-git", "-g", "foo@bar.com"])
     assert result.exit_code == 0
     assert result.output.endswith("GPG ID set for store encryption.\n")
-
-
-def test_encrypt_store(mocked_git_decorator_command, runner):
-    result = runner.invoke(cli, ["encrypt-store", "foo@bar.com", "--force"])
-    assert result.exit_code == 0
-    assert result.output.endswith("Store encrypted with GPG ID.\n")
-    _assert_git_changes_commited(mocked_git_decorator_command, "Encrypted the store.")
-
-
-def test_encrypt_aborts_if_not_confirmed(mocked_git_decorator_command, runner):
-    result = runner.invoke(cli, ["encrypt-store", "foo@bar.com"], input="\n")
-    assert result.exit_code == 1
-    mocked_git_decorator_command.assert_not_called()
-
-
-def test_unencrypt_store(mocked_git_decorator_command, runner):
-    with open(TEST_GPG_ID_FILE_PATH, "w") as f:
-        f.write("abc@xyz.com")
-    result = runner.invoke(cli, ["unencrypt-store", "--force"])
-    assert result.exit_code == 0
-    assert result.output.endswith("Store was unencrypted.\n")
-    _assert_git_changes_commited(mocked_git_decorator_command, "Unencrypted the store.")
-
-
-def test_unencrypt_aborts_if_not_confirmed(mocked_git_decorator_command, runner):
-    result = runner.invoke(cli, ["unencrypt-store"], input="\n")
-    assert result.exit_code == 1
-    mocked_git_decorator_command.assert_not_called()
 
 
 def test_ls_all_podcasts(runner):
@@ -393,24 +391,6 @@ def test_tag_single_pocast_episode(mocked_git_decorator_command, runner):
     )
 
 
-def test_untag_single_podcast(mocked_git_decorator_command, runner):
-    result = runner.invoke(cli, ["untag", "greetings", "hello"])
-    assert result.exit_code == 0
-    assert result.output == "Untagged greetings -> hello.\n"
-    _assert_git_changes_commited(
-        mocked_git_decorator_command, "Untagged greetings -> hello."
-    )
-
-
-def test_untag_single_pocast_episode(mocked_git_decorator_command, runner):
-    result = runner.invoke(cli, ["untag", "greetings", "--episode", "aaa", "new"])
-    assert result.exit_code == 0
-    assert result.output == "Untagged greetings, episode aaa -> new.\n"
-    _assert_git_changes_commited(
-        mocked_git_decorator_command, "Untagged greetings, episode aaa -> new."
-    )
-
-
 def test_tag_episodes_for_all_podcasts_generates_correct_commit_message(
     mocked_git_decorator_command, runner
 ):
@@ -467,6 +447,39 @@ def test_tag_episodes_bulk_mode(runner):
     )
 
 
+def test_unencrypt_store(mocked_git_decorator_command, runner):
+    with open(TEST_GPG_ID_FILE_PATH, "w") as f:
+        f.write("abc@xyz.com")
+    result = runner.invoke(cli, ["unencrypt-store", "--force"])
+    assert result.exit_code == 0
+    assert result.output.endswith("Store was unencrypted.\n")
+    _assert_git_changes_commited(mocked_git_decorator_command, "Unencrypted the store.")
+
+
+def test_unencrypt_aborts_if_not_confirmed(mocked_git_decorator_command, runner):
+    result = runner.invoke(cli, ["unencrypt-store"], input="\n")
+    assert result.exit_code == 1
+    mocked_git_decorator_command.assert_not_called()
+
+
+def test_untag_single_podcast(mocked_git_decorator_command, runner):
+    result = runner.invoke(cli, ["untag", "greetings", "hello"])
+    assert result.exit_code == 0
+    assert result.output == "Untagged greetings -> hello.\n"
+    _assert_git_changes_commited(
+        mocked_git_decorator_command, "Untagged greetings -> hello."
+    )
+
+
+def test_untag_single_pocast_episode(mocked_git_decorator_command, runner):
+    result = runner.invoke(cli, ["untag", "greetings", "--episode", "aaa", "new"])
+    assert result.exit_code == 0
+    assert result.output == "Untagged greetings, episode aaa -> new.\n"
+    _assert_git_changes_commited(
+        mocked_git_decorator_command, "Untagged greetings, episode aaa -> new."
+    )
+
+
 def test_untag_episodes_for_all_podcasts_generates_correct_commit_message(
     mocked_git_decorator_command, runner
 ):
@@ -509,19 +522,6 @@ def test_untag_episodes_bulk(mocked_git_decorator_command, runner):
     assert result.output.endswith(
         "Untagged farewell -> [0001] gone\nUntagged greetings -> [0023] hello\n"
     )
-
-
-def test_git_runs_git_command(mocker, runner):
-    mocked_run_git_command = mocker.patch("pod_store.__main__.run_git_command")
-    result = runner.invoke(cli, ["git", "push", "-u", "origin", "master"])
-    assert result.exit_code == 0
-    mocked_run_git_command.assert_called_with("push -u origin master")
-
-
-def test_git_help_still_works(runner):
-    result = runner.invoke(cli, ["git", "--help"])
-    assert result.exit_code == 0
-    assert "Run a `git` command" in result.output
 
 
 def test_git_add_and_commit_decorated_commands_work_if_git_is_not_set_up(
