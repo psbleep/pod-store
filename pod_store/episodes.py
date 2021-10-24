@@ -7,6 +7,7 @@ import os
 from datetime import datetime
 from typing import Any, List, Optional, Type, TypeVar
 
+import music_tag
 import requests
 
 from . import util
@@ -101,8 +102,20 @@ class Episode:
         with open(self.download_path, "wb") as f:
             for chunk in resp.iter_content(DOWNLOAD_CHUNK_SIZE):
                 f.write(chunk)
+        self._set_metadata(self.download_path)
         self.downloaded_at = datetime.utcnow()
         self.untag("new")
+
+    def _set_metadata(self, download_path: str) -> None:
+        f = music_tag.load_file(download_path)
+        f["artist"] = None
+        f["album_artist"] = None
+        f["title"] = self.title
+        f["track_title"] = self.title
+        f["genre"] = "Podcast"
+        f["track_number"] = self.episode_number
+        f["year"] = self.created_at.year
+        f.save()
 
     def update(self, **data: Any) -> None:
         """Update arbitrary attributes by passing in a dict."""

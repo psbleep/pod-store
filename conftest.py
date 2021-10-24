@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+from collections import namedtuple
 from datetime import datetime, timedelta
 
 import pytest
@@ -8,6 +9,7 @@ import pytest
 from pod_store.store import Store
 from pod_store.store_file_handlers import UnencryptedStoreFileHandler
 from tests import (
+    TEST_AUDIO_FILE_PATH,
     TEST_PODCAST_DOWNLOADS_PATH,
     TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
     TEST_STORE_FILE_PATH,
@@ -40,10 +42,24 @@ def mocked_feedparser_parse(mocker):
     return mocker.patch("pod_store.podcasts.feedparser.parse")
 
 
+@pytest.fixture
+def audio_file_content():
+    with open(TEST_AUDIO_FILE_PATH, "rb") as f:
+        return f.read()
+
+
 # Autouse to prevent real network calls during tests.
 @pytest.fixture(autouse=True)
-def mocked_requests_get(mocker):
-    return mocker.patch("pod_store.episodes.requests.get")
+def mocked_requests_get(audio_file_content, mocker):
+    stream_content = [audio_file_content]
+
+    def iter_content(_):
+        for chunk in stream_content:
+            yield chunk
+
+    fake_response = namedtuple("FakeResponse", "iter_content")
+    resp = fake_response(iter_content=iter_content)
+    return mocker.patch("pod_store.episodes.requests.get", return_value=resp)
 
 
 # Autouse to prevent real shell commands being run during tests.
