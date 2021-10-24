@@ -12,6 +12,7 @@ from .commands.decorators import (
     required_podcast_optional_episode_commit_message_builder,
     save_store_changes,
 )
+from .commands.download import download_commit_message_builder
 from .commands.helpers import (
     abort_if_false,
     display_pod_store_error_from_exception,
@@ -147,10 +148,7 @@ def add(ctx: click.Context, title: str, feed: str):
     default=[],
     help="Supply tags to search for episodes with. Multiple tags can be provided.",
 )
-@git_add_and_commit(
-    "Downloaded {} new episodes.",
-    commit_message_builder=optional_podcast_commit_message_builder,
-)
+@git_add_and_commit(commit_message_builder=download_commit_message_builder)
 @save_store_changes
 @catch_pod_store_errors
 def download(

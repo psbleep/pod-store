@@ -37,6 +37,53 @@ def runner():
     return CliRunner()
 
 
+def test_add(mocked_git_decorator_command, runner):
+    result = runner.invoke(cli, ["add", "hello", "https://www.hello.world/rss"])
+    assert result.exit_code == 0
+    _assert_git_changes_commited(mocked_git_decorator_command, "Added podcast: hello.")
+
+
+def test_download_all_new_podcast_episodes(mocked_git_decorator_command, runner):
+    result = runner.invoke(cli, ["download"])
+    assert result.exit_code == 0
+    assert result.output == (
+        f"Downloading: {TEST_OTHER_EPISODE_DOWNLOAD_PATH}\n"
+        f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}\n"
+    )
+    _assert_git_changes_commited(
+        mocked_git_decorator_command, "Downloaded all new podcast episodes."
+    )
+
+
+def test_download_single_podcast_new_episodes(mocked_git_decorator_command, runner):
+    result = runner.invoke(cli, ["download", "-p", "greetings"])
+    assert result.exit_code == 0
+    assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}\n"
+    _assert_git_changes_commited(
+        mocked_git_decorator_command, "Downloaded 'greetings': new podcast episodes."
+    )
+
+
+def test_download_new_episodes_with_tag(mocked_git_decorator_command, runner):
+    result = runner.invoke(cli, ["download", "-t", "bar"])
+    assert result.exit_code == 0
+    assert result.output == f"Downloading: {TEST_OTHER_EPISODE_DOWNLOAD_PATH}\n"
+    _assert_git_changes_commited(
+        mocked_git_decorator_command,
+        "Downloaded all new podcast episodes with tags -> bar.",
+    )
+
+
+def test_download_new_episodes_without_tag(mocked_git_decorator_command, runner):
+    result = runner.invoke(cli, ["download", "--not-tagged", "-t", "bar"])
+    assert result.exit_code == 0
+    assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}\n"
+    _assert_git_changes_commited(
+        mocked_git_decorator_command,
+        "Downloaded all new podcast episodes without tags -> bar.",
+    )
+
+
 def test_init(start_with_no_store, runner):
     result = runner.invoke(cli, ["init", "--no-git"])
     assert result.exit_code == 0
@@ -95,51 +142,6 @@ def test_unencrypt_aborts_if_not_confirmed(mocked_git_decorator_command, runner)
     result = runner.invoke(cli, ["unencrypt-store"], input="\n")
     assert result.exit_code == 1
     mocked_git_decorator_command.assert_not_called()
-
-
-def test_add(mocked_git_decorator_command, runner):
-    result = runner.invoke(cli, ["add", "hello", "https://www.hello.world/rss"])
-    assert result.exit_code == 0
-    _assert_git_changes_commited(mocked_git_decorator_command, "Added podcast: hello.")
-
-
-def test_download_all_new_podcast_episodes(mocked_git_decorator_command, runner):
-    result = runner.invoke(cli, ["download"])
-    assert result.exit_code == 0
-    assert result.output == (
-        f"Downloading: {TEST_OTHER_EPISODE_DOWNLOAD_PATH}\n"
-        f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}\n"
-    )
-    _assert_git_changes_commited(
-        mocked_git_decorator_command, "Downloaded all new episodes."
-    )
-
-
-def test_download_single_podcast_new_episodes(mocked_git_decorator_command, runner):
-    result = runner.invoke(cli, ["download", "-p", "greetings"])
-    assert result.exit_code == 0
-    assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}\n"
-    _assert_git_changes_commited(
-        mocked_git_decorator_command, "Downloaded greetings new episodes."
-    )
-
-
-def test_download_new_episodes_with_tag(mocked_git_decorator_command, runner):
-    result = runner.invoke(cli, ["download", "-t", "bar"])
-    assert result.exit_code == 0
-    assert result.output == f"Downloading: {TEST_OTHER_EPISODE_DOWNLOAD_PATH}\n"
-    _assert_git_changes_commited(
-        mocked_git_decorator_command, "Downloaded all new episodes."
-    )
-
-
-def test_download_new_episodes_without_tag(mocked_git_decorator_command, runner):
-    result = runner.invoke(cli, ["download", "--not-tagged", "-t", "bar"])
-    assert result.exit_code == 0
-    assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}\n"
-    _assert_git_changes_commited(
-        mocked_git_decorator_command, "Downloaded all new episodes."
-    )
 
 
 def test_ls_all_podcasts(runner):
