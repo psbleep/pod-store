@@ -10,7 +10,6 @@ from pod_store.store_file_handlers import EncryptedStoreFileHandler
 
 from . import (
     TEST_GPG_ID_FILE_PATH,
-    TEST_PODCAST_DOWNLOADS_PATH,
     TEST_STORE_FILE_PATH,
     TEST_STORE_PATH,
 )
@@ -28,7 +27,6 @@ def test_init_store_creates_store_directory_and_store_file_and_downloads_path(
         setup_git=False,
         store_path=TEST_STORE_PATH,
         store_file_path=TEST_STORE_FILE_PATH,
-        podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
     )
     assert os.path.exists(TEST_STORE_FILE_PATH)
 
@@ -39,7 +37,6 @@ def test_init_store_already_exists():
             setup_git=False,
             store_path=TEST_STORE_PATH,
             store_file_path=TEST_STORE_FILE_PATH,
-            podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
         )
 
 
@@ -50,7 +47,6 @@ def test_init_store_setup_git_initializes_git_repo_and_sets_gitignore(
         setup_git=True,
         store_path=TEST_STORE_PATH,
         store_file_path=TEST_STORE_FILE_PATH,
-        podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
     )
     with open(os.path.join(TEST_STORE_PATH, ".gitignore")) as f:
         assert f.read() == ".gpg-id"
@@ -65,7 +61,6 @@ def test_init_store_setup_git_with_git_url_establishes_repo_remote_origin(
         git_url="https://git.foo.bar/pod-store.git",
         store_path=TEST_STORE_PATH,
         store_file_path=TEST_STORE_FILE_PATH,
-        podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
     )
     mocked_run_git_command.assert_has_calls(
         [
@@ -83,7 +78,6 @@ def test_init_store_with_gpg_id_sets_gpg_id_file_and_creates_encrypted_store_fil
         setup_git=False,
         store_path=TEST_STORE_PATH,
         store_file_path=TEST_STORE_FILE_PATH,
-        podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
     )
 
     with open(os.path.join(TEST_STORE_PATH, ".gpg-id")) as f:
@@ -117,7 +111,6 @@ def test_unencrypt_reads_existing_store_data_and_writes_unencrypted_store_file(
     Store.init(
         store_path=TEST_STORE_PATH,
         store_file_path=TEST_STORE_FILE_PATH,
-        podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
         setup_git=False,
         gpg_id="oof@rab.com",
     )
@@ -129,7 +122,6 @@ def test_unencrypt_reads_existing_store_data_and_writes_unencrypted_store_file(
 
     store = Store(
         store_path=TEST_STORE_PATH,
-        podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
         file_handler=file_handler,
     )
 

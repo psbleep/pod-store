@@ -12,7 +12,6 @@ from pod_store.store_file_handlers import UnencryptedStoreFileHandler
 from tests import (
     TEST_AUDIO_FILE_PATH,
     TEST_PODCAST_DOWNLOADS_PATH,
-    TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
     TEST_STORE_FILE_PATH,
     TEST_STORE_PATH,
 )
@@ -114,9 +113,6 @@ def store_data(now, yesterday, podcast_episode_data):
     return {
         "greetings": {
             "title": "greetings",
-            "episode_downloads_path": os.path.join(
-                TEST_PODCAST_DOWNLOADS_PATH, "greetings"
-            ),
             "feed": "http://hello.world/rss",
             "tags": ["hello"],
             "episode_data": podcast_episode_data,
@@ -125,9 +121,6 @@ def store_data(now, yesterday, podcast_episode_data):
         },
         "farewell": {
             "title": "farewell",
-            "episode_downloads_path": os.path.join(
-                TEST_PODCAST_DOWNLOADS_PATH, "farewell"
-            ),
             "feed": "http://goodbye.world/rss",
             "tags": [],
             "episode_data": {
@@ -149,9 +142,6 @@ def store_data(now, yesterday, podcast_episode_data):
         },
         "other": {
             "title": "other",
-            "episode_downloads_path": os.path.join(
-                TEST_PODCAST_DOWNLOADS_PATH, "other"
-            ),
             "feed": "http://other.thing/rss",
             "tags": [],
             "episode_data": {},
@@ -170,7 +160,6 @@ def unencrypted_store_file_handler():
 def store(unencrypted_store_file_handler):
     return Store(
         store_path=TEST_STORE_PATH,
-        podcast_downloads_path=TEST_PODCAST_DOWNLOADS_PATH,
         file_handler=unencrypted_store_file_handler,
     )
 
@@ -181,7 +170,6 @@ def podcast(now, podcast_episode_data):
         title="greetings",
         feed="http://hello.world/rss",
         tags=["greetings"],
-        episode_downloads_path=TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
         created_at=now,
         updated_at=now,
         episode_data=podcast_episode_data,

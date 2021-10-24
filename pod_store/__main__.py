@@ -104,7 +104,6 @@ def cli(ctx):
 
         ctx.obj = Store(
             store_path=STORE_PATH,
-            podcast_downloads_path=PODCAST_DOWNLOADS_PATH,
             file_handler=file_handler,
         )
 
@@ -236,7 +235,6 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
     Store.init(
         store_path=STORE_PATH,
         store_file_path=STORE_FILE_PATH,
-        podcast_downloads_path=PODCAST_DOWNLOADS_PATH,
         setup_git=git,
         git_url=git_url,
         gpg_id=gpg_id,

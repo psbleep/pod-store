@@ -1,13 +1,14 @@
 """Podcasts tracked in the pod store.
 
 Podcast objects are created/managed using the `pod_store.store.StorePodcasts` class."""
+import os
 import re
 from datetime import datetime
 from typing import Any, List, Optional, Type, TypeVar
 
 import feedparser
 
-from . import util
+from . import PODCAST_DOWNLOADS_PATH, util
 from .episodes import Episode
 from .exc import EpisodeDoesNotExistError, NoEpisodesFoundError
 
@@ -19,6 +20,7 @@ class PodcastEpisodes:
     `pod_store.podcasts.Podcast` object.
 
     _podcast (pod_store.Podcasts.Podcast): podcast these episodes belong to
+
     _episodes (dict):
         {id: `pod_store.episodes.Episode`}
     """
@@ -110,7 +112,6 @@ class Podcast:
     """Podcast tracked in the store.
 
     title (str): podcast title
-    episode_downloads_path (str): location in file system to download podcast episodes
     feed (str): RSS feed URL
     tags (list): arbitrary text tags assigned to the podcast
 
@@ -126,7 +127,6 @@ class Podcast:
     def __init__(
         self,
         title: str,
-        episode_downloads_path: str,
         feed: str,
         episode_data: dict,
         tags: List[str] = None,
@@ -136,7 +136,6 @@ class Podcast:
         tags = tags or []
 
         self.title = title
-        self.episode_downloads_path = episode_downloads_path
         self.feed = feed
         self.tags = tags
         self.created_at = created_at or datetime.utcnow()
@@ -165,6 +164,15 @@ class Podcast:
 
     def __repr__(self) -> str:
         return f"Podcast({self.title!r})"
+
+    @property
+    def episode_downloads_path(self) -> str:
+        """Determine the download path for podcast episodes.
+
+        Builds the file path from the `POD_STORE_PODCASTS_DOWNLOAD_PATH` env var
+        configuration (defaults to /home/<username>/Podcasts) and the podcast title.
+        """
+        return os.path.join(PODCAST_DOWNLOADS_PATH, self.title)
 
     @property
     def has_new_episodes(self) -> bool:
@@ -231,7 +239,6 @@ class Podcast:
         updated_at = util.parse_datetime_to_json(self.updated_at)
         return {
             "title": self.title,
-            "episode_downloads_path": self.episode_downloads_path,
             "feed": self.feed,
             "tags": self.tags,
             "created_at": created_at,
