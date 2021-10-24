@@ -310,7 +310,8 @@ def test_mark_as_old_works_as_alias_for_untag_new_episodes_command(
     assert result.exit_code == 0
     assert result.output.endswith("Untagged greetings -> [0023] hello\n")
     _assert_git_changes_commited(
-        mocked_git_decorator_command, "Untagged greetings podcast episodes: new."
+        mocked_git_decorator_command,
+        "Untagged 'greetings' podcast episodes -> new, bulk mode.",
     )
 
 
@@ -491,7 +492,8 @@ def test_untag_episodes_for_all_podcasts_generates_correct_commit_message(
 ):
     runner.invoke(cli, ["untag-episodes", "zozo", "--bulk"])
     _assert_git_changes_commited(
-        mocked_git_decorator_command, "Untagged all podcast episodes: zozo."
+        mocked_git_decorator_command,
+        "Untagged all podcast episodes -> zozo, bulk mode.",
     )
 
 
@@ -500,7 +502,8 @@ def test_untag_episodes_for_single_podcast_generates_correct_commit_message(
 ):
     runner.invoke(cli, ["untag-episodes", "zozo", "-p", "greetings", "--bulk"])
     _assert_git_changes_commited(
-        mocked_git_decorator_command, "Untagged greetings podcast episodes: zozo."
+        mocked_git_decorator_command,
+        "Untagged 'greetings' podcast episodes -> zozo, bulk mode.",
     )
 
 

@@ -8,7 +8,6 @@ from . import GPG_ID, PODCAST_DOWNLOADS_PATH, STORE_FILE_PATH, STORE_PATH
 from .commands.decorators import (
     catch_pod_store_errors,
     git_add_and_commit,
-    optional_podcast_commit_message_builder,
     save_store_changes,
 )
 from .commands.download import download_commit_message_builder
@@ -634,9 +633,8 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     "`--interactive`.",
 )
 @git_add_and_commit(
-    "Untagged {} podcast episodes: {}.",
-    "tag",
-    commit_message_builder=optional_podcast_commit_message_builder,
+    "Untag",
+    commit_message_builder=tag_episodes_commit_message_builder,
 )
 @save_store_changes
 @catch_pod_store_errors
