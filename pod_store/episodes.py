@@ -4,6 +4,7 @@ Episode objects are created/managed using the `pod_store.podcasts.PodcastEpisode
 class.
 """
 import os
+import re
 from datetime import datetime
 from typing import Any, List, Optional, Type, TypeVar
 
@@ -23,7 +24,6 @@ class Episode:
 
     podcast (pod_store.podcasts.Podcast): podcast this episode belongs to
     id (str): store ID (parsed from RSS feed ID)
-    download_path (str): where episode will be downloaded on file system
     episode_number (str): zero-padded episode number from podcast feed
     title (str): episode title
     short_description (str): short description of episode
@@ -41,7 +41,6 @@ class Episode:
         self,
         podcast: P,
         id: str,
-        download_path: str,
         episode_number: str,
         title: str,
         short_description: str,
@@ -55,7 +54,6 @@ class Episode:
         self._podcast = podcast
 
         self.id = id
-        self.download_path = download_path
         self.episode_number = episode_number
         self.title = title
         self.short_description = short_description
@@ -98,6 +96,23 @@ class Episode:
 
     def __repr__(self) -> str:
         return f"Episode({self.episode_number}, {self.title})"
+
+    @property
+    def download_path(self) -> str:
+        """Determines the download path for this episode, based on the podcast's
+        download location.
+
+        The filename is built from the episode number and a lowercase version of the
+        title that has had non-alphanumeric characters replaced with a dash. This helps
+        with filename consistency and removes characters that lead to problems on some
+        device filesystems (such as the one on my cheap MP3 player).
+        """
+        lowercase_title = self.title.lower()
+        cleaned_title = re.sub(r"[^a-zA-Z0-9]", "-", lowercase_title)
+        return os.path.join(
+            self._podcast.episode_downloads_path,
+            f"{self.episode_number}-{cleaned_title}.mp3",
+        )
 
     def download(self) -> None:
         """Download the audio file of the episode to the file system."""
@@ -169,7 +184,6 @@ class Episode:
 
         return {
             "id": self.id,
-            "download_path": self.download_path,
             "episode_number": self.episode_number,
             "title": self.title,
             "short_description": self.short_description,

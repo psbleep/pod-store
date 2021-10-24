@@ -84,9 +84,6 @@ def podcast_episode_data(now, yesterday):
     return {
         "aaa": {
             "id": "aaa",
-            "download_path": os.path.join(
-                TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0023-hello.mp3"
-            ),
             "episode_number": "0023",
             "title": "hello",
             "short_description": "hello world",
@@ -99,9 +96,6 @@ def podcast_episode_data(now, yesterday):
         },
         "zzz": {
             "id": "zzz",
-            "download_path": os.path.join(
-                TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0011-goodbye.mp3"
-            ),
             "episode_number": "0011",
             "title": "goodbye",
             "short_description": "goodbye world",
@@ -139,9 +133,6 @@ def store_data(now, yesterday, podcast_episode_data):
             "episode_data": {
                 "111": {
                     "id": "111",
-                    "download_path": os.path.join(
-                        TEST_PODCAST_DOWNLOADS_PATH, "farewell/0001-gone.mp3"
-                    ),
                     "episode_number": "0001",
                     "title": "gone",
                     "short_description": "all gone",

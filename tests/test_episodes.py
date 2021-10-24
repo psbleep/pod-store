@@ -5,10 +5,10 @@ import pytest
 
 from pod_store.episodes import Episode
 
-from . import TEST_PODCAST_DOWNLOADS_PATH
+from . import TEST_PODCAST_EPISODE_DOWNLOADS_PATH
 
 TEST_EPISODE_DOWNLOAD_PATH = os.path.join(
-    TEST_PODCAST_DOWNLOADS_PATH, "hello/0092-hello.mp3"
+    TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0092-hello.mp3"
 )
 
 
@@ -17,7 +17,6 @@ def episode(now, podcast):
     return Episode(
         podcast=podcast,
         id="abc",
-        download_path=TEST_EPISODE_DOWNLOAD_PATH,
         episode_number="0092",
         title="hello",
         short_description="hello world",
@@ -36,7 +35,6 @@ def test_episode_from_json_parses_datetimes(now, podcast):
     episode = Episode.from_json(
         podcast=podcast,
         id="abc",
-        download_path=TEST_EPISODE_DOWNLOAD_PATH,
         episode_number="0092",
         title="hello",
         short_description="hello world",
@@ -49,6 +47,26 @@ def test_episode_from_json_parses_datetimes(now, podcast):
 
     assert episode.created_at == now
     assert episode.updated_at == now
+
+
+def test_episode_download_path_sets_correct_path_without_invalid_characters(
+    now, podcast
+):
+    episode = Episode(
+        podcast=podcast,
+        id="bbb",
+        episode_number="0981",
+        title="foo/bar: the fin?al[ RE:^ckONing",
+        short_description="foo",
+        long_description="foo (longer description)",
+        url="http://foo.bar/bbb.mp3",
+        created_at=now,
+        updated_at=now,
+    )
+
+    assert episode.download_path == os.path.join(
+        TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0981-foo-bar--the-fin-al--re--ckoning.mp3"
+    )
 
 
 def test_episode_download(now, audio_file_content, episode):
@@ -89,7 +107,6 @@ def test_episode_untag(episode):
 def test_episode_to_json(now, episode):
     assert episode.to_json() == {
         "id": "abc",
-        "download_path": TEST_EPISODE_DOWNLOAD_PATH,
         "episode_number": "0092",
         "title": "hello",
         "short_description": "hello world",
