@@ -1,11 +1,7 @@
-import os
-
 import pytest
 
 from pod_store.exc import EpisodeDoesNotExistError, NoEpisodesFoundError
 from pod_store.podcasts import PodcastEpisodes
-
-from . import TEST_PODCAST_EPISODE_DOWNLOADS_PATH
 
 
 @pytest.fixture
@@ -14,27 +10,6 @@ def podcast_episodes(podcast, podcast_episode_data):
         podcast=podcast,
         episode_data=podcast_episode_data,
     )
-
-
-def test_podcast_episodes_add_sets_valid_download_path_from_episode_num_and_title(
-    now, podcast_episodes
-):
-    episode = podcast_episodes.add(
-        id="bbb",
-        episode_number="0981",
-        title="foo/bar: the fin?al[ RE:^ckONing",
-        short_description="foo",
-        long_description="foo (longer description)",
-        url="http://foo.bar/bbb.mp3",
-        created_at=now,
-        updated_at=now,
-    )
-
-    assert episode.download_path == os.path.join(
-        TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0981-foo-bar--the-fin-al--re--ckoning.mp3"
-    )
-
-    assert podcast_episodes.get("bbb").episode_number == "0981"
 
 
 def test_podcast_episodes_delete_episode(podcast_episodes):

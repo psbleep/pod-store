@@ -1,7 +1,6 @@
 """Podcasts tracked in the pod store.
 
 Podcast objects are created/managed using the `pod_store.store.StorePodcasts` class."""
-import os
 import re
 from datetime import datetime
 from typing import Any, List, Optional, Type, TypeVar
@@ -41,44 +40,19 @@ class PodcastEpisodes:
         id: str,
         episode_number: str,
         title: str,
-        download_path: str = None,
         **kwargs,
     ) -> None:
-        """Add a new episode.
-
-        Will construct a download path if none is provided, using the
-        `_episodes_download_path` property and the episode number and title passed in.
-        """
-        download_path = download_path or self._get_download_path(
-            episode_number=episode_number, title=title
-        )
+        """Add a new episode to the store."""
         episode = Episode(
             podcast=self._podcast,
             id=id,
             episode_number=episode_number,
             title=title,
             tags=["new"],
-            download_path=download_path,
             **kwargs,
         )
         self._episodes[id] = episode
         return episode
-
-    def _get_download_path(self, episode_number: str, title: str):
-        """Determines the download path for this episode, based on the podcast's
-        download location.
-
-        The filename is built from the episode number and a lowercase version of the
-        title that has had non-alphanumeric characters replaced with a dash. This helps
-        with filename consistency and removes characters that lead to problems on some
-        device filesystems (such as the one on my cheap MP3 player).
-        """
-        lowercase_title = title.lower()
-        cleaned_title = re.sub(r"[^a-zA-Z0-9]", "-", lowercase_title)
-        return os.path.join(
-            self._podcast.episode_downloads_path,
-            f"{episode_number}-{cleaned_title}.mp3",
-        )
 
     def delete(self, id: str) -> None:
         """Delete an episode.
