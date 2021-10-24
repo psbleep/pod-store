@@ -352,6 +352,28 @@ def ls(
     help="(flag): Run this command in interactive mode to select which episodes to "
     "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
+def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
+    """Add the `new` tag to a group of episodes. Alias for the `tag` command."""
+    # Many of the common decorators are missing from this command. This is to avoid
+    # doubling up the same decorators when we invoke the `untag_episodes` function
+    # below.
+    ctx.invoke(tag_episodes, tag="new", podcast=podcast, interactive=interactive)
+
+
+@cli.command()
+@click.pass_context
+@click.option(
+    "-p",
+    "--podcast",
+    default=None,
+    help="(podcast title): Mark episodes for only the specified podcast.",
+)
+@click.option(
+    "--interactive/--bulk",
+    default=True,
+    help="(flag): Run this command in interactive mode to select which episodes to "
+    "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
+)
 def mark_as_old(ctx: click.Context, podcast: Optional[str], interactive: bool):
     """Remove the `new` tag from a group of episodes. Alias for the `untag` command."""
     # Many of the common decorators are missing from this command. This is to avoid

@@ -87,6 +87,14 @@ Sometimes you may want to mark an episode as being not-new without actually down
     pod mark-as-old -p podcast-name
     pod mark-as-old --bulk -p podcast-name
 
+The reverse can be accomplished as well, if you want to download episodes that have been previously marked as "old":
+
+    pod mark-as-new
+    pod mark-as-new --bulk
+
+    pod mark-as-new -p podcast-name
+    pod mark-as-new --bulk -p podcast-name
+
 Rename a podcast in the store:
 
     pod mv old-name new-name

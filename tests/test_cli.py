@@ -291,6 +291,17 @@ def test_ls_new_podcast_episodes(runner):
     assert result.output == "greetings\n[0023] hello: 'hello world' -> new\n"
 
 
+def test_mark_as_new_works_as_alias_for_tag_new_episodes_command(
+    mocked_git_decorator_command, runner
+):
+    result = runner.invoke(cli, ["mark-as-new", "-p", "greetings", "--bulk"])
+    assert result.exit_code == 0
+    assert result.output.endswith("Tagged greetings -> [0011] goodbye\n")
+    _assert_git_changes_commited(
+        mocked_git_decorator_command, "Tagged greetings podcast episodes: new."
+    )
+
+
 def test_mark_as_old_works_as_alias_for_untag_new_episodes_command(
     mocked_git_decorator_command, runner
 ):
