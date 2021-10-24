@@ -12,6 +12,21 @@ def podcast_episodes(podcast, podcast_episode_data):
     )
 
 
+def test_podcast_episodes_add_episode_to_store(now, podcast_episodes):
+    podcast_episodes.add(
+        id="xyz",
+        episode_number="000",
+        title="new",
+        short_description="short description",
+        long_description="long description",
+        url="https://new.time/000-new.mp3",
+        created_at=now,
+        updated_at=now,
+    )
+
+    assert podcast_episodes.get("xyz").title == "new"
+
+
 def test_podcast_episodes_delete_episode(podcast_episodes):
     podcast_episodes.delete("zzz")
     assert "zzz" not in podcast_episodes.ids
