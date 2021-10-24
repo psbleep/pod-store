@@ -22,6 +22,7 @@ from .commands.helpers import (
 )
 from .commands.ls import list_episodes_by_podcast, list_podcasts
 from .commands.tag_episodes import INTERACTIVE_MODE_HELP, handle_episode_tagging
+from .commands.refresh import refresh_commit_message_builder
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
 from .util import run_git_command
@@ -417,10 +418,7 @@ def mv(ctx: click.Context, old: str, new: str):
     default=[],
     help="Filter podcasts by tag. Multiple tags can be provided.",
 )
-@git_add_and_commit(
-    "Refreshed {} podcast feed.",
-    commit_message_builder=optional_podcast_commit_message_builder,
-)
+@git_add_and_commit(commit_message_builder=refresh_commit_message_builder)
 @save_store_changes
 @catch_pod_store_errors
 def refresh(

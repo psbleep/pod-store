@@ -2,22 +2,22 @@
 
 Includes a commit message builder function.
 """
-REFRESH_COMMIT_MESSAGE = "Refreshed {podcasts} podcast {quantified}{tags}."
+REFRESH_COMMIT_MESSAGE = "Refreshed {podcasts} podcast {quantifier}{tags}."
 
 
-def download_commit_message_builder(ctx_params: dict) -> str:
-    """Builds a `git` commit message for when downloads are run.
+def refresh_commit_message_builder(ctx_params: dict) -> str:
+    """Builds a `git` commit message for refreshing podcast data from RSS.
 
     Specifies whether downloads were run for all podcasts or just a certain podcast,
     and any tag lookups that were used.
     """
     podcast_name = ctx_params.get("podcast")
     if podcast_name:
-        podcasts = f"{podcast_name!r}:"
+        podcasts = f"{podcast_name!r}"
+        quantifier = "feed"
     else:
         podcasts = "all"
-
-    if
+        quantifier = "feeds"
 
     tag_list = ctx_params.get("tag")
     if tag_list:
@@ -30,4 +30,6 @@ def download_commit_message_builder(ctx_params: dict) -> str:
     else:
         tags = ""
 
-    return REFRESH_COMMIT_MESSAGE.format(podcasts=podcasts, tags=tags)
+    return REFRESH_COMMIT_MESSAGE.format(
+        podcasts=podcasts, quantifier=quantifier, tags=tags
+    )

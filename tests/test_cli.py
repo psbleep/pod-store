@@ -328,7 +328,7 @@ def test_refresh_all_podcasts(mocked_git_decorator_command, runner):
         result.output == "Refreshing farewell\nRefreshing other\nRefreshing greetings\n"
     )
     _assert_git_changes_commited(
-        mocked_git_decorator_command, "Refreshed all podcast feed."
+        mocked_git_decorator_command, "Refreshed all podcast feeds."
     )
 
 
@@ -337,7 +337,7 @@ def test_refresh_single_podcast(mocked_git_decorator_command, runner):
     assert result.exit_code == 0
     assert result.output == "Refreshing greetings\n"
     _assert_git_changes_commited(
-        mocked_git_decorator_command, "Refreshed greetings podcast feed."
+        mocked_git_decorator_command, "Refreshed 'greetings' podcast feed."
     )
 
 
@@ -346,7 +346,7 @@ def test_refresh_podcasts_with_tag(mocked_git_decorator_command, runner):
     assert result.exit_code == 0
     assert result.output == "Refreshing greetings\n"
     _assert_git_changes_commited(
-        mocked_git_decorator_command, "Refreshed all podcast feed."
+        mocked_git_decorator_command, "Refreshed all podcast feeds with tags -> hello."
     )
 
 
@@ -355,7 +355,8 @@ def test_refresh_podcasts_without_tag(mocked_git_decorator_command, runner):
     assert result.exit_code == 0
     assert result.output == "Refreshing farewell\nRefreshing other\n"
     _assert_git_changes_commited(
-        mocked_git_decorator_command, "Refreshed all podcast feed."
+        mocked_git_decorator_command,
+        "Refreshed all podcast feeds without tags -> hello.",
     )
 
 
