@@ -10,7 +10,7 @@ from typing import Any, List, Optional, Type, TypeVar
 import music_tag
 import requests
 
-from . import util
+from . import DO_NOT_SET_EPISODE_METADATA, util
 
 DOWNLOAD_CHUNK_SIZE = 2000
 
@@ -107,9 +107,14 @@ class Episode:
         with open(self.download_path, "wb") as f:
             for chunk in resp.iter_content(DOWNLOAD_CHUNK_SIZE):
                 f.write(chunk)
-        self._set_metadata(self.download_path)
+
         self.downloaded_at = datetime.utcnow()
         self.untag("new")
+
+        if DO_NOT_SET_EPISODE_METADATA:
+            return
+
+        self._set_metadata(self.download_path)
 
     def _set_metadata(self, download_path: str) -> None:
         f = music_tag.load_file(download_path)
