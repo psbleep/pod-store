@@ -50,7 +50,7 @@ def test_podcast_refresh(mocked_feedparser_parse, now, podcast):
                         "id": "ccc",
                         "title": "no-number-provided",
                         "links": [
-                            {"href": "https://www.foo.bar/ccc.mp3", "type": "audio/mp3"}
+                            {"href": "https://www.foo.bar/ccc.ogg", "type": "audio/ogg"}
                         ],
                         "subtitle": "this is a short description<html>\xa0",
                         "summary": "this is a \xa0<b>long</b> description",
@@ -84,7 +84,7 @@ def test_podcast_refresh(mocked_feedparser_parse, now, podcast):
 
     new_episode = podcast.episodes.get("ccc")
     assert new_episode.download_path == os.path.join(
-        TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0002-no-number-provided.mp3"
+        TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0002-no-number-provided.ogg"
     )
     assert new_episode.episode_number == "0002"
     assert new_episode.short_description == "this is a short description"
