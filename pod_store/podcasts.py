@@ -19,6 +19,7 @@ class PodcastEpisodes:
     """Class for tracking all the episodes associated with a
     `pod_store.podcasts.Podcast` object.
 
+    _podcast (pod_store.Podcasts.Podcast): podcast these episodes belong to
     _episodes_download_path (str): location in file system the podcast will download
         episodes to.
 
@@ -26,11 +27,15 @@ class PodcastEpisodes:
         {id: `pod_store.episodes.Episode`}
     """
 
-    def __init__(self, episode_downloads_path: str, episode_data: dict) -> None:
+    def __init__(
+        self, podcast: P, episode_downloads_path: str, episode_data: dict
+    ) -> None:
+        self._podcast = podcast
         self._episode_downloads_path = episode_downloads_path
 
         self._episodes = {
-            id: Episode.from_json(**episode) for id, episode in episode_data.items()
+            id: Episode.from_json(podcast=podcast, **episode)
+            for id, episode in episode_data.items()
         }
 
     @property
@@ -55,6 +60,7 @@ class PodcastEpisodes:
             episode_number=episode_number, title=title
         )
         episode = Episode(
+            podcast=self._podcast,
             id=id,
             episode_number=episode_number,
             title=title,
@@ -169,7 +175,9 @@ class Podcast:
         self.updated_at = updated_at or datetime.utcnow()
 
         self.episodes = PodcastEpisodes(
-            episode_data=episode_data, episode_downloads_path=episode_downloads_path
+            podcast=self,
+            episode_data=episode_data,
+            episode_downloads_path=episode_downloads_path,
         )
 
     @classmethod

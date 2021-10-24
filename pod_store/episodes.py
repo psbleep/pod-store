@@ -7,18 +7,21 @@ import os
 from datetime import datetime
 from typing import Any, List, Optional, Type, TypeVar
 
+import music_tag
 import requests
 
-from . import util
+from . import DO_NOT_SET_EPISODE_METADATA, util
 
 DOWNLOAD_CHUNK_SIZE = 2000
 
 E = TypeVar("E", bound="Episode")
+P = TypeVar("Podcast")
 
 
 class Episode:
     """Podcast episode tracked in the store.
 
+    podcast (pod_store.podcasts.Podcast): podcast this episode belongs to
     id (str): store ID (parsed from RSS feed ID)
     download_path (str): where episode will be downloaded on file system
     episode_number (str): zero-padded episode number from podcast feed
@@ -36,6 +39,7 @@ class Episode:
 
     def __init__(
         self,
+        podcast: P,
         id: str,
         download_path: str,
         episode_number: str,
@@ -48,6 +52,8 @@ class Episode:
         tags: List[str] = None,
         downloaded_at: Optional[datetime] = None,
     ) -> None:
+        self._podcast = podcast
+
         self.id = id
         self.download_path = download_path
         self.episode_number = episode_number
@@ -101,8 +107,43 @@ class Episode:
         with open(self.download_path, "wb") as f:
             for chunk in resp.iter_content(DOWNLOAD_CHUNK_SIZE):
                 f.write(chunk)
+
         self.downloaded_at = datetime.utcnow()
         self.untag("new")
+
+        self._set_audio_file_metadata(self.download_path)
+
+    def _set_audio_file_metadata(self, download_path: str) -> None:
+        """Helper to set metadata on the downloaded MP3 file.
+
+        Matches the following audio metadata tags to the values:
+
+            artist        -> episode._podcast.title
+            album_artist
+
+            title         -> episode.title
+            track_title
+
+            genre         -> "Podcast"
+
+            track_number  -> episode.episode_number
+            year          -> episode.created_at.year
+
+        Setting the `DO_NOT_SET_POD_STORE_EPISODE_METADATA` env var will stop this
+        behavior.
+        """
+        if DO_NOT_SET_EPISODE_METADATA:
+            return
+
+        f = music_tag.load_file(download_path)
+        f["artist"] = self._podcast.title
+        f["album_artist"] = self._podcast.title
+        f["title"] = self.title
+        f["track_title"] = self.title
+        f["genre"] = "Podcast"
+        f["track_number"] = self.episode_number
+        f["year"] = self.created_at.year
+        f.save()
 
     def update(self, **data: Any) -> None:
         """Update arbitrary attributes by passing in a dict."""

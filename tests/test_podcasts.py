@@ -1,24 +1,9 @@
 import os
 from collections import namedtuple
 
-import pytest
-
 from pod_store.podcasts import Podcast
 
 from . import TEST_PODCAST_EPISODE_DOWNLOADS_PATH
-
-
-@pytest.fixture
-def podcast(now, podcast_episode_data):
-    return Podcast(
-        title="hello",
-        feed="http://hello.world/rss",
-        tags=["greetings"],
-        episode_downloads_path=TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
-        created_at=now,
-        updated_at=now,
-        episode_data=podcast_episode_data,
-    )
 
 
 def test_podcast_from_json_parses_datetimes(now):
@@ -118,7 +103,7 @@ def test_podcast_untag(podcast):
 
 def test_podcast_to_json(now, podcast_episode_data, podcast):
     assert podcast.to_json() == {
-        "title": "hello",
+        "title": "greetings",
         "feed": "http://hello.world/rss",
         "tags": ["greetings"],
         "episode_downloads_path": TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
