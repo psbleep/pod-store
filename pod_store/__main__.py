@@ -22,7 +22,11 @@ from .commands.helpers import (
 )
 from .commands.ls import list_episodes_by_podcast, list_podcasts
 from .commands.tag import tag_commit_message_builder
-from .commands.tag_episodes import INTERACTIVE_MODE_HELP, handle_episode_tagging
+from .commands.tag_episodes import (
+    INTERACTIVE_MODE_HELP,
+    tag_episodes_commit_message_builder,
+    handle_episode_tagging,
+)
 from .commands.refresh import refresh_commit_message_builder
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
@@ -516,9 +520,8 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     "tag, or bulk mode to tag all episodes in the group. Defaults to `--interactive`.",
 )
 @git_add_and_commit(
-    "Tagged {} podcast episodes: {}.",
-    "tag",
-    commit_message_builder=optional_podcast_commit_message_builder,
+    "Tag",
+    commit_message_builder=tag_episodes_commit_message_builder,
 )
 @save_store_changes
 @catch_pod_store_errors

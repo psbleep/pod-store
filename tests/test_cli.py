@@ -298,7 +298,8 @@ def test_mark_as_new_works_as_alias_for_tag_new_episodes_command(
     assert result.exit_code == 0
     assert result.output.endswith("Tagged greetings -> [0011] goodbye\n")
     _assert_git_changes_commited(
-        mocked_git_decorator_command, "Tagged greetings podcast episodes: new."
+        mocked_git_decorator_command,
+        "Tagged 'greetings' podcast episodes -> new, bulk mode.",
     )
 
 
@@ -393,12 +394,13 @@ def test_tag_a_pocast_episode(mocked_git_decorator_command, runner):
     )
 
 
-def test_tag_episodes_for_all_podcasts_generates_correct_commit_message(
+def test_tag_episodes_for_all_podcasts_bulk_mode_generates_correct_commit_message(
     mocked_git_decorator_command, runner
 ):
     runner.invoke(cli, ["tag-episodes", "zozo", "--bulk"])
     _assert_git_changes_commited(
-        mocked_git_decorator_command, "Tagged all podcast episodes: zozo."
+        mocked_git_decorator_command,
+        "Tagged all podcast episodes -> zozo, bulk mode.",
     )
 
 
@@ -407,7 +409,8 @@ def test_tag_episodes_for_single_podcast_generates_correct_commit_message(
 ):
     runner.invoke(cli, ["tag-episodes", "zozo", "-p", "greetings", "--bulk"])
     _assert_git_changes_commited(
-        mocked_git_decorator_command, "Tagged greetings podcast episodes: zozo."
+        mocked_git_decorator_command,
+        "Tagged 'greetings' podcast episodes -> zozo, bulk mode.",
     )
 
 
