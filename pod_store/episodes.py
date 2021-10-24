@@ -106,12 +106,15 @@ class Episode:
         title that has had non-alphanumeric characters replaced with a dash. This helps
         with filename consistency and removes characters that lead to problems on some
         device filesystems (such as the one on my cheap MP3 player).
+
+        The file type extension is determined from the download URL.
         """
         lowercase_title = self.title.lower()
         cleaned_title = re.sub(r"[^a-zA-Z0-9]", "-", lowercase_title)
+        _, file_type = os.path.splitext(self.url)
         return os.path.join(
             self._podcast.episode_downloads_path,
-            f"{self.episode_number}-{cleaned_title}.mp3",
+            f"{self.episode_number}-{cleaned_title}{file_type}",
         )
 
     def download(self) -> None:
