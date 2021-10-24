@@ -8,7 +8,7 @@ Reading/writing to the store file is delegated to the classes in the
 import os
 from typing import List, Optional
 
-from . import GPG_ID_FILE_PATH
+from . import GPG_ID_FILE_PATH, PODCAST_DOWNLOADS_PATH
 from .exc import (
     NoPodcastsFoundError,
     PodcastDoesNotExistError,
@@ -27,16 +27,11 @@ from .util import meets_list_filter_criteria, run_git_command
 class StorePodcasts:
     """Class for tracking all the podcasts in the store.
 
-    _podcast_downloads_path (str): file system location for podcasts to download
-        episodes to
-
     _podcasts (dict):
         {title: `pod_store.podcasts.Podcast`}
     """
 
-    def __init__(self, podcast_downloads_path: str, podcast_data: dict) -> None:
-        self._podcast_downloads_path = podcast_downloads_path
-
+    def __init__(self, podcast_data: dict) -> None:
         self._podcasts = {
             title: Podcast.from_json(**podcast)
             for title, podcast in podcast_data.items()
@@ -48,30 +43,21 @@ class StorePodcasts:
     def add(
         self,
         title: str,
-        episode_downloads_path: Optional[str] = None,
         episode_data: Optional[dict] = None,
         **kwargs,
     ) -> None:
-        """Add a podcast to the store.
-
-        An `episodes_download_path` for the podcast object  will be constructed from the
-        `_podcast_downloads_path` attribute and the title passed in, if none is
-        provided.
-        """
+        """Add a podcast to the store."""
         if title in self._podcasts:
             raise PodcastExistsError(title)
-
-        episode_downloads_path = episode_downloads_path or os.path.join(
-            self._podcast_downloads_path, title
-        )
         episode_data = episode_data or {}
+
         podcast = Podcast(
             title=title,
-            episode_downloads_path=episode_downloads_path,
             episode_data=episode_data,
             **kwargs,
         )
         podcast.refresh()
+
         self._podcasts[title] = podcast
         return podcast
 
@@ -126,9 +112,7 @@ class StorePodcasts:
             raise PodcastExistsError(new_title)
 
         podcast = self.get(old_title)
-        podcast.episode_downloads_path = os.path.join(
-            self._podcast_downloads_path, new_title
-        )
+        podcast.title = new_title
         self._podcasts[new_title] = podcast
         del self._podcasts[old_title]
 
@@ -144,9 +128,6 @@ class Store:
 
     _store_path (str): location of pod store directory
 
-    _podcast_downloads_path (str): file system directory for podcasts to download
-        episodes into
-
     _file_handler (StoreFileHandler): class that handles reading/writing from the store
         json file
     """
@@ -154,25 +135,19 @@ class Store:
     def __init__(
         self,
         store_path: str,
-        podcast_downloads_path: str,
         file_handler: StoreFileHandler,
     ) -> None:
         self._store_path = store_path
-        self._podcast_downloads_path = podcast_downloads_path
-
         self._file_handler = file_handler
 
         podcast_data = self._file_handler.read_data()
-        self.podcasts = StorePodcasts(
-            podcast_data=podcast_data, podcast_downloads_path=podcast_downloads_path
-        )
+        self.podcasts = StorePodcasts(podcast_data=podcast_data)
 
     @classmethod
     def init(
         cls,
         store_path: str,
         store_file_path: str,
-        podcast_downloads_path: str,
         setup_git: bool,
         git_url: Optional[str] = None,
         gpg_id: Optional[str] = None,
@@ -188,7 +163,7 @@ class Store:
             os.makedirs(store_path)
         except FileExistsError:
             raise StoreExistsError(store_path)
-        os.makedirs(podcast_downloads_path, exist_ok=True)
+        os.makedirs(PODCAST_DOWNLOADS_PATH, exist_ok=True)
 
         if setup_git:
             run_git_command("init")
