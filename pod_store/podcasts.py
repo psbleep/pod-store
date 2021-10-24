@@ -275,9 +275,7 @@ class Podcast:
         else:
             short_description = long_description
 
-        episode_number = itunes_episode or self._parse_episode_number_from_rss_title(
-            title
-        )
+        episode_number = itunes_episode
 
         if updated_parsed:
             updated_parsed = datetime(*updated_parsed[:6])
@@ -303,23 +301,6 @@ class Podcast:
         it includes a unique enough identifier.
         """
         return rss_id.split("/")[-1]
-
-    @staticmethod
-    def _parse_episode_number_from_rss_title(rss_title: str) -> str:
-        """Try to get an episode number from the episode title in the RSS feed.
-
-        Sometimes episode titles start or end with an episode number.
-
-        This may be a very bad idea.
-        """
-        stripped_title = re.sub(r"[^A-Za-z0-9 ]+", "", rss_title)
-        title_tokens = stripped_title.split()
-        start_token, end_token = title_tokens[0], title_tokens[-1]
-
-        if start_token.isdigit():
-            return start_token
-        elif end_token.isdigit():
-            return end_token
 
     @staticmethod
     def _pad_episode_number(episode_number: str) -> str:
