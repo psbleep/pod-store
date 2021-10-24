@@ -19,6 +19,7 @@ class PodcastEpisodes:
     """Class for tracking all the episodes associated with a
     `pod_store.podcasts.Podcast` object.
 
+    _podcast (pod_store.Podcasts.Podcast): podcast these episodes belong to
     _episodes_download_path (str): location in file system the podcast will download
         episodes to.
 

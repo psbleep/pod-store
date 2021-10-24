@@ -21,7 +21,7 @@ P = TypeVar("Podcast")
 class Episode:
     """Podcast episode tracked in the store.
 
-    podcast (`pod_store.podcasts.Podcast`): podcast this episode belongs to
+    podcast (pod_store.podcasts.Podcast): podcast this episode belongs to
     id (str): store ID (parsed from RSS feed ID)
     download_path (str): where episode will be downloaded on file system
     episode_number (str): zero-padded episode number from podcast feed
@@ -111,12 +111,30 @@ class Episode:
         self.downloaded_at = datetime.utcnow()
         self.untag("new")
 
+        self._set_audio_file_metadata(self.download_path)
+
+    def _set_audio_file_metadata(self, download_path: str) -> None:
+        """Helper to set metadata on the downloaded MP3 file.
+
+        Matches the following audio metadata tags to the values:
+
+            artist        -> episode._podcast.title
+            album_artist
+
+            title         -> episode.title
+            track_title
+
+            genre         -> "Podcast"
+
+            track_number  -> episode.episode_number
+            year          -> episode.created_at.year
+
+        Setting the `DO_NOT_SET_POD_STORE_EPISODE_METADATA` env var will stop this
+        behavior.
+        """
         if DO_NOT_SET_EPISODE_METADATA:
             return
 
-        self._set_metadata(self.download_path)
-
-    def _set_metadata(self, download_path: str) -> None:
         f = music_tag.load_file(download_path)
         f["artist"] = self._podcast.title
         f["album_artist"] = self._podcast.title
