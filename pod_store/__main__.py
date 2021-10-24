@@ -21,6 +21,7 @@ from .commands.helpers import (
     get_tag_filters,
 )
 from .commands.ls import list_episodes_by_podcast, list_podcasts
+from .commands.tag import tag_commit_message_builder
 from .commands.tag_episodes import INTERACTIVE_MODE_HELP, handle_episode_tagging
 from .commands.refresh import refresh_commit_message_builder
 from .store import Store
@@ -472,9 +473,8 @@ def rm(ctx: click.Context, title: str):
     "episode number.",
 )
 @git_add_and_commit(
-    "Tagged {}{}-> {}.",
-    "tag",
-    commit_message_builder=required_podcast_optional_episode_commit_message_builder,
+    "Tag",
+    commit_message_builder=tag_commit_message_builder,
 )
 @save_store_changes
 @catch_pod_store_errors

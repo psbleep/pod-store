@@ -374,21 +374,22 @@ def test_rm_aborts_if_not_confirmed(mocked_git_decorator_command, runner):
     mocked_git_decorator_command.assert_not_called()
 
 
-def test_tag_single_podcast(mocked_git_decorator_command, runner):
+def test_tag_a_podcast(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["tag", "greetings", "foobar"])
     assert result.exit_code == 0
     assert result.output == "Tagged greetings -> foobar.\n"
     _assert_git_changes_commited(
-        mocked_git_decorator_command, "Tagged greetings -> foobar."
+        mocked_git_decorator_command, "Tagged podcast 'greetings' -> foobar."
     )
 
 
-def test_tag_single_pocast_episode(mocked_git_decorator_command, runner):
+def test_tag_a_pocast_episode(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["tag", "greetings", "--episode", "aaa", "foobar"])
     assert result.exit_code == 0
     assert result.output == "Tagged greetings, episode aaa -> foobar.\n"
     _assert_git_changes_commited(
-        mocked_git_decorator_command, "Tagged greetings, episode aaa -> foobar."
+        mocked_git_decorator_command,
+        "Tagged podcast 'greetings', episode 'aaa' -> foobar.",
     )
 
 
