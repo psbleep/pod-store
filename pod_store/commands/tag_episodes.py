@@ -17,6 +17,43 @@ INTERACTIVE_MODE_HELP = """{action}ging in interactive mode. Options are:
 """
 
 
+TAG_EPISODES_COMMIT_MESSAGE = (
+    "{action} {target} podcast episodes -> {tag}, {mode} mode."
+)
+
+
+def tag_episodes_commit_message_builder(ctx_params: dict, action: str) -> str:
+    """Builds a `git` commit message for tagging/untagging a group of episodes.
+
+    Specifies which episodes were tagged/untagged and the tag used.
+
+    Pass in the `action` string to indicate whether episodes are being tagged or
+    untagged.
+    """
+    action = action.capitalize()
+
+    podcast_title = ctx_params.get("podcast")
+    if podcast_title:
+        target = f"{podcast_title!r}"
+    else:
+        target = "all"
+
+    episode_id = ctx_params.get("episode")
+    if episode_id:
+        target = f"{target}, episode {episode_id!r}"
+
+    tag = ctx_params.get("tag")
+
+    if ctx_params.get("interactive"):
+        mode = "interactive"
+    else:
+        mode = "bulk"
+
+    return TAG_EPISODES_COMMIT_MESSAGE.format(
+        action=action, target=target, tag=tag, mode=mode
+    )
+
+
 def handle_episode_tagging(
     tag: str, action: str, interactive_mode: bool, podcast: Podcast, episode: Episode
 ) -> Tuple[bool]:

@@ -2,7 +2,7 @@
 
 import functools
 import os
-from typing import Any, Callable
+from typing import Any, Callable, List
 
 import click
 
@@ -27,20 +27,39 @@ def catch_pod_store_errors(f: Callable) -> Callable:
     return catch_pod_store_errors_inner
 
 
-def _default_commit_message_builder(
-    ctx_params: dict, commit_message_template: str, *param_names
+def default_commit_message_builder(
+    ctx_params: dict, message: str, params: List[str] = None
 ) -> str:
-    """Helper to build `git` commit messages from the `Click` command context.
+    """Helper to build `git` commit messages from the Click command context.
+
+    `message` should be the intended `git` commit message.
+
+    If `message` is a template string, `params` acts as a list of Click context
+    param names that will be passed to the `message` template string as
+    keyword arguments.
+
+    Example:
+
+        default_commit_message_builder(
+            ctx_params={"thing": "world"},
+            message="Hello {thing}.",
+            params=["thing"]
+        )
+
+    Output:
+
+        Hello world.
 
     See the `git_add_and_commit` decorator for more information.
     """
-    template_args = [ctx_params[p] for p in param_names]
-    return commit_message_template.format(*template_args)
+    params = params or []
+    message_kwargs = {p: ctx_params[p] for p in params}
+    return message.format(**message_kwargs)
 
 
 def git_add_and_commit(
-    *builder_args,
-    commit_message_builder: Callable = _default_commit_message_builder,
+    commit_message_builder: Callable = default_commit_message_builder,
+    **commit_message_builder_kwargs,
 ) -> Callable:
     """Decorator for checking in and commiting git changes made after running a command.
 
@@ -49,38 +68,15 @@ def git_add_and_commit(
     Requires the `click.Context` object as a first argument to the decorated function.
     (see `click.pass_context`)
 
-    By default, pass in a template str for building the commit message and a list of
-    param names to grab from the `click.Context.params` dict to populate it.
+    For default behavior, check out the `default_commit_message_builder` helper
+    function docs.
 
-        @click.pass_context
-        @git_add_and_commit("Hello {}.", "recepient")
-        def cmd(ctx):
-            ...
-
-    Assuming the `click.Context.params` dict had a key `recepient` with the value
-    "world", the resulting commit message would be:
-
-        "Hello world."
-
-    Pass in a callable as a keyword arugment for `commit_message_builder` to get custom
-    behavior when building commit messages.
+    For custom behavior, pass in a callable as a keyword arugment for
+    `commit_message_builder`.
 
     The message builder callable will receive a `ctx_params` dict
-    (passed in from `click.Context.params`), and any positional `builder_args`
-    provided to the decorator. It should return the commit message as a string.
-
-
-        def custom_message_builder(_, value):
-            return "This commit message is {}.".format(value)
-
-        @click.pass_context
-        @git_add_and_commit("arbitrary", commit_message_builder=custom_message_builder)
-        def cmd(ctx):
-            ...
-
-    Here the resulting commit message would be:
-
-        "This commit message is arbitrary."
+    (passed in from `click.Context.params`), and any additional keyword
+    arguments for the decorator will be passed on as well.
     """
 
     def git_add_and_commit_wrapper(f: Callable) -> Callable:
@@ -91,7 +87,9 @@ def git_add_and_commit(
                 return resp
 
             run_git_command("add .")
-            commit_msg = commit_message_builder(ctx.params, *builder_args)
+            commit_msg = commit_message_builder(
+                ctx_params=ctx.params, **commit_message_builder_kwargs
+            )
             try:
                 run_git_command(f"commit -m {commit_msg!r}")
             except ShellCommandError:
@@ -101,37 +99,6 @@ def git_add_and_commit(
         return git_add_and_commit_inner
 
     return git_add_and_commit_wrapper
-
-
-def optional_podcast_commit_message_builder(
-    ctx_params: dict, commit_message_template: str, *param_names
-) -> str:
-    """Helper to build `git` commit messages for Click commands that
-    have an optional `podcast` argument.
-
-    See the `git_add_and_commit` decorator for more information.
-    """
-    podcast_name = ctx_params.get("podcast") or "all"
-    template_args = [ctx_params[p] for p in param_names]
-    return commit_message_template.format(podcast_name, *template_args)
-
-
-def required_podcast_optional_episode_commit_message_builder(
-    ctx_params: dict, commit_message_template: str, *param_names
-) -> str:
-    """Helper to build `git` commit messages for Click commands that
-    have a required `podcast` argument and an optional `episode` argument.
-
-    See the `git_add_and_commit` decorator for more information.
-    """
-    podcast = ctx_params["podcast"]
-    episode = ctx_params.get("episode")
-    if episode:
-        episode_msg = f", episode {episode} "
-    else:
-        episode_msg = " "
-    template_args = [ctx_params[p] for p in param_names]
-    return commit_message_template.format(podcast, episode_msg, *template_args)
 
 
 def save_store_changes(f: Callable) -> Callable:
