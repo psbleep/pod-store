@@ -7,7 +7,7 @@ import click
 
 from ..episodes import Episode
 from ..podcasts import Podcast
-from ..taggers import PodcastEpisodeTagger
+from .taggers import PodcastEpisodeTagger
 
 INTERACTIVE_MODE_HELP = """Tagging in interactive mode. Options are:
 

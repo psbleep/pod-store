@@ -1,4 +1,4 @@
-from ..taggers import PodcastEpisodeTagger
+from .taggers import PodcastEpisodeTagger
 
 
 MARK_NEW_INTERACTIVE_MODE_HELP = """Marking in interactive mode. Options are:

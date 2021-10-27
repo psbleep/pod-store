@@ -2,7 +2,7 @@ import click
 import pytest
 
 from pod_store.podcasts import Podcast
-from pod_store.taggers import PodcastEpisodeTagger
+from pod_store.commands.taggers import PodcastEpisodeTagger
 
 
 TEST_INTERACTIVE_MODE_TAGGER_HELP_MESSAGE = """Tagging in interactive mode. Options are:
@@ -80,7 +80,7 @@ def test_podcast_episode_interactive_mode_shows_help_message_tags_episode_when_p
     mocker, podcasts, interactive_mode_tagger
 ):
     mocked_click_prompt = mocker.patch(
-        "pod_store.taggers.click.prompt", return_value="y"
+        "pod_store.commands.taggers.click.prompt", return_value="y"
     )
 
     pod1, pod2 = podcasts
@@ -106,7 +106,7 @@ def test_podcast_episode_interactive_mode_does_not_tag_episode_if_not_prompted(
     mocker, podcasts, interactive_mode_tagger
 ):
     mocked_click_prompt = mocker.patch(
-        "pod_store.taggers.click.prompt", return_value="n"
+        "pod_store.commands.taggers.click.prompt", return_value="n"
     )
 
     pod1, pod2 = podcasts
@@ -132,7 +132,7 @@ def test_podcast_episode_interactive_mode_switches_to_bulk_mode_when_prompted(
     mocker, podcasts, interactive_mode_tagger
 ):
     mocked_click_prompt = mocker.patch(
-        "pod_store.taggers.click.prompt", return_value="b"
+        "pod_store.commands.taggers.click.prompt", return_value="b"
     )
 
     pod1, pod2 = podcasts
@@ -157,7 +157,7 @@ def test_podcast_episode_interactive_mode_quits_when_prompted(
     mocker, podcasts, interactive_mode_tagger
 ):
     mocked_click_prompt = mocker.patch(
-        "pod_store.taggers.click.prompt", return_value="q"
+        "pod_store.commands.taggers.click.prompt", return_value="q"
     )
 
     pod1, pod2 = podcasts

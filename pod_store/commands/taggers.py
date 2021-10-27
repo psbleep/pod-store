@@ -2,8 +2,8 @@ import click
 
 from typing import List
 
-from .episodes import Episode
-from .podcasts import Podcast
+from ..episodes import Episode
+from ..podcasts import Podcast
 
 INTERACTIVE_MODE_HELP_MESSAGE_TEMPLATE = """{capitalized_performing_action} in interactive mode. Options are:
 
