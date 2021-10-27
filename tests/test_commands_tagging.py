@@ -2,7 +2,11 @@ import click
 import pytest
 
 from pod_store.podcasts import Podcast
-from pod_store.commands.tagging import Tagger, Untagger
+from pod_store.commands.tagging import (
+    Tagger,
+    Untagger,
+    build_commit_message_from_tagger,
+)
 
 
 TEST_INTERACTIVE_MODE_TAGGER_HELP_MESSAGE = """Choosing in interactive mode. Options are:
@@ -246,3 +250,53 @@ def test_tagger_with_default_tag_tag_podcast_episodes_applies_default_tag(
     ]
     assert not pod1.episodes.list(generic=False)
     assert not pod2.episodes.list(generic=False)
+
+
+def test_build_commit_message_from_tagger_for_single_podcast(tagger):
+    assert (
+        build_commit_message_from_tagger(
+            ctx_params={"podcast": "greetings", "episode": None, "tag": "blessed"},
+            tagger=tagger,
+        )
+        == "Chosen podcast 'greetings' -> 'blessed'."
+    )
+
+
+def test_build_commit_message_from_tagger_for_single_episode(tagger):
+    assert (
+        build_commit_message_from_tagger(
+            ctx_params={"podcast": "greetings", "episode": "aaa", "tag": "blessed"},
+            tagger=tagger,
+        )
+        == "Chosen 'greetings', episode 'aaa' -> 'blessed'."
+    )
+
+
+def test_build_commit_message_from_tagger_for_podcast_episodes_all_podcasts(tagger):
+    assert (
+        build_commit_message_from_tagger(
+            ctx_params={"podcast": None, "tag": "blessed"},
+            tagger=tagger,
+        )
+        == "Chosen all podcast episodes -> 'blessed'."
+    )
+
+
+def test_build_commit_message_from_tagger_for_podcast_episodes_single_podcast(tagger):
+    assert (
+        build_commit_message_from_tagger(
+            ctx_params={"podcast": "greetings", "tag": "blessed"},
+            tagger=tagger,
+        )
+        == "Chosen 'greetings' podcast episodes -> 'blessed'."
+    )
+
+
+def test_build_commit_message_from_tagger_for_podcast_interactive_mode(tagger):
+    assert (
+        build_commit_message_from_tagger(
+            ctx_params={"podcast": None, "tag": "blessed", "interactive": True},
+            tagger=tagger,
+        )
+        == "Chosen all podcast episodes -> 'blessed' in interactive mode."
+    )

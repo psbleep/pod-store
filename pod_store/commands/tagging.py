@@ -181,8 +181,9 @@ def _get_commit_message_mode(ctx_params: dict) -> str:
 
 
 marker = Tagger(action="mark", default_tag="new")
-unmarker = Untagger(action="unmark", default_tag="new")
 tagger = Tagger(action="tag", performing_action="tagging", performed_action="tagged")
+
+unmarker = Untagger(action="unmark", default_tag="new")
 untagger = Untagger(
     action="untag", performing_action="untagging", performed_action="untagged"
 )
