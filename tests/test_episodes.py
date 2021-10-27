@@ -1,7 +1,6 @@
 import os
 
 import music_tag
-import pytest
 
 from pod_store.episodes import Episode
 
@@ -10,23 +9,6 @@ from . import TEST_PODCAST_EPISODE_DOWNLOADS_PATH
 TEST_EPISODE_DOWNLOAD_PATH = os.path.join(
     TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0092-hello.mp3"
 )
-
-
-@pytest.fixture
-def episode(now, podcast):
-    return Episode(
-        podcast=podcast,
-        id="abc",
-        episode_number="0092",
-        title="hello",
-        short_description="hello world",
-        long_description="hello world (longer description)",
-        url="https://www.foo.bar/abc.mp3",
-        tags=["new"],
-        created_at=now,
-        updated_at=now,
-        downloaded_at=None,
-    )
 
 
 def test_episode_from_json_parses_datetimes(now, podcast):
@@ -81,7 +63,7 @@ def test_episode_download(now, audio_file_content, episode):
     assert metadata["title"].value == "hello"
     assert metadata["track_title"].value == "hello"
     assert metadata["genre"].value == "Podcast"
-    assert metadata["track_number"].value == 92
+    assert metadata["track_number"].value == 23
     assert metadata["year"].value == now.year
 
     with open(episode.download_path, "rb") as f:
@@ -106,12 +88,12 @@ def test_episode_untag(episode):
 
 def test_episode_to_json(now, episode):
     assert episode.to_json() == {
-        "id": "abc",
-        "episode_number": "0092",
+        "id": "aaa",
+        "episode_number": "0023",
         "title": "hello",
         "short_description": "hello world",
         "long_description": "hello world (longer description)",
-        "url": "https://www.foo.bar/abc.mp3",
+        "url": "https://www.foo.bar/aaa.mp3",
         "tags": ["new"],
         "created_at": now.isoformat(),
         "updated_at": now.isoformat(),

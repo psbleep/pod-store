@@ -5,13 +5,13 @@ from datetime import datetime
 from typing import Any, Optional, TypeVar, Union
 
 from . import STORE_PATH
-from .episodes import Episode
 from .exc import ShellCommandError
 
+E = TypeVar("Episode")
 P = TypeVar("Podcast")
 
 
-def meets_list_filter_criteria(obj: Union[Episode, P], key: str, value: Any) -> bool:
+def meets_list_filter_criteria(obj: Union[E, P], key: str, value: Any) -> bool:
     """Used to filter a list of podcasts or episodes in
     `pod_store.podcasts.PodcastEpisodes.list` or `pod_store.store.StorePodcasts.list`.
 

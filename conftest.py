@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
+from pod_store.episodes import Episode
 from pod_store.podcasts import Podcast
 from pod_store.store import Store
 from pod_store.store_file_handlers import UnencryptedStoreFileHandler
@@ -190,6 +191,23 @@ def podcast(now, podcast_episode_data):
         created_at=now,
         updated_at=now,
         episode_data=podcast_episode_data,
+    )
+
+
+@pytest.fixture
+def episode(now, podcast):
+    return Episode(
+        podcast=podcast,
+        id="aaa",
+        episode_number="0023",
+        title="hello",
+        short_description="hello world",
+        long_description="hello world (longer description)",
+        url="https://www.foo.bar/aaa.mp3",
+        tags=["new"],
+        created_at=now,
+        updated_at=now,
+        downloaded_at=None,
     )
 
 

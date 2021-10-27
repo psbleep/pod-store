@@ -19,15 +19,13 @@ from .commands.helpers import (
     get_tag_filters,
 )
 from .commands.ls import list_episodes_by_podcast, list_podcasts
-from .commands.mark_as_new import (
-    get_episode_marker,
-    mark_episodes_commit_message_builder,
-)
 from .commands.refresh import refresh_commit_message_builder
-from .commands.tag import tag_commit_message_builder
-from .commands.tag_episodes import (
-    get_episode_tagger,
-    tag_episodes_commit_message_builder,
+from .commands.tagging import (
+    build_commit_message_from_tagger,
+    marker,
+    unmarker,
+    tagger,
+    untagger,
 )
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
@@ -356,7 +354,7 @@ def ls(
     "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
 @git_add_and_commit(
-    commit_message_builder=mark_episodes_commit_message_builder, action="mark"
+    commit_message_builder=build_commit_message_from_tagger, tagger=marker
 )
 @save_store_changes
 @catch_pod_store_errors
@@ -366,11 +364,9 @@ def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
     See the `tag-episodes` command help for usage options.
     """
     store = ctx.obj
-    interactive_mode = interactive
     podcasts = get_podcasts(store=store, title=podcast)
 
-    marker = get_episode_marker(interactive_mode=interactive_mode)
-    for msg in marker.tag_podcast_episodes(podcasts):
+    for msg in marker.tag_podcast_episodes(podcasts, interactive_mode=interactive):
         click.echo(msg)
 
 
@@ -389,7 +385,7 @@ def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
     "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
 @git_add_and_commit(
-    commit_message_builder=mark_episodes_commit_message_builder, action="unmark"
+    commit_message_builder=build_commit_message_from_tagger, tagger=unmarker
 )
 @save_store_changes
 @catch_pod_store_errors
@@ -399,11 +395,9 @@ def mark_as_old(ctx: click.Context, podcast: Optional[str], interactive: bool):
     # doubling up the same decorators when we invoke the `untag_episodes` function
     # below.
     store = ctx.obj
-    interactive_mode = interactive
     podcasts = get_podcasts(store=store, title=podcast)
 
-    marker = get_episode_marker(interactive_mode=interactive_mode, mark_as_new=False)
-    for msg in marker.tag_podcast_episodes(podcasts):
+    for msg in unmarker.tag_podcast_episodes(podcasts, interactive_mode=interactive):
         click.echo(msg)
 
 
@@ -502,8 +496,7 @@ def rm(ctx: click.Context, title: str):
     "episode number.",
 )
 @git_add_and_commit(
-    commit_message_builder=tag_commit_message_builder,
-    action="tagged",
+    commit_message_builder=build_commit_message_from_tagger, tagger=tagger
 )
 @save_store_changes
 @catch_pod_store_errors
@@ -522,11 +515,9 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     podcast = store.podcasts.get(podcast)
     if episode:
         ep = podcast.episodes.get(episode)
-        ep.tag(tag)
-        click.echo(f"Tagged {podcast.title}, episode {episode} -> {tag}.")
+        click.echo(tagger.tag_episode(ep, tag=tag))
     else:
-        click.echo(f"Tagged {podcast.title} -> {tag}.")
-        podcast.tag(tag)
+        click.echo(tagger.tag_podcast(podcast, tag))
 
 
 @cli.command()
@@ -545,7 +536,7 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     "tag, or bulk mode to tag all episodes in the group. Defaults to `--interactive`.",
 )
 @git_add_and_commit(
-    commit_message_builder=tag_episodes_commit_message_builder, action="tagged"
+    commit_message_builder=build_commit_message_from_tagger, tagger=tagger
 )
 @save_store_changes
 @catch_pod_store_errors
@@ -557,11 +548,10 @@ def tag_episodes(
     TAG: arbitrary text tag to apply
     """
     store = ctx.obj
-    interactive_mode = interactive
     podcasts = get_podcasts(store=store, title=podcast)
-
-    tagger = get_episode_tagger(tag=tag, interactive_mode=interactive_mode)
-    for msg in tagger.tag_podcast_episodes(podcasts):
+    for msg in tagger.tag_podcast_episodes(
+        podcasts, tag=tag, interactive_mode=interactive
+    ):
         click.echo(msg)
 
 
@@ -598,8 +588,7 @@ def unencrypt_store(ctx: click.Context):
     "episode number.",
 )
 @git_add_and_commit(
-    commit_message_builder=tag_commit_message_builder,
-    action="untagged",
+    commit_message_builder=build_commit_message_from_tagger, tagger=untagger
 )
 @save_store_changes
 @catch_pod_store_errors
@@ -616,14 +605,12 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
 
     store = ctx.obj
 
-    podcast = store.podcasts.get(podcast)
+    pod = store.podcasts.get(podcast)
     if episode:
-        ep = podcast.episodes.get(episode)
-        ep.untag(tag)
-        click.echo(f"Untagged {podcast.title}, episode {episode} -> {tag}.")
+        ep = pod.episodes.get(episode)
+        click.echo(untagger.tag_episode(ep, tag=tag))
     else:
-        click.echo(f"Untagged {podcast.title} -> {tag}.")
-        podcast.untag(tag)
+        click.echo(untagger.tag_podcast(pod, tag=tag))
 
 
 @cli.command()
@@ -643,8 +630,7 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     "`--interactive`.",
 )
 @git_add_and_commit(
-    commit_message_builder=tag_episodes_commit_message_builder,
-    action="untagged",
+    commit_message_builder=build_commit_message_from_tagger, tagger=untagger
 )
 @save_store_changes
 @catch_pod_store_errors
@@ -656,13 +642,11 @@ def untag_episodes(
     TAG: tag to remove
     """
     store = ctx.obj
-    interactive_mode = interactive
     podcasts = get_podcasts(store=store, title=podcast)
 
-    episode_untagger = get_episode_tagger(
-        tag=tag, interactive_mode=interactive_mode, is_untagger=True
-    )
-    for msg in episode_untagger.tag_podcast_episodes(podcasts):
+    for msg in untagger.tag_podcast_episodes(
+        podcasts, tag=tag, interactive_mode=interactive
+    ):
         click.echo(msg)
 
 
