@@ -55,23 +55,22 @@ def tag_episodes_commit_message_builder(ctx_params: dict, action: str) -> str:
     )
 
 
-def get_episode_tagger(tag: str, interactive_mode: bool, is_untagger: bool = False):
-    if is_untagger:
-        action = "untag"
-        performing_action = "untagging"
-        performed_action = "untagged"
-    else:
-        action = "tag"
-        performing_action = "tagging"
-        performed_action = "tagged"
+def get_podcast_episode_tagger(tag: str, podcasts: list, interactive_mode: bool):
+    tagged_message_template = (
+        "Tagged as {tag!r}: "
+        "{episode.podcast.title} -> [{episode.episode_number}] {episode.title}"
+    )
 
+    prompt_message_template = (
+        "{episode.podcast.title}: [{episode.episode_number}] {episode.title}"
+    )
     return PodcastEpisodeTagger(
-        action=action,
-        performing_action=performing_action,
-        performed_action=performed_action,
         tag=tag,
+        podcasts=podcasts,
+        tagged_message_template=tagged_message_template,
         interactive_mode=interactive_mode,
-        is_untagger=is_untagger,
+        interactive_mode_help_message=INTERACTIVE_MODE_HELP,
+        interactive_mode_prompt_message_template=prompt_message_template,
     )
 
 

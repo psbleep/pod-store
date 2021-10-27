@@ -51,7 +51,7 @@ class Episode:
         tags: List[str] = None,
         downloaded_at: Optional[datetime] = None,
     ) -> None:
-        self._podcast = podcast
+        self.podcast = podcast
 
         self.id = id
         self.episode_number = episode_number
@@ -113,7 +113,7 @@ class Episode:
         cleaned_title = re.sub(r"[^a-zA-Z0-9]", "-", lowercase_title)
         file_type = os.path.splitext(self.url)[1][:4]
         return os.path.join(
-            self._podcast.episode_downloads_path,
+            self.podcast.episode_downloads_path,
             f"{self.episode_number}-{cleaned_title}{file_type}",
         )
 
@@ -136,7 +136,7 @@ class Episode:
 
         Matches the following audio metadata tags to the values:
 
-            artist        -> episode._podcast.title
+            artist        -> episode.podcast.title
             album_artist
 
             title         -> episode.title
@@ -154,8 +154,8 @@ class Episode:
             return
 
         f = music_tag.load_file(download_path)
-        f["artist"] = self._podcast.title
-        f["album_artist"] = self._podcast.title
+        f["artist"] = self.podcast.title
+        f["album_artist"] = self.podcast.title
         f["title"] = self.title
         f["track_title"] = self.title
         f["genre"] = "Podcast"

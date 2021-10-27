@@ -19,11 +19,14 @@ from .commands.helpers import (
     get_tag_filters,
 )
 from .commands.ls import list_episodes_by_podcast, list_podcasts
+from .commands.mark_as_new import (
+    get_episode_marker,
+    mark_episodes_commit_message_builder,
+)
 from .commands.refresh import refresh_commit_message_builder
 from .commands.tag import tag_commit_message_builder
 from .commands.tag_episodes import (
-    INTERACTIVE_MODE_HELP,
-    handle_episode_tagging,
+    get_episode_tagger,
     tag_episodes_commit_message_builder,
 )
 from .store import Store
@@ -352,12 +355,23 @@ def ls(
     help="(flag): Run this command in interactive mode to select which episodes to "
     "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
+@git_add_and_commit(
+    commit_message_builder=mark_episodes_commit_message_builder, action="mark"
+)
+@save_store_changes
+@catch_pod_store_errors
 def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
-    """Add the `new` tag to a group of episodes. Alias for the `tag` command."""
-    # Many of the common decorators are missing from this command. This is to avoid
-    # doubling up the same decorators when we invoke the `untag_episodes` function
-    # below.
-    ctx.invoke(tag_episodes, tag="new", podcast=podcast, interactive=interactive)
+    """Add the `new` tag to a group of episodes.
+
+    See the `tag-episodes` command help for usage options.
+    """
+    store = ctx.obj
+    interactive_mode = interactive
+    podcasts = get_podcasts(store=store, title=podcast)
+
+    marker = get_episode_marker(interactive_mode=interactive_mode)
+    for msg in marker.tag_podcast_episodes(podcasts):
+        click.echo(msg)
 
 
 @cli.command()
@@ -374,12 +388,23 @@ def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
     help="(flag): Run this command in interactive mode to select which episodes to "
     "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
+@git_add_and_commit(
+    commit_message_builder=mark_episodes_commit_message_builder, action="unmark"
+)
+@save_store_changes
+@catch_pod_store_errors
 def mark_as_old(ctx: click.Context, podcast: Optional[str], interactive: bool):
     """Remove the `new` tag from a group of episodes. Alias for the `untag` command."""
     # Many of the common decorators are missing from this command. This is to avoid
     # doubling up the same decorators when we invoke the `untag_episodes` function
     # below.
-    ctx.invoke(untag_episodes, tag="new", podcast=podcast, interactive=interactive)
+    store = ctx.obj
+    interactive_mode = interactive
+    podcasts = get_podcasts(store=store, title=podcast)
+
+    marker = get_episode_marker(interactive_mode=interactive_mode, mark_as_new=False)
+    for msg in marker.tag_podcast_episodes(podcasts):
+        click.echo(msg)
 
 
 @cli.command()
@@ -535,25 +560,9 @@ def tag_episodes(
     interactive_mode = interactive
     podcasts = get_podcasts(store=store, title=podcast)
 
-    click.echo(f"Tagging: {tag}.")
-
-    if interactive:
-        click.echo(INTERACTIVE_MODE_HELP.format(action="tag"))
-
-    for pod in podcasts:
-        for ep in pod.episodes.list(**{tag: False}):
-            # `interactive` can get switched from True -> False here, if the user
-            # decides to switch from interactive to bulk-assignment partway through
-            # the list of episodes.
-            confirmed, interactive_mode = handle_episode_tagging(
-                tag=tag,
-                action="tag",
-                interactive_mode=interactive_mode,
-                podcast=pod,
-                episode=ep,
-            )
-            if confirmed:
-                click.echo(f"Tagged {pod.title} -> [{ep.episode_number}] {ep.title}")
+    tagger = get_episode_tagger(tag=tag, interactive_mode=interactive_mode)
+    for msg in tagger.tag_podcast_episodes(podcasts):
+        click.echo(msg)
 
 
 @cli.command()
@@ -650,25 +659,11 @@ def untag_episodes(
     interactive_mode = interactive
     podcasts = get_podcasts(store=store, title=podcast)
 
-    click.echo(f"Untagging: {tag}.")
-
-    if interactive:
-        click.echo(INTERACTIVE_MODE_HELP.format(action="untag"))
-
-    for pod in podcasts:
-        for ep in pod.episodes.list(**{tag: True}):
-            # `interactive` can get switched from True -> False here, if the user
-            # decides to switch from interactive to bulk-assignment partway through
-            # the list of episodes.
-            confirmed, interactive_mode = handle_episode_tagging(
-                tag=tag,
-                action="untag",
-                interactive_mode=interactive_mode,
-                podcast=pod,
-                episode=ep,
-            )
-            if confirmed:
-                click.echo(f"Untagged {pod.title} -> [{ep.episode_number}] {ep.title}")
+    episode_untagger = get_episode_tagger(
+        tag=tag, interactive_mode=interactive_mode, is_untagger=True
+    )
+    for msg in episode_untagger.tag_podcast_episodes(podcasts):
+        click.echo(msg)
 
 
 def main() -> None:

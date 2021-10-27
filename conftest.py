@@ -109,7 +109,37 @@ def podcast_episode_data(now, yesterday):
 
 
 @pytest.fixture
-def store_data(now, yesterday, podcast_episode_data):
+def other_podcast_episode_data(now):
+    return {
+        "111": {
+            "id": "111",
+            "episode_number": "0001",
+            "title": "gone",
+            "short_description": "all gone",
+            "long_description": "all gone (longer description)",
+            "url": "http://foo.bar/111.mp3",
+            "tags": ["new", "bar"],
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat(),
+            "downloaded_at": None,
+        },
+        "222": {
+            "id": "222",
+            "episode_number": "0002",
+            "title": "not forgotten",
+            "short_description": "never forgotten",
+            "long_description": "never forgotten (longer description)",
+            "url": "http://foo.bar/222.mp3",
+            "tags": ["foo", "bar"],
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat(),
+            "downloaded_at": None,
+        },
+    }
+
+
+@pytest.fixture
+def store_data(now, yesterday, podcast_episode_data, other_podcast_episode_data):
     return {
         "greetings": {
             "title": "greetings",
@@ -123,20 +153,7 @@ def store_data(now, yesterday, podcast_episode_data):
             "title": "farewell",
             "feed": "http://goodbye.world/rss",
             "tags": [],
-            "episode_data": {
-                "111": {
-                    "id": "111",
-                    "episode_number": "0001",
-                    "title": "gone",
-                    "short_description": "all gone",
-                    "long_description": "all gone (longer description)",
-                    "url": "http://foo.bar/111.mp3",
-                    "tags": ["new", "bar"],
-                    "created_at": now.isoformat(),
-                    "updated_at": now.isoformat(),
-                    "downloaded_at": None,
-                },
-            },
+            "episode_data": other_podcast_episode_data,
             "created_at": yesterday.isoformat(),
             "updated_at": now.isoformat(),
         },

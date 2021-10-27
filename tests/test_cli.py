@@ -201,9 +201,11 @@ def test_ls_podcasts_without_tag(runner):
 def test_ls_all_episodes(runner):
     result = runner.invoke(cli, ["ls", "--episodes", "--all"])
     assert result.exit_code == 0
+    print(result.output)
     assert result.output == (
         "farewell\n"
-        "[0001] gone: 'all gone' -> new, bar\n\n"
+        "[0001] gone: 'all gone' -> new, bar\n"
+        "[0002] not forgotten: 'never forgotten' -> foo, bar\n\n"
         "greetings\n"
         "[0023] hello: 'hello world' -> new\n"
         "[0011] goodbye: 'goodbye world' [X] -> foo\n"
@@ -216,6 +218,7 @@ def test_ls_episodes_verbose_mode(now, yesterday, runner):
 
     result = runner.invoke(cli, ["ls", "--episodes", "--all", "--verbose"])
     assert result.exit_code == 0
+    print(result.output)
     assert (
         result.output
         == """farewell
@@ -225,6 +228,13 @@ tags: new, bar
 created at: {now_formatted}
 updated at: {now_formatted}
 all gone (longer description)
+
+[0002] not forgotten
+id: 222
+tags: foo, bar
+created at: {now_formatted}
+updated at: {now_formatted}
+never forgotten (longer description)
 
 greetings
 [0023] hello
@@ -261,7 +271,12 @@ def test_ls_all_new_episodes(runner):
 def test_ls_all_episodes_with_tag(runner):
     result = runner.invoke(cli, ["ls", "--episodes", "--all", "-t", "foo"])
     assert result.exit_code == 0
-    assert result.output == "greetings\n[0011] goodbye: 'goodbye world' [X] -> foo\n"
+    assert result.output == (
+        "farewell\n"
+        "[0002] not forgotten: 'never forgotten' -> foo, bar\n\n"
+        "greetings\n"
+        "[0011] goodbye: 'goodbye world' [X] -> foo\n"
+    )
 
 
 def test_ls_all_episodes_without_tag(runner):
@@ -293,27 +308,71 @@ def test_ls_new_podcast_episodes(runner):
     assert result.output == "greetings\n[0023] hello: 'hello world' -> new\n"
 
 
-def test_mark_as_new_works_as_alias_for_tag_new_episodes_command(
-    mocked_git_decorator_command, runner
-):
-    result = runner.invoke(cli, ["mark-as-new", "-p", "greetings", "--bulk"])
+def test_mark_as_new_all_episodes_bulk_mode(mocked_git_decorator_command, runner):
+    result = runner.invoke(cli, ["mark-as-new", "--bulk"])
     assert result.exit_code == 0
-    assert result.output.endswith("Tagged greetings -> [0011] goodbye\n")
+    assert "Marked as 'new': farewell" in result.output
+    assert "Marked as 'new': greetings" in result.output
     _assert_git_changes_commited(
         mocked_git_decorator_command,
-        "Tagged 'greetings' podcast episodes -> new, bulk mode.",
+        "Marked all podcast episodes as 'new' in bulk mode.",
     )
 
 
-def test_mark_as_old_works_as_alias_for_untag_new_episodes_command(
-    mocked_git_decorator_command, runner
-):
-    result = runner.invoke(cli, ["mark-as-old", "-p", "greetings", "--bulk"])
+def test_mark_as_old_all_episodes_bulk_mode(mocked_git_decorator_command, runner):
+    result = runner.invoke(cli, ["mark-as-old", "--bulk"])
     assert result.exit_code == 0
-    assert result.output.endswith("Untagged greetings -> [0023] hello\n")
+    assert "Unmarked as 'new': farewell" in result.output
+    assert "Unmarked as 'new': greetings" in result.output
     _assert_git_changes_commited(
         mocked_git_decorator_command,
-        "Untagged 'greetings' podcast episodes -> new, bulk mode.",
+        "Unmarked all podcast episodes as 'new' in bulk mode.",
+    )
+
+
+def test_mark_as_old_for_single_podcast(mocked_git_decorator_command, runner):
+    result = runner.invoke(cli, ["mark-as-old", "-p", "farewell", "--bulk"])
+    assert result.exit_code == 0
+    assert "Unmarked as 'new': farewell" in result.output
+    assert "Unmarked as 'new': greetings" not in result.output
+    _assert_git_changes_commited(
+        mocked_git_decorator_command,
+        "Unmarked 'farewell' podcast episodes as 'new' in bulk mode.",
+    )
+
+
+def test_mark_as_old_interactive_mode(mocked_git_decorator_command, runner):
+    result = runner.invoke(
+        cli, ["mark-as-old", "-p", "farewell", "--interactive"], input="y\nn\n"
+    )
+    assert result.exit_code == 0
+    assert "Unmarked as 'new': farewell" in result.output
+    _assert_git_changes_commited(
+        mocked_git_decorator_command,
+        "Unmarked 'farewell' podcast episodes as 'new' in interactive mode.",
+    )
+
+
+def test_mark_as_new_for_single_podcast(mocked_git_decorator_command, runner):
+    result = runner.invoke(cli, ["mark-as-new", "-p", "farewell", "--bulk"])
+    assert result.exit_code == 0
+    assert "Marked as 'new': farewell" in result.output
+    assert "Marked as 'new': greetings" not in result.output
+    _assert_git_changes_commited(
+        mocked_git_decorator_command,
+        "Marked 'farewell' podcast episodes as 'new' in bulk mode.",
+    )
+
+
+def test_mark_as_new_interactive_mode(mocked_git_decorator_command, runner):
+    result = runner.invoke(
+        cli, ["mark-as-new", "-p", "farewell", "--interactive"], input="y\nn\n"
+    )
+    assert result.exit_code == 0
+    assert "Marked as 'new': farewell" in result.output
+    _assert_git_changes_commited(
+        mocked_git_decorator_command,
+        "Marked 'farewell' podcast episodes as 'new' in interactive mode.",
     )
 
 
@@ -397,61 +456,38 @@ def test_tag_a_pocast_episode(mocked_git_decorator_command, runner):
     )
 
 
-def test_tag_episodes_for_all_podcasts_bulk_mode_generates_correct_commit_message(
-    mocked_git_decorator_command, runner
-):
-    runner.invoke(cli, ["tag-episodes", "zozo", "--bulk"])
+def test_tag_episodes_all_episodes_bulk_mode(mocked_git_decorator_command, runner):
+    result = runner.invoke(cli, ["tag-episodes", "foo", "--bulk"])
+    assert result.exit_code == 0
+    assert "Tagged as 'foo': farewell" in result.output
+    assert "Tagged as 'foo': greetings" in result.output
     _assert_git_changes_commited(
         mocked_git_decorator_command,
-        "Tagged all podcast episodes -> zozo, bulk mode.",
+        "Tagged all podcast episodes -> foo, bulk mode.",
     )
 
 
-def test_tag_episodes_for_single_podcast_generates_correct_commit_message(
-    mocked_git_decorator_command, runner
-):
-    runner.invoke(cli, ["tag-episodes", "zozo", "-p", "greetings", "--bulk"])
+def test_tag_episodes_for_single_podcast(mocked_git_decorator_command, runner):
+    result = runner.invoke(cli, ["tag-episodes", "zozo", "-p", "greetings", "--bulk"])
+    assert result.exit_code == 0
+    assert "Tagged as 'zozo': farewell" not in result.output
+    assert "Tagged as 'zozo': greetings" in result.output
     _assert_git_changes_commited(
         mocked_git_decorator_command,
         "Tagged 'greetings' podcast episodes -> zozo, bulk mode.",
     )
 
 
-def test_tag_episodes_interactive_mode_tags_based_on_confirmation(runner):
+def test_tag_episodes_interactive_mode(mocked_git_decorator_command, runner):
     result = runner.invoke(
         cli, ["tag-episodes", "foo", "--interactive"], input="n\ny\n"
     )
     assert result.exit_code == 0
-    assert "Tagged greetings -> [0023] hello" in result.output
-    assert "Tagged farewell" not in result.output
-
-
-def test_tag_episodes_interactive_mode_switches_to_bulk_mode_when_prompted_by_user(
-    runner,
-):
-    result = runner.invoke(
-        cli, ["tag-episodes", "zazaza", "--interactive"], input="n\nb\n"
-    )
-    assert result.exit_code == 0
-    assert "Tagged farewell" not in result.output
-    assert "Tagged greetings -> [0023] hello" in result.output
-    assert "Tagged greetings -> [0011] goodbye" in result.output
-
-
-def test_tag_episodes_interactive_mode_aborts_when_quit(runner):
-    result = runner.invoke(
-        cli, ["tag-episodes", "foo", "--interactive"], input="n\nq\n"
-    )
-    assert result.exit_code == 1
-    assert "Aborted!" in result.output
-    assert "Tagged" not in result.output
-
-
-def test_tag_episodes_bulk_mode(runner):
-    result = runner.invoke(cli, ["tag-episodes", "foo", "--bulk"])
-    assert result.exit_code == 0
-    assert result.output.endswith(
-        "Tagged farewell -> [0001] gone\nTagged greetings -> [0023] hello\n"
+    assert "Tagged as 'foo': farewell" not in result.output
+    assert "Tagged as 'foo': greetings" in result.output
+    _assert_git_changes_commited(
+        mocked_git_decorator_command,
+        "Tagged all podcast episodes -> foo, interactive mode.",
     )
 
 
@@ -489,49 +525,38 @@ def test_untag_single_pocast_episode(mocked_git_decorator_command, runner):
     )
 
 
-def test_untag_episodes_for_all_podcasts_generates_correct_commit_message(
-    mocked_git_decorator_command, runner
-):
-    runner.invoke(cli, ["untag-episodes", "zozo", "--bulk"])
+def test_untag_episodes_all_episodes_bulk_mode(mocked_git_decorator_command, runner):
+    result = runner.invoke(cli, ["untag-episodes", "foo", "--bulk"])
+    assert result.exit_code == 0
+    assert "Untagged as 'foo': farewell" in result.output
+    assert "Untagged as 'foo': greetings" in result.output
     _assert_git_changes_commited(
         mocked_git_decorator_command,
-        "Untagged all podcast episodes -> zozo, bulk mode.",
+        "Untagged all podcast episodes -> foo, bulk mode.",
     )
 
 
-def test_untag_episodes_for_single_podcast_generates_correct_commit_message(
-    mocked_git_decorator_command, runner
-):
-    runner.invoke(cli, ["untag-episodes", "zozo", "-p", "greetings", "--bulk"])
+def test_untag_episodes_for_single_podcast(mocked_git_decorator_command, runner):
+    result = runner.invoke(cli, ["untag-episodes", "foo", "-p", "greetings", "--bulk"])
+    assert result.exit_code == 0
+    assert "Untagged as 'foo': farewell" not in result.output
+    assert "Untagged as 'foo': greetings" in result.output
     _assert_git_changes_commited(
         mocked_git_decorator_command,
-        "Untagged 'greetings' podcast episodes -> zozo, bulk mode.",
+        "Untagged 'greetings' podcast episodes -> foo, bulk mode.",
     )
 
 
-def test_untag_episodes_interactive_mode_untags_based_on_confirmation(runner):
+def test_untag_episodes_interactive_mode(mocked_git_decorator_command, runner):
     result = runner.invoke(
-        cli, ["untag-episodes", "new", "--interactive"], input="n\ny\n"
+        cli, ["untag-episodes", "foo", "--interactive"], input="n\ny\nn\n"
     )
     assert result.exit_code == 0
-    assert "Untagged greetings -> [0023] hello" in result.output
-    assert "Untagged farewell" not in result.output
-
-
-def test_untag_episodes_interactive_aborts_when_quit(runner):
-    result = runner.invoke(
-        cli, ["untag-episodes", "new", "--interactive"], input="n\nq\n"
-    )
-    assert result.exit_code == 1
-    assert "Aborted!" in result.output
-    assert "Untagged" not in result.output
-
-
-def test_untag_episodes_bulk(mocked_git_decorator_command, runner):
-    result = runner.invoke(cli, ["untag-episodes", "new", "--bulk"])
-    assert result.exit_code == 0
-    assert result.output.endswith(
-        "Untagged farewell -> [0001] gone\nUntagged greetings -> [0023] hello\n"
+    assert "Untagged as 'foo': farewell" not in result.output
+    assert "Untagged as 'foo': greetings" in result.output
+    _assert_git_changes_commited(
+        mocked_git_decorator_command,
+        "Untagged all podcast episodes -> foo, interactive mode.",
     )
 
 
