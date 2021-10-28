@@ -121,10 +121,10 @@ def test_tagger_tag_podcast_episodes_interactive_mode_tags_episode_when_prompted
         tagger.tag_podcast_episodes(podcasts, tag="blessed", interactive_mode=True)
     ) == [
         TEST_INTERACTIVE_MODE_TAGGER_HELP_MESSAGE,
-        "Chosen as 'blessed': greetings -> [0023] hello.",
-        "Chosen as 'blessed': greetings -> [0011] goodbye.",
-        "Chosen as 'blessed': farewell -> [0001] gone.",
-        "Chosen as 'blessed': farewell -> [0002] not forgotten.",
+        "Chosen as 'blessed': greetings -> [0023] hello.\n",
+        "Chosen as 'blessed': greetings -> [0011] goodbye.\n",
+        "Chosen as 'blessed': farewell -> [0001] gone.\n",
+        "Chosen as 'blessed': farewell -> [0002] not forgotten.\n",
     ]
 
     # verify the prompt is called by checking the last call
