@@ -5,12 +5,15 @@ from typing import Any, List, Optional
 import click
 
 from . import GPG_ID, PODCAST_DOWNLOADS_PATH, STORE_FILE_PATH, STORE_PATH
+from .commands.commit_messages import (
+    download_commit_message_builder,
+    refresh_commit_message_builder,
+)
 from .commands.decorators import (
     catch_pod_store_errors,
     git_add_and_commit,
     save_store_changes,
 )
-from .commands.download import download_commit_message_builder
 from .commands.helpers import (
     abort_if_false,
     display_pod_store_error_from_exception,
@@ -19,7 +22,6 @@ from .commands.helpers import (
     get_tag_filters,
 )
 from .commands.listing import get_lister_from_command_arguments
-from .commands.refresh import refresh_commit_message_builder
 from .commands.tagging import (
     build_commit_message_from_tagger,
     marker,
