@@ -18,7 +18,7 @@ from .commands.helpers import (
     get_podcasts,
     get_tag_filters,
 )
-from .commands.ls import list_episodes_by_podcast, list_podcasts
+from .commands.listing import get_lister_from_command_arguments
 from .commands.refresh import refresh_commit_message_builder
 from .commands.tagging import (
     build_commit_message_from_tagger,
@@ -165,7 +165,7 @@ def download(
     episodes = get_episodes(store=store, new=True, podcast_title=podcast, **tag_filters)
 
     for ep in episodes:
-        click.echo(f"Downloading: {ep.download_path}")
+        click.echo(f"Downloading: {ep.download_path}.")
         ep.download()
 
 
@@ -276,10 +276,10 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
     help="(podcast title): List only episodes for the specified podcast.",
 )
 @click.option(
-    "--is-tagged/--not-tagged",
+    "--list-tagged/--not-tagged",
     default=True,
     help="(flag): Search for episodes with or without the supplied tags. "
-    "Defaults to `--is-tagged`. Has no effect if no tags are indicated.",
+    "Defaults to `--list-tagged`. Has no effect if no tags are indicated.",
 )
 @click.option(
     "--tag",
@@ -300,7 +300,7 @@ def ls(
     new: bool,
     episodes: bool,
     podcast: Optional[str],
-    is_tagged: bool,
+    list_tagged: bool,
     tag: List[str],
     verbose: bool,
 ):
@@ -310,33 +310,17 @@ def ls(
     the provided flags and command options.
     """
     store = ctx.obj
-    podcast_title = podcast
-
-    # Assume we are listing episodes if an individual podcast was specified.
-    list_episodes = episodes or podcast
-    tag_filters = get_tag_filters(tags=tag, is_tagged=is_tagged)
-
-    if list_episodes:
-        episode_filters = tag_filters
-        podcast_filters = {}
-        if new:
-            episode_filters["new"] = True
-    else:
-        podcast_filters = tag_filters
-
-    if new:
-        podcast_filters["has_new_episodes"] = True
-
-    podcasts = get_podcasts(store=store, title=podcast_title, **podcast_filters)
-
-    if list_episodes:
-        output = list_episodes_by_podcast(
-            podcasts=podcasts, store=store, verbose=verbose, **episode_filters
-        )
-    else:
-        output = list_podcasts(podcasts, verbose=verbose)
-
-    click.echo(output)
+    lister = get_lister_from_command_arguments(
+        store=store,
+        new_episodes=new,
+        list_episodes=episodes,
+        podcast_title=podcast,
+        list_untagged_items=not list_tagged,
+        tags=tag,
+        verbose=verbose,
+    )
+    for msg in lister.list():
+        click.echo(msg)
 
 
 @cli.command()
@@ -391,9 +375,6 @@ def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
 @catch_pod_store_errors
 def mark_as_old(ctx: click.Context, podcast: Optional[str], interactive: bool):
     """Remove the `new` tag from a group of episodes. Alias for the `untag` command."""
-    # Many of the common decorators are missing from this command. This is to avoid
-    # doubling up the same decorators when we invoke the `untag_episodes` function
-    # below.
     store = ctx.obj
     podcasts = get_podcasts(store=store, title=podcast)
 
@@ -512,12 +493,12 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     """
     store = ctx.obj
 
-    podcast = store.podcasts.get(podcast)
+    pod = store.podcasts.get(podcast)
     if episode:
-        ep = podcast.episodes.get(episode)
+        ep = pod.episodes.get(episode)
         click.echo(tagger.tag_episode(ep, tag=tag))
     else:
-        click.echo(tagger.tag_podcast(podcast, tag))
+        click.echo(tagger.tag_podcast(pod, tag=tag))
 
 
 @cli.command()
@@ -570,7 +551,6 @@ def tag_episodes(
 def unencrypt_store(ctx: click.Context):
     """Unencrypt the pod store, saving the data in plaintext instead."""
     store = ctx.obj
-
     store.unencrypt()
     click.echo("Store was unencrypted.")
 

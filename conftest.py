@@ -75,8 +75,18 @@ def now(freezer):
 
 
 @pytest.fixture
+def now_formatted(now):
+    return now.isoformat()
+
+
+@pytest.fixture
 def yesterday(now):
     return now - timedelta(days=1)
+
+
+@pytest.fixture
+def yesterday_formatted(yesterday):
+    return yesterday.isoformat()
 
 
 @pytest.fixture

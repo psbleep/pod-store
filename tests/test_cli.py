@@ -55,8 +55,8 @@ def test_download_all_new_podcast_episodes(mocked_git_decorator_command, runner)
     result = runner.invoke(cli, ["download"])
     assert result.exit_code == 0
     assert result.output == (
-        f"Downloading: {TEST_OTHER_EPISODE_DOWNLOAD_PATH}\n"
-        f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}\n"
+        f"Downloading: {TEST_OTHER_EPISODE_DOWNLOAD_PATH}.\n"
+        f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n"
     )
     _assert_git_changes_commited(mocked_git_decorator_command, "downloaded", "all")
 
@@ -64,7 +64,7 @@ def test_download_all_new_podcast_episodes(mocked_git_decorator_command, runner)
 def test_download_single_podcast_new_episodes(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["download", "-p", "greetings"])
     assert result.exit_code == 0
-    assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}\n"
+    assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n"
     _assert_git_changes_commited(
         mocked_git_decorator_command, "downloaded", "greetings"
     )
@@ -73,14 +73,14 @@ def test_download_single_podcast_new_episodes(mocked_git_decorator_command, runn
 def test_download_new_episodes_with_tag(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["download", "-t", "bar"])
     assert result.exit_code == 0
-    assert result.output == f"Downloading: {TEST_OTHER_EPISODE_DOWNLOAD_PATH}\n"
+    assert result.output == f"Downloading: {TEST_OTHER_EPISODE_DOWNLOAD_PATH}.\n"
     _assert_git_changes_commited(mocked_git_decorator_command, "downloaded", "bar")
 
 
 def test_download_new_episodes_without_tag(mocked_git_decorator_command, runner):
     result = runner.invoke(cli, ["download", "--not-tagged", "-t", "bar"])
     assert result.exit_code == 0
-    assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}\n"
+    assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n"
     _assert_git_changes_commited(
         mocked_git_decorator_command, "downloaded", "without", "bar"
     )
@@ -541,8 +541,14 @@ def test_error_handling_gpg_command_error(mocker, runner):
     )
 
 
+def test_error_handling_no_episodes_found(runner):
+    result = runner.invoke(cli, ["ls", "--episodes", "-t", "zzzz"])
+    assert result.exit_code == 1
+    assert "No episodes found" in result.output
+
+
 def test_error_handling_no_podcasts_found(runner):
-    result = runner.invoke(cli, ["ls", "-p", "zzzz"])
+    result = runner.invoke(cli, ["ls", "-t", "zzzz"])
     assert result.exit_code == 1
     assert "No podcasts found" in result.output
 
