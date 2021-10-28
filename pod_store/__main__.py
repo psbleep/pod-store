@@ -323,9 +323,8 @@ def ls(
         podcast_title=podcast,
         list_untagged_items=not list_tagged,
         tags=tag,
-        verbose=verbose,
     )
-    for msg in lister.list():
+    for msg in lister.list(verbose=verbose):
         click.echo(msg)
 
 

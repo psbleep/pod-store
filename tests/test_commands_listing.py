@@ -80,9 +80,9 @@ def test_episode_lister_get_episodes(store):
     assert list(map(lambda e: e.id, lister.get_episodes())) == ["111", "aaa"]
 
 
-def test_episode_lister_verbose_mode(yesterday_formatted, now_formatted, store):
-    lister = EpisodeLister(store=store, new_episodes=False, verbose=True)
-    assert list(lister.list()) == [
+def test_episode_lister_list_verbose_mode(yesterday_formatted, now_formatted, store):
+    lister = EpisodeLister(store=store, new_episodes=False)
+    assert list(lister.list(verbose=True)) == [
         "farewell",
         f"""[0001] gone
 id: 111
@@ -116,7 +116,7 @@ goodbye world (longer description)""",
     ]
 
 
-def test_episode_lister_no_episodes_matching_criteria(store):
+def test_episode_lister_list_no_episodes_matching_criteria(store):
     lister = EpisodeLister(store=store, tags=["whooo"])
     with pytest.raises(NoEpisodesFoundError):
         list(lister.list())
@@ -142,9 +142,9 @@ def test_podcast_lister_list_podcasts_without_tags(store):
     assert list(lister.list()) == ["farewell [1]"]
 
 
-def test_podcast_lister_verbose_mode(yesterday_formatted, now_formatted, store):
-    lister = PodcastLister(store=store, verbose=True)
-    assert list(lister.list()) == [
+def test_podcast_lister_list_verbose_mode(yesterday_formatted, now_formatted, store):
+    lister = PodcastLister(store=store)
+    assert list(lister.list(verbose=True)) == [
         f"""farewell
 1 new episodes
 feed: http://goodbye.world/rss

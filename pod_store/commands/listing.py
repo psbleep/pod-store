@@ -43,14 +43,12 @@ class Lister(ABC):
         podcast_title: Optional[str] = None,
         tags: Optional[List[str]] = None,
         list_untagged_items: bool = False,
-        verbose: bool = False,
     ):
         self._store = store
         self._new_episodes = new_episodes
         self._podcast_title = podcast_title
         self._tags = tags
         self._list_untagged_items = list_untagged_items
-        self._verbose = verbose
 
     @property
     def _tag_filters(self) -> dict:
@@ -93,7 +91,7 @@ class EpisodeLister(Lister):
             episodes.extend(self._get_podcast_episodes(pod))
         return episodes
 
-    def list(self) -> str:
+    def list(self, verbose: bool = False) -> str:
         podcasts = self.get_podcasts()
         num_podcasts = len(podcasts) - 1
         episodes_found = False
@@ -106,7 +104,7 @@ class EpisodeLister(Lister):
             yield pod.title
             num_episodes = len(episodes) - 1
             for ep_idx, ep in enumerate(episodes):
-                if self._verbose:
+                if verbose:
                     yield self._get_verbose_episode_listing(ep)
                     if ep_idx < num_episodes:
                         yield ""
@@ -192,7 +190,7 @@ class PodcastLister(Lister):
     def _podcast_filters(self):
         return {**self._tag_filters, **super()._podcast_filters}
 
-    def list(self) -> str:
+    def list(self, verbose: bool = False) -> str:
         podcasts = self.get_podcasts()
 
         if not podcasts:
@@ -200,7 +198,7 @@ class PodcastLister(Lister):
 
         num_podcasts = len(podcasts) - 1
         for idx, pod in enumerate(podcasts):
-            if self._verbose:
+            if verbose:
                 yield self._get_verbose_podcast_listing(pod)
                 if idx < num_podcasts:
                     yield ""
@@ -246,7 +244,6 @@ def get_lister_from_command_arguments(
     podcast_title: Optional[str] = None,
     tags: Optional[List[str]] = None,
     list_untagged_items: bool = None,
-    verbose: bool = False,
 ):
     list_episodes = list_episodes or podcast_title
     if list_episodes:
@@ -260,5 +257,4 @@ def get_lister_from_command_arguments(
         podcast_title=podcast_title,
         tags=tags,
         list_untagged_items=list_untagged_items,
-        verbose=verbose,
     )
