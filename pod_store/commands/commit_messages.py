@@ -1,5 +1,5 @@
+"""Helpers for building git commit messages."""
 from typing import List, Optional
-
 
 DOWNLOAD_COMMIT_MESSAGE_TEMPLATE = "Downloaded new episodes{tags} for {podcast}."
 REFRESH_COMMIT_MESSAGE_TEMPLATE = "Refreshed {podcast}{tags}."

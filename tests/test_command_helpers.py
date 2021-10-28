@@ -1,8 +1,12 @@
+from unittest.mock import Mock
+
 import click
 import pytest
 
-from unittest.mock import Mock
-
+from pod_store.commands.helpers import (
+    abort_if_false,
+    display_pod_store_error_from_exception,
+)
 from pod_store.exc import (
     EpisodeDoesNotExistError,
     GPGCommandError,
@@ -12,12 +16,6 @@ from pod_store.exc import (
     PodcastExistsError,
     ShellCommandError,
     StoreExistsError,
-)
-
-
-from pod_store.commands.helpers import (
-    abort_if_false,
-    display_pod_store_error_from_exception,
 )
 
 

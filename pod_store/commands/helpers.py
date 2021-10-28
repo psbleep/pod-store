@@ -33,6 +33,14 @@ def abort_if_false(ctx: click.Context, _, value: Any) -> None:
 
 
 def display_pod_store_error_from_exception(exception: Exception):
+    """Match a custom `pod_store` exception to a more friendly error message
+    that is displayed to the user.
+
+    Aborts the Click command process.
+
+    If the exception provided is not found in the custom error -> error message
+    mapping, the exceptin is raised normally.
+    """
     try:
         error_msg_template = POD_STORE_EXCEPTIONS_AND_ERROR_MESSAGE_TEMPLATES[
             exception.__class__

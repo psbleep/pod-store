@@ -15,16 +15,13 @@ from .commands.decorators import (
     save_store_changes,
 )
 from .commands.filtering import get_filter_from_command_arguments
-from .commands.helpers import (
-    abort_if_false,
-    display_pod_store_error_from_exception,
-)
+from .commands.helpers import abort_if_false, display_pod_store_error_from_exception
 from .commands.listing import get_lister_from_command_arguments
 from .commands.tagging import (
     build_commit_message_from_tagger,
     marker,
-    unmarker,
     tagger,
+    unmarker,
     untagger,
 )
 from .store import Store

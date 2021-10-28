@@ -1,13 +1,12 @@
 import click
 import pytest
 
-from pod_store.podcasts import Podcast
 from pod_store.commands.tagging import (
     Tagger,
     Untagger,
     build_commit_message_from_tagger,
 )
-
+from pod_store.podcasts import Podcast
 
 TEST_INTERACTIVE_MODE_TAGGER_HELP_MESSAGE = """Choosing in interactive mode. Options are:
 

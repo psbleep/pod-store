@@ -1,16 +1,16 @@
 import json
 from collections import namedtuple
 from unittest.mock import call
+
 import click
 import pytest
-
-from pod_store.exc import EpisodeDoesNotExistError
 
 from pod_store.commands.decorators import (
     catch_pod_store_errors,
     git_add_and_commit,
     save_store_changes,
 )
+from pod_store.exc import EpisodeDoesNotExistError
 
 from . import TEST_STORE_FILE_PATH
 

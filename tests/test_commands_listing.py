@@ -2,9 +2,9 @@ from collections import namedtuple
 
 import pytest
 
-from pod_store.exc import NoEpisodesFoundError
 from pod_store.commands.filtering import EpisodeFilter, PodcastFilter
 from pod_store.commands.listing import EpisodeLister, PodcastLister
+from pod_store.exc import NoEpisodesFoundError
 
 fake_terminal_size = namedtuple("fake_terminal_size", ["columns"])
 

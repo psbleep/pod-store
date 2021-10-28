@@ -7,9 +7,7 @@ from typing import List, Optional
 from ..episodes import Episode
 from ..exc import NoEpisodesFoundError, NoPodcastsFoundError
 from ..podcasts import Podcast
-
 from .filtering import Filter, get_filter_from_command_arguments
-
 
 EPISODE_LISTING_TEMPLATE = (
     "[{episode_number}] {title}: {short_description_msg!r}{downloaded_msg}{tags_msg}"

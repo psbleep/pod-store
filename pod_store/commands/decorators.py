@@ -9,7 +9,6 @@ import click
 from .. import STORE_GIT_REPO
 from ..exc import ShellCommandError
 from ..util import run_git_command
-
 from .commit_messages import default_commit_message_builder
 from .helpers import display_pod_store_error_from_exception
 

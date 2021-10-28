@@ -1,7 +1,7 @@
 import pytest
 
-from pod_store.exc import NoEpisodesFoundError, NoPodcastsFoundError
 from pod_store.commands.filtering import EpisodeFilter, PodcastFilter
+from pod_store.exc import NoEpisodesFoundError, NoPodcastsFoundError
 
 
 def _get_episode_ids(episodes):
