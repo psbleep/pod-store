@@ -78,6 +78,13 @@ goodbye world (longer description)""",
     ]
 
 
+def test_episode_lister_list_raises_exception_when_no_episodes_found(store):
+    filter = EpisodeFilter(store=store, tags=["whoooooo"])
+    episode_lister = EpisodeLister(filter=filter)
+    with pytest.raises(NoEpisodesFoundError):
+        list(episode_lister.list())
+
+
 def test_podcast_lister_list(podcast_lister):
     assert list(podcast_lister.list()) == [
         "farewell [1]",
@@ -109,10 +116,3 @@ feed: http://hello.world/rss
 created at: {now_formatted}
 updated at: {now_formatted}""",
     ]
-
-
-def test_epiosde_lister_list_raises_exception_when_no_episodes_found(store):
-    filter = EpisodeFilter(store=store, tags=["whoooooo"])
-    episode_lister = EpisodeLister(filter=filter)
-    with pytest.raises(NoEpisodesFoundError):
-        list(episode_lister.list())
