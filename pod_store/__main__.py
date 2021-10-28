@@ -14,6 +14,7 @@ from .commands.decorators import (
     git_add_and_commit,
     save_store_changes,
 )
+from .commands.filtering import get_filter_from_command_arguments
 from .commands.helpers import (
     abort_if_false,
     display_pod_store_error_from_exception,
@@ -161,7 +162,7 @@ def download(
     """Download podcast episodes."""
     store = ctx.obj
 
-    lister = get_lister_from_command_arguments(
+    filter = get_filter_from_command_arguments(
         store=store,
         new_episodes=True,
         list_episodes=True,
@@ -170,7 +171,7 @@ def download(
         list_untagged_items=not is_tagged,
     )
 
-    for ep in lister.get_episodes():
+    for ep in filter.episodes:
         click.echo(f"Downloading: {ep.download_path}.")
         ep.download()
 
@@ -353,10 +354,11 @@ def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
     See the `tag-episodes` command help for usage options.
     """
     store = ctx.obj
-    lister = get_lister_from_command_arguments(store=store, podcast_title=podcast)
-    podcasts = lister.get_podcasts()
+    filter = get_filter_from_command_arguments(store=store, podcast_title=podcast)
 
-    for msg in marker.tag_podcast_episodes(podcasts, interactive_mode=interactive):
+    for msg in marker.tag_podcast_episodes(
+        filter.podcasts, interactive_mode=interactive
+    ):
         click.echo(msg)
 
 
@@ -382,10 +384,10 @@ def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
 def mark_as_old(ctx: click.Context, podcast: Optional[str], interactive: bool):
     """Remove the `new` tag from a group of episodes. Alias for the `untag` command."""
     store = ctx.obj
-    lister = get_lister_from_command_arguments(store=store, podcast_title=podcast)
-    podcasts = lister.get_podcasts()
-
-    for msg in unmarker.tag_podcast_episodes(podcasts, interactive_mode=interactive):
+    filter = get_filter_from_command_arguments(store=store, podcast_title=podcast)
+    for msg in unmarker.tag_podcast_episodes(
+        filter.podcasts, interactive_mode=interactive
+    ):
         click.echo(msg)
 
 
@@ -438,10 +440,10 @@ def refresh(
 ):
     """Refresh podcast episode data from the RSS feed."""
     store = ctx.obj
-    lister = get_lister_from_command_arguments(
+    filter = get_filter_from_command_arguments(
         store=store, podcast_title=podcast, tags=tag, list_untagged_items=not is_tagged
     )
-    for podcast in lister.get_podcasts():
+    for podcast in filter.podcasts:
         click.echo(f"Refreshing {podcast.title}")
         podcast.refresh()
 
@@ -536,11 +538,9 @@ def tag_episodes(
     TAG: arbitrary text tag to apply
     """
     store = ctx.obj
-    lister = get_lister_from_command_arguments(store=store, podcast_title=podcast)
-    podcasts = lister.get_podcasts()
-
+    filter = get_filter_from_command_arguments(store=store, podcast_title=podcast)
     for msg in tagger.tag_podcast_episodes(
-        podcasts, tag=tag, interactive_mode=interactive
+        filter.podcasts, tag=tag, interactive_mode=interactive
     ):
         click.echo(msg)
 
@@ -631,11 +631,9 @@ def untag_episodes(
     TAG: tag to remove
     """
     store = ctx.obj
-    lister = get_lister_from_command_arguments(store=store, podcast_title=podcast)
-    podcasts = lister.get_podcasts()
-
+    filter = get_filter_from_command_arguments(store=store, podcast_title=podcast)
     for msg in untagger.tag_podcast_episodes(
-        podcasts, tag=tag, interactive_mode=interactive
+        filter.podcasts, tag=tag, interactive_mode=interactive
     ):
         click.echo(msg)
 
