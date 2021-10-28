@@ -167,7 +167,7 @@ class BaseTagger(ABC):
             )
         )
         if result == "y":
-            msg = self.tag_episode(episode, tag)
+            msg = self.tag_episode(episode, tag) + "\n"
         elif result == "q":
             raise click.Abort()
         elif result == "b":
