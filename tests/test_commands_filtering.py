@@ -30,7 +30,7 @@ def test_episode_filter_with_tags(store):
 
 
 def test_episode_filter_without_tags(store):
-    filter = EpisodeFilter(store=store, tags=["foo"], list_untagged_items=True)
+    filter = EpisodeFilter(store=store, tags=["foo"], filter_untagged_items=True)
     assert _get_episode_ids(filter.episodes) == ["111", "aaa"]
 
 
@@ -61,7 +61,7 @@ def test_podcast_filter_list_podcasts_with_tags(store):
 
 
 def test_podcast_filter_list_podcasts_without_tags(store):
-    filter = PodcastFilter(store=store, tags=["hello"], list_untagged_items=True)
+    filter = PodcastFilter(store=store, tags=["hello"], filter_untagged_items=True)
     assert _get_podcast_titles(filter.podcasts) == ["farewell", "other"]
 
 

@@ -21,7 +21,7 @@ class Filter(ABC):
         or to episodes that belong to the podcast with the title indicated.
     _tags: list [str] (optional)
         filter results by tags
-    _list_untagged_items: bool (optional)
+    _filter_untagged_items: bool (optional)
         if filtering by tags, indicates that we should look for items WITHOUT the tag(s)
         when this is not set, filtering by tag will return results WITH the tag(s).
 
@@ -35,23 +35,23 @@ class Filter(ABC):
         new_episodes: bool = False,
         podcast_title: Optional[str] = None,
         tags: Optional[List[str]] = None,
-        list_untagged_items: Optional[bool] = None,
+        filter_untagged_items: Optional[bool] = None,
     ) -> None:
         self._store = store
         self._new_episodes = new_episodes
         self._podcast_title = podcast_title
         self._tags = tags
-        self._list_untagged_items = list_untagged_items
+        self._filter_untagged_items = filter_untagged_items
 
     @property
     def _tag_filters(self) -> dict:
         """Build a tag filters dict.
 
         Determines whether to search for presence or absence of tags using the
-        `_list_untagged_items` attribute.
+        `_filter_untagged_items` attribute.
         """
         if self._tags:
-            if self._list_untagged_items:
+            if self._filter_untagged_items:
                 return {tag: False for tag in self._tags}
             else:
                 return {tag: True for tag in self._tags}
@@ -135,14 +135,14 @@ class PodcastFilter(Filter):
 def get_filter_from_command_arguments(
     store: Store,
     new_episodes: bool = False,
-    list_episodes: bool = False,
+    filter_episodes: bool = False,
     podcast_title: Optional[str] = None,
     tags: Optional[List[str]] = None,
-    list_untagged_items: bool = None,
+    filter_untagged_items: bool = None,
 ) -> Union[EpisodeFilter, PodcastFilter]:
     """Helper method for building a filter based on common CLI command arguments."""
-    list_episodes = list_episodes or podcast_title
-    if list_episodes:
+    filter_episodes = filter_episodes or podcast_title
+    if filter_episodes:
         filter_cls = EpisodeFilter
     else:
         filter_cls = PodcastFilter
@@ -152,5 +152,5 @@ def get_filter_from_command_arguments(
         new_episodes=new_episodes,
         podcast_title=podcast_title,
         tags=tags,
-        list_untagged_items=list_untagged_items,
+        filter_untagged_items=filter_untagged_items,
     )

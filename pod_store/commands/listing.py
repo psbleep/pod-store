@@ -228,7 +228,7 @@ def get_lister_from_command_arguments(
     Builds the filter that will be used by the lister first.
     """
     filter = get_filter_from_command_arguments(
-        list_episodes=list_episodes, podcast_title=podcast_title, **kwargs
+        filter_episodes=list_episodes, podcast_title=podcast_title, **kwargs
     )
 
     list_episodes = list_episodes or podcast_title
