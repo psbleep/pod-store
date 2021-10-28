@@ -37,7 +37,16 @@ VERBOSE_PODCAST_LISTING_TEMPLATE = (
 
 
 class Lister(ABC):
-    def __init__(self, filter: Filter):
+    """Base class for the episode and podcast lister classes.
+
+    Seeks to relegate the complexity of presenting data about store items into a
+    single module so it is not bleeding all over `__main__`.
+
+    _filter: an appropriate filter for the type of item you want to list.
+        see the pod_store.commands.filtering module
+    """
+
+    def __init__(self, filter: Filter) -> None:
         self._filter = filter
 
     @abstractmethod
@@ -47,10 +56,20 @@ class Lister(ABC):
 
 class EpisodeLister(Lister):
     def list(self, verbose: bool = False) -> str:
-        podcasts = self._filter.podcasts
+        """List information about the episodes that match the filter.
 
-        num_podcasts = len(podcasts) - 1
+        verbose: bool
+            provide more detailed episode listing
+        """
+        # Usually empty episode groups would be caught in the `EpisodeFilter` when
+        # the `episodes` property was referenced. Since episodes are listed by podcast,
+        # we never directly reference the `episodes` property. As such we have to check
+        # separately for cases where no episodes are found.
         episodes_found = False
+
+        podcasts = self._filter.podcasts
+        num_podcasts = len(podcasts) - 1
+
         for pod_idx, pod in enumerate(podcasts):
             episodes = self._filter.get_podcast_episodes(pod)
             if not episodes:

@@ -2,6 +2,7 @@ from collections import namedtuple
 
 import pytest
 
+from pod_store.exc import NoEpisodesFoundError
 from pod_store.commands.filtering import EpisodeFilter, PodcastFilter
 from pod_store.commands.listing import EpisodeLister, PodcastLister
 
@@ -108,3 +109,10 @@ feed: http://hello.world/rss
 created at: {now_formatted}
 updated at: {now_formatted}""",
     ]
+
+
+def test_epiosde_lister_list_raises_exception_when_no_episodes_found(store):
+    filter = EpisodeFilter(store=store, tags=["whoooooo"])
+    episode_lister = EpisodeLister(filter=filter)
+    with pytest.raises(NoEpisodesFoundError):
+        list(episode_lister.list())
