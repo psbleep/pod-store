@@ -8,8 +8,6 @@ from ..exc import NoEpisodesFoundError, NoPodcastsFoundError
 from ..podcasts import Podcast
 from ..store import Store
 
-from .helpers import get_tag_filters
-
 
 EPISODE_LISTING_TEMPLATE = (
     "[{episode_number}] {title}: {short_description_msg!r}{downloaded_msg}{tags_msg}"
@@ -57,7 +55,10 @@ class Lister(ABC):
     @property
     def _tag_filters(self) -> dict:
         if self._tags:
-            return get_tag_filters(self._tags, is_tagged=not self._list_untagged_items)
+            if self._list_untagged_items:
+                return {tag: False for tag in self._tags}
+            else:
+                return {tag: True for tag in self._tags}
         else:
             return {}
 
@@ -240,11 +241,11 @@ class PodcastLister(Lister):
 
 def get_lister_from_command_arguments(
     store: Store,
-    new_episodes: bool,
-    list_episodes: bool,
-    podcast_title: Optional[str],
-    tags: Optional[List[str]],
-    list_untagged_items: bool,
+    new_episodes: bool = False,
+    list_episodes: bool = False,
+    podcast_title: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+    list_untagged_items: bool = None,
     verbose: bool = False,
 ):
     list_episodes = list_episodes or podcast_title

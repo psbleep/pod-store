@@ -17,8 +17,6 @@ from .commands.decorators import (
 from .commands.helpers import (
     abort_if_false,
     display_pod_store_error_from_exception,
-    get_podcasts,
-    get_tag_filters,
 )
 from .commands.listing import get_lister_from_command_arguments
 from .commands.tagging import (
@@ -356,7 +354,10 @@ def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
     See the `tag-episodes` command help for usage options.
     """
     store = ctx.obj
-    podcasts = get_podcasts(store=store, title=podcast)
+    if podcast:
+        podcasts = store.podcasts.list(title=podcast)
+    else:
+        podcasts = store.podcasts.list()
 
     for msg in marker.tag_podcast_episodes(podcasts, interactive_mode=interactive):
         click.echo(msg)
@@ -384,7 +385,10 @@ def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
 def mark_as_old(ctx: click.Context, podcast: Optional[str], interactive: bool):
     """Remove the `new` tag from a group of episodes. Alias for the `untag` command."""
     store = ctx.obj
-    podcasts = get_podcasts(store=store, title=podcast)
+    if podcast:
+        podcasts = store.podcasts.list(title=podcast)
+    else:
+        podcasts = store.podcasts.list()
 
     for msg in unmarker.tag_podcast_episodes(podcasts, interactive_mode=interactive):
         click.echo(msg)
@@ -439,10 +443,10 @@ def refresh(
 ):
     """Refresh podcast episode data from the RSS feed."""
     store = ctx.obj
-    tag_filters = get_tag_filters(tags=tag, is_tagged=is_tagged)
-    podcasts = get_podcasts(store=store, title=podcast, **tag_filters)
-
-    for podcast in podcasts:
+    lister = get_lister_from_command_arguments(
+        store=store, podcast_title=podcast, tags=tag, list_untagged_items=not is_tagged
+    )
+    for podcast in lister.get_podcasts():
         click.echo(f"Refreshing {podcast.title}")
         podcast.refresh()
 
@@ -537,7 +541,10 @@ def tag_episodes(
     TAG: arbitrary text tag to apply
     """
     store = ctx.obj
-    podcasts = get_podcasts(store=store, title=podcast)
+    if podcast:
+        podcasts = store.podcasts.list(title=podcast)
+    else:
+        podcasts = store.podcasts.list()
     for msg in tagger.tag_podcast_episodes(
         podcasts, tag=tag, interactive_mode=interactive
     ):
@@ -630,7 +637,10 @@ def untag_episodes(
     TAG: tag to remove
     """
     store = ctx.obj
-    podcasts = get_podcasts(store=store, title=podcast)
+    if podcast:
+        podcasts = store.podcasts.list(title=podcast)
+    else:
+        podcasts = store.podcasts.list()
 
     for msg in untagger.tag_podcast_episodes(
         podcasts, tag=tag, interactive_mode=interactive
