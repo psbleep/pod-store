@@ -172,7 +172,7 @@ class PodcastLister(Lister):
         """List information about the episodes that match the filter.
 
         verbose: bool
-            provide more detailed episode listing
+            provide more detailed podcast listing
         """
         podcasts = self._filter.podcasts
 
