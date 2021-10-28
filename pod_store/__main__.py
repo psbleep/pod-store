@@ -8,6 +8,7 @@ from . import GPG_ID, PODCAST_DOWNLOADS_PATH, STORE_FILE_PATH, STORE_PATH
 from .commands.commit_messages import (
     download_commit_message_builder,
     refresh_commit_message_builder,
+    tagger_commit_message_builder,
 )
 from .commands.decorators import (
     catch_pod_store_errors,
@@ -17,13 +18,7 @@ from .commands.decorators import (
 from .commands.filtering import get_filter_from_command_arguments
 from .commands.helpers import abort_if_false, display_pod_store_error_from_exception
 from .commands.listing import get_lister_from_command_arguments
-from .commands.tagging import (
-    build_commit_message_from_tagger,
-    marker,
-    tagger,
-    unmarker,
-    untagger,
-)
+from .commands.tagging import marker, tagger, unmarker, untagger
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
 from .util import run_git_command
@@ -340,9 +335,7 @@ def ls(
     help="(flag): Run this command in interactive mode to select which episodes to "
     "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
-@git_add_and_commit(
-    commit_message_builder=build_commit_message_from_tagger, tagger=marker
-)
+@git_add_and_commit(commit_message_builder=tagger_commit_message_builder, tagger=marker)
 @save_store_changes
 @catch_pod_store_errors
 def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
@@ -374,7 +367,7 @@ def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
     "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
 @git_add_and_commit(
-    commit_message_builder=build_commit_message_from_tagger, tagger=unmarker
+    commit_message_builder=tagger_commit_message_builder, tagger=unmarker
 )
 @save_store_changes
 @catch_pod_store_errors
@@ -482,9 +475,7 @@ def rm(ctx: click.Context, title: str):
     "Note that this is the ID from the `ls --episodes --verbose` listing, not the "
     "episode number.",
 )
-@git_add_and_commit(
-    commit_message_builder=build_commit_message_from_tagger, tagger=tagger
-)
+@git_add_and_commit(commit_message_builder=tagger_commit_message_builder, tagger=tagger)
 @save_store_changes
 @catch_pod_store_errors
 def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
@@ -522,9 +513,7 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     help="(flag): Run this command in interactive mode to select which episodes to "
     "tag, or bulk mode to tag all episodes in the group. Defaults to `--interactive`.",
 )
-@git_add_and_commit(
-    commit_message_builder=build_commit_message_from_tagger, tagger=tagger
-)
+@git_add_and_commit(commit_message_builder=tagger_commit_message_builder, tagger=tagger)
 @save_store_changes
 @catch_pod_store_errors
 def tag_episodes(
@@ -574,7 +563,7 @@ def unencrypt_store(ctx: click.Context):
     "episode number.",
 )
 @git_add_and_commit(
-    commit_message_builder=build_commit_message_from_tagger, tagger=untagger
+    commit_message_builder=tagger_commit_message_builder, tagger=untagger
 )
 @save_store_changes
 @catch_pod_store_errors
@@ -616,7 +605,7 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     "`--interactive`.",
 )
 @git_add_and_commit(
-    commit_message_builder=build_commit_message_from_tagger, tagger=untagger
+    commit_message_builder=tagger_commit_message_builder, tagger=untagger
 )
 @save_store_changes
 @catch_pod_store_errors

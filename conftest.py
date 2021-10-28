@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 import pytest
 
+from pod_store.commands.tagging import Tagger
 from pod_store.episodes import Episode
 from pod_store.podcasts import Podcast
 from pod_store.store import Store
@@ -223,6 +224,15 @@ def episode(now, podcast):
         created_at=now,
         updated_at=now,
         downloaded_at=None,
+    )
+
+
+@pytest.fixture
+def tagger():
+    return Tagger(
+        action="choose",
+        performing_action="choosing",
+        performed_action="chosen",
     )
 
 

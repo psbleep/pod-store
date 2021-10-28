@@ -1,8 +1,13 @@
 """Helpers for building git commit messages."""
 from typing import List, Optional
 
+from .tagging import BaseTagger
+
 DOWNLOAD_COMMIT_MESSAGE_TEMPLATE = "Downloaded new episodes{tags} for {podcast}."
 REFRESH_COMMIT_MESSAGE_TEMPLATE = "Refreshed {podcast}{tags}."
+TAGGER_COMMIT_MESSAGE_TEMPLATE = (
+    "{tagger.capitalized_performed_action} {target} -> {tag!r}{mode}."
+)
 
 
 def default_commit_message_builder(
@@ -85,3 +90,39 @@ def refresh_commit_message_builder(ctx_params: dict) -> str:
         tags = ""
 
     return REFRESH_COMMIT_MESSAGE_TEMPLATE.format(podcast=podcast, tags=tags)
+
+
+def tagger_commit_message_builder(ctx_params: dict, tagger: BaseTagger) -> str:
+    """Builds a `git` commit message from the data encoded in a tagger object.
+
+    See the pod_store.commands.tagging module for more information.
+    """
+    target = _get_commit_message_target(ctx_params)
+    tag = ctx_params.get("tag") or tagger.default_tag
+    mode = _get_commit_message_mode(ctx_params)
+    return TAGGER_COMMIT_MESSAGE_TEMPLATE.format(
+        tagger=tagger, target=target, tag=tag, mode=mode
+    )
+
+
+def _get_commit_message_target(ctx_params: dict) -> str:
+    if "podcast" in ctx_params and "episode" not in ctx_params:
+        podcast = ctx_params.get("podcast")
+        if podcast:
+            return f"{podcast!r} podcast episodes"
+        else:
+            return "all podcast episodes"
+    else:
+        podcast = ctx_params.get("podcast")
+        episode = ctx_params.get("episode")
+        if episode:
+            return f"{podcast!r}, episode {episode!r}"
+        else:
+            return f"podcast {podcast!r}"
+
+
+def _get_commit_message_mode(ctx_params: dict) -> str:
+    if ctx_params.get("interactive"):
+        return " in interactive mode"
+    else:
+        return ""

@@ -2,6 +2,7 @@ from pod_store.commands.commit_messages import (
     default_commit_message_builder,
     download_commit_message_builder,
     refresh_commit_message_builder,
+    tagger_commit_message_builder,
 )
 
 
@@ -94,3 +95,53 @@ def test_refresh_commit_message_builder_for_all_podcasts_without_tags():
 def test_refresh_commit_message_builder_for_single_podcast():
     ctx_params = {"podcast": "foobar"}
     assert refresh_commit_message_builder(ctx_params) == "Refreshed 'foobar'."
+
+
+def test_tagger_commit_message_builder_for_single_podcast(tagger):
+    assert (
+        tagger_commit_message_builder(
+            ctx_params={"podcast": "greetings", "episode": None, "tag": "blessed"},
+            tagger=tagger,
+        )
+        == "Chosen podcast 'greetings' -> 'blessed'."
+    )
+
+
+def test_tagger_commit_message_builder_for_single_episode(tagger):
+    assert (
+        tagger_commit_message_builder(
+            ctx_params={"podcast": "greetings", "episode": "aaa", "tag": "blessed"},
+            tagger=tagger,
+        )
+        == "Chosen 'greetings', episode 'aaa' -> 'blessed'."
+    )
+
+
+def test_tagger_commit_message_builder_for_podcast_episodes_all_podcasts(tagger):
+    assert (
+        tagger_commit_message_builder(
+            ctx_params={"podcast": None, "tag": "blessed"},
+            tagger=tagger,
+        )
+        == "Chosen all podcast episodes -> 'blessed'."
+    )
+
+
+def test_tagger_commit_message_builder_for_podcast_episodes_single_podcast(tagger):
+    assert (
+        tagger_commit_message_builder(
+            ctx_params={"podcast": "greetings", "tag": "blessed"},
+            tagger=tagger,
+        )
+        == "Chosen 'greetings' podcast episodes -> 'blessed'."
+    )
+
+
+def test_tagger_commit_message_builder_for_podcast_interactive_mode(tagger):
+    assert (
+        tagger_commit_message_builder(
+            ctx_params={"podcast": None, "tag": "blessed", "interactive": True},
+            tagger=tagger,
+        )
+        == "Chosen all podcast episodes -> 'blessed' in interactive mode."
+    )

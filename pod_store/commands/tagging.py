@@ -31,11 +31,6 @@ TAGGED_PODCAST_MESSAGE_TEMPLATE = (
 )
 
 
-TAGGER_COMMIT_MESSAGE_TEMPLATE = (
-    "{tagger.capitalized_performed_action} {target} -> {tag!r}{mode}."
-)
-
-
 class BaseTagger(ABC):
     def __init__(
         self,
@@ -146,38 +141,6 @@ class Untagger(BaseTagger):
 
     def _tag_item(self, item: Union[Episode, Podcast], tag: str):
         item.untag(tag)
-
-
-def build_commit_message_from_tagger(ctx_params: dict, tagger: BaseTagger) -> str:
-    target = _get_commit_message_target(ctx_params)
-    tag = ctx_params.get("tag") or tagger.default_tag
-    mode = _get_commit_message_mode(ctx_params)
-    return TAGGER_COMMIT_MESSAGE_TEMPLATE.format(
-        tagger=tagger, target=target, tag=tag, mode=mode
-    )
-
-
-def _get_commit_message_target(ctx_params: dict) -> str:
-    if "podcast" in ctx_params and "episode" not in ctx_params:
-        podcast = ctx_params.get("podcast")
-        if podcast:
-            return f"{podcast!r} podcast episodes"
-        else:
-            return "all podcast episodes"
-    else:
-        podcast = ctx_params.get("podcast")
-        episode = ctx_params.get("episode")
-        if episode:
-            return f"{podcast!r}, episode {episode!r}"
-        else:
-            return f"podcast {podcast!r}"
-
-
-def _get_commit_message_mode(ctx_params: dict) -> str:
-    if ctx_params.get("interactive"):
-        return " in interactive mode"
-    else:
-        return ""
 
 
 marker = Tagger(action="mark", default_tag="new")
