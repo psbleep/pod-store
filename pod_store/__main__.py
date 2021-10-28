@@ -354,10 +354,8 @@ def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
     See the `tag-episodes` command help for usage options.
     """
     store = ctx.obj
-    if podcast:
-        podcasts = store.podcasts.list(title=podcast)
-    else:
-        podcasts = store.podcasts.list()
+    lister = get_lister_from_command_arguments(store=store, podcast_title=podcast)
+    podcasts = lister.get_podcasts()
 
     for msg in marker.tag_podcast_episodes(podcasts, interactive_mode=interactive):
         click.echo(msg)
@@ -385,10 +383,8 @@ def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
 def mark_as_old(ctx: click.Context, podcast: Optional[str], interactive: bool):
     """Remove the `new` tag from a group of episodes. Alias for the `untag` command."""
     store = ctx.obj
-    if podcast:
-        podcasts = store.podcasts.list(title=podcast)
-    else:
-        podcasts = store.podcasts.list()
+    lister = get_lister_from_command_arguments(store=store, podcast_title=podcast)
+    podcasts = lister.get_podcasts()
 
     for msg in unmarker.tag_podcast_episodes(podcasts, interactive_mode=interactive):
         click.echo(msg)
@@ -541,10 +537,9 @@ def tag_episodes(
     TAG: arbitrary text tag to apply
     """
     store = ctx.obj
-    if podcast:
-        podcasts = store.podcasts.list(title=podcast)
-    else:
-        podcasts = store.podcasts.list()
+    lister = get_lister_from_command_arguments(store=store, podcast_title=podcast)
+    podcasts = lister.get_podcasts()
+
     for msg in tagger.tag_podcast_episodes(
         podcasts, tag=tag, interactive_mode=interactive
     ):
@@ -637,10 +632,8 @@ def untag_episodes(
     TAG: tag to remove
     """
     store = ctx.obj
-    if podcast:
-        podcasts = store.podcasts.list(title=podcast)
-    else:
-        podcasts = store.podcasts.list()
+    lister = get_lister_from_command_arguments(store=store, podcast_title=podcast)
+    podcasts = lister.get_podcasts()
 
     for msg in untagger.tag_podcast_episodes(
         podcasts, tag=tag, interactive_mode=interactive
