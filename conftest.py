@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 
 import pytest
 
+from pod_store.commands.tagging import Tagger
+from pod_store.episodes import Episode
 from pod_store.podcasts import Podcast
 from pod_store.store import Store
 from pod_store.store_file_handlers import UnencryptedStoreFileHandler
@@ -43,6 +45,11 @@ def mocked_feedparser_parse(mocker):
 
 
 @pytest.fixture
+def mocked_command_helpers_click_secho(mocker):
+    return mocker.patch("pod_store.commands.helpers.click.secho")
+
+
+@pytest.fixture
 def audio_file_content():
     with open(TEST_AUDIO_FILE_PATH, "rb") as f:
         return f.read()
@@ -74,8 +81,18 @@ def now(freezer):
 
 
 @pytest.fixture
+def now_formatted(now):
+    return now.isoformat()
+
+
+@pytest.fixture
 def yesterday(now):
     return now - timedelta(days=1)
+
+
+@pytest.fixture
+def yesterday_formatted(yesterday):
+    return yesterday.isoformat()
 
 
 @pytest.fixture
@@ -109,7 +126,37 @@ def podcast_episode_data(now, yesterday):
 
 
 @pytest.fixture
-def store_data(now, yesterday, podcast_episode_data):
+def other_podcast_episode_data(now):
+    return {
+        "111": {
+            "id": "111",
+            "episode_number": "0001",
+            "title": "gone",
+            "short_description": "all gone",
+            "long_description": "all gone (longer description)",
+            "url": "http://foo.bar/111.mp3",
+            "tags": ["new", "bar"],
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat(),
+            "downloaded_at": None,
+        },
+        "222": {
+            "id": "222",
+            "episode_number": "0002",
+            "title": "not forgotten",
+            "short_description": "never forgotten",
+            "long_description": "never forgotten (longer description)",
+            "url": "http://foo.bar/222.mp3",
+            "tags": ["foo", "bar"],
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat(),
+            "downloaded_at": None,
+        },
+    }
+
+
+@pytest.fixture
+def store_data(now, yesterday, podcast_episode_data, other_podcast_episode_data):
     return {
         "greetings": {
             "title": "greetings",
@@ -123,20 +170,7 @@ def store_data(now, yesterday, podcast_episode_data):
             "title": "farewell",
             "feed": "http://goodbye.world/rss",
             "tags": [],
-            "episode_data": {
-                "111": {
-                    "id": "111",
-                    "episode_number": "0001",
-                    "title": "gone",
-                    "short_description": "all gone",
-                    "long_description": "all gone (longer description)",
-                    "url": "http://foo.bar/111.mp3",
-                    "tags": ["new", "bar"],
-                    "created_at": now.isoformat(),
-                    "updated_at": now.isoformat(),
-                    "downloaded_at": None,
-                },
-            },
+            "episode_data": other_podcast_episode_data,
             "created_at": yesterday.isoformat(),
             "updated_at": now.isoformat(),
         },
@@ -173,6 +207,32 @@ def podcast(now, podcast_episode_data):
         created_at=now,
         updated_at=now,
         episode_data=podcast_episode_data,
+    )
+
+
+@pytest.fixture
+def episode(now, podcast):
+    return Episode(
+        podcast=podcast,
+        id="aaa",
+        episode_number="0023",
+        title="hello",
+        short_description="hello world",
+        long_description="hello world (longer description)",
+        url="https://www.foo.bar/aaa.mp3",
+        tags=["new"],
+        created_at=now,
+        updated_at=now,
+        downloaded_at=None,
+    )
+
+
+@pytest.fixture
+def tagger():
+    return Tagger(
+        action="choose",
+        performing_action="choosing",
+        performed_action="chosen",
     )
 
 

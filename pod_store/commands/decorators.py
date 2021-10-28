@@ -2,13 +2,14 @@
 
 import functools
 import os
-from typing import Any, Callable, List
+from typing import Any, Callable
 
 import click
 
 from .. import STORE_GIT_REPO
 from ..exc import ShellCommandError
 from ..util import run_git_command
+from .commit_messages import default_commit_message_builder
 from .helpers import display_pod_store_error_from_exception
 
 
@@ -25,36 +26,6 @@ def catch_pod_store_errors(f: Callable) -> Callable:
             display_pod_store_error_from_exception(err)
 
     return catch_pod_store_errors_inner
-
-
-def default_commit_message_builder(
-    ctx_params: dict, message: str, params: List[str] = None
-) -> str:
-    """Helper to build `git` commit messages from the Click command context.
-
-    `message` should be the intended `git` commit message.
-
-    If `message` is a template string, `params` acts as a list of Click context
-    param names that will be passed to the `message` template string as
-    keyword arguments.
-
-    Example:
-
-        default_commit_message_builder(
-            ctx_params={"thing": "world"},
-            message="Hello {thing}.",
-            params=["thing"]
-        )
-
-    Output:
-
-        Hello world.
-
-    See the `git_add_and_commit` decorator for more information.
-    """
-    params = params or []
-    message_kwargs = {p: ctx_params[p] for p in params}
-    return message.format(**message_kwargs)
 
 
 def git_add_and_commit(

@@ -5,27 +5,20 @@ from typing import Any, List, Optional
 import click
 
 from . import GPG_ID, PODCAST_DOWNLOADS_PATH, STORE_FILE_PATH, STORE_PATH
+from .commands.commit_messages import (
+    download_commit_message_builder,
+    refresh_commit_message_builder,
+    tagger_commit_message_builder,
+)
 from .commands.decorators import (
     catch_pod_store_errors,
     git_add_and_commit,
     save_store_changes,
 )
-from .commands.download import download_commit_message_builder
-from .commands.helpers import (
-    abort_if_false,
-    display_pod_store_error_from_exception,
-    get_episodes,
-    get_podcasts,
-    get_tag_filters,
-)
-from .commands.ls import list_episodes_by_podcast, list_podcasts
-from .commands.refresh import refresh_commit_message_builder
-from .commands.tag import tag_commit_message_builder
-from .commands.tag_episodes import (
-    INTERACTIVE_MODE_HELP,
-    handle_episode_tagging,
-    tag_episodes_commit_message_builder,
-)
+from .commands.filtering import get_filter_from_command_arguments
+from .commands.helpers import abort_if_false, display_pod_store_error_from_exception
+from .commands.listing import get_lister_from_command_arguments
+from .commands.tagging import marker, tagger, unmarker, untagger
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
 from .util import run_git_command
@@ -160,11 +153,18 @@ def download(
 ):
     """Download podcast episodes."""
     store = ctx.obj
-    tag_filters = get_tag_filters(tags=tag, is_tagged=is_tagged)
-    episodes = get_episodes(store=store, new=True, podcast_title=podcast, **tag_filters)
 
-    for ep in episodes:
-        click.echo(f"Downloading: {ep.download_path}")
+    filter = get_filter_from_command_arguments(
+        store=store,
+        new_episodes=True,
+        filter_episodes=True,
+        podcast_title=podcast,
+        tags=tag,
+        filter_untagged_items=not is_tagged,
+    )
+
+    for ep in filter.episodes:
+        click.echo(f"Downloading: {ep.download_path}.")
         ep.download()
 
 
@@ -275,10 +275,10 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
     help="(podcast title): List only episodes for the specified podcast.",
 )
 @click.option(
-    "--is-tagged/--not-tagged",
+    "--list-tagged/--not-tagged",
     default=True,
     help="(flag): Search for episodes with or without the supplied tags. "
-    "Defaults to `--is-tagged`. Has no effect if no tags are indicated.",
+    "Defaults to `--list-tagged`. Has no effect if no tags are indicated.",
 )
 @click.option(
     "--tag",
@@ -299,7 +299,7 @@ def ls(
     new: bool,
     episodes: bool,
     podcast: Optional[str],
-    is_tagged: bool,
+    list_tagged: bool,
     tag: List[str],
     verbose: bool,
 ):
@@ -309,33 +309,16 @@ def ls(
     the provided flags and command options.
     """
     store = ctx.obj
-    podcast_title = podcast
-
-    # Assume we are listing episodes if an individual podcast was specified.
-    list_episodes = episodes or podcast
-    tag_filters = get_tag_filters(tags=tag, is_tagged=is_tagged)
-
-    if list_episodes:
-        episode_filters = tag_filters
-        podcast_filters = {}
-        if new:
-            episode_filters["new"] = True
-    else:
-        podcast_filters = tag_filters
-
-    if new:
-        podcast_filters["has_new_episodes"] = True
-
-    podcasts = get_podcasts(store=store, title=podcast_title, **podcast_filters)
-
-    if list_episodes:
-        output = list_episodes_by_podcast(
-            podcasts=podcasts, store=store, verbose=verbose, **episode_filters
-        )
-    else:
-        output = list_podcasts(podcasts, verbose=verbose)
-
-    click.echo(output)
+    lister = get_lister_from_command_arguments(
+        store=store,
+        new_episodes=new,
+        list_episodes=episodes,
+        podcast_title=podcast,
+        list_untagged_items=not list_tagged,
+        tags=tag,
+    )
+    for msg in lister.list(verbose=verbose):
+        click.echo(msg)
 
 
 @cli.command()
@@ -352,12 +335,21 @@ def ls(
     help="(flag): Run this command in interactive mode to select which episodes to "
     "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
+@git_add_and_commit(commit_message_builder=tagger_commit_message_builder, tagger=marker)
+@save_store_changes
+@catch_pod_store_errors
 def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
-    """Add the `new` tag to a group of episodes. Alias for the `tag` command."""
-    # Many of the common decorators are missing from this command. This is to avoid
-    # doubling up the same decorators when we invoke the `untag_episodes` function
-    # below.
-    ctx.invoke(tag_episodes, tag="new", podcast=podcast, interactive=interactive)
+    """Add the `new` tag to a group of episodes.
+
+    See the `tag-episodes` command help for usage options.
+    """
+    store = ctx.obj
+    filter = get_filter_from_command_arguments(store=store, podcast_title=podcast)
+
+    for msg in marker.tag_podcast_episodes(
+        filter.podcasts, interactive_mode=interactive
+    ):
+        click.echo(msg)
 
 
 @cli.command()
@@ -374,12 +366,19 @@ def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
     help="(flag): Run this command in interactive mode to select which episodes to "
     "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
+@git_add_and_commit(
+    commit_message_builder=tagger_commit_message_builder, tagger=unmarker
+)
+@save_store_changes
+@catch_pod_store_errors
 def mark_as_old(ctx: click.Context, podcast: Optional[str], interactive: bool):
     """Remove the `new` tag from a group of episodes. Alias for the `untag` command."""
-    # Many of the common decorators are missing from this command. This is to avoid
-    # doubling up the same decorators when we invoke the `untag_episodes` function
-    # below.
-    ctx.invoke(untag_episodes, tag="new", podcast=podcast, interactive=interactive)
+    store = ctx.obj
+    filter = get_filter_from_command_arguments(store=store, podcast_title=podcast)
+    for msg in unmarker.tag_podcast_episodes(
+        filter.podcasts, interactive_mode=interactive
+    ):
+        click.echo(msg)
 
 
 @cli.command()
@@ -431,10 +430,13 @@ def refresh(
 ):
     """Refresh podcast episode data from the RSS feed."""
     store = ctx.obj
-    tag_filters = get_tag_filters(tags=tag, is_tagged=is_tagged)
-    podcasts = get_podcasts(store=store, title=podcast, **tag_filters)
-
-    for podcast in podcasts:
+    filter = get_filter_from_command_arguments(
+        store=store,
+        podcast_title=podcast,
+        tags=tag,
+        filter_untagged_items=not is_tagged,
+    )
+    for podcast in filter.podcasts:
         click.echo(f"Refreshing {podcast.title}")
         podcast.refresh()
 
@@ -476,10 +478,7 @@ def rm(ctx: click.Context, title: str):
     "Note that this is the ID from the `ls --episodes --verbose` listing, not the "
     "episode number.",
 )
-@git_add_and_commit(
-    commit_message_builder=tag_commit_message_builder,
-    action="tagged",
-)
+@git_add_and_commit(commit_message_builder=tagger_commit_message_builder, tagger=tagger)
 @save_store_changes
 @catch_pod_store_errors
 def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
@@ -494,14 +493,12 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     """
     store = ctx.obj
 
-    podcast = store.podcasts.get(podcast)
+    pod = store.podcasts.get(podcast)
     if episode:
-        ep = podcast.episodes.get(episode)
-        ep.tag(tag)
-        click.echo(f"Tagged {podcast.title}, episode {episode} -> {tag}.")
+        ep = pod.episodes.get(episode)
+        click.echo(tagger.tag_episode(ep, tag=tag))
     else:
-        click.echo(f"Tagged {podcast.title} -> {tag}.")
-        podcast.tag(tag)
+        click.echo(tagger.tag_podcast(pod, tag=tag))
 
 
 @cli.command()
@@ -519,9 +516,7 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     help="(flag): Run this command in interactive mode to select which episodes to "
     "tag, or bulk mode to tag all episodes in the group. Defaults to `--interactive`.",
 )
-@git_add_and_commit(
-    commit_message_builder=tag_episodes_commit_message_builder, action="tagged"
-)
+@git_add_and_commit(commit_message_builder=tagger_commit_message_builder, tagger=tagger)
 @save_store_changes
 @catch_pod_store_errors
 def tag_episodes(
@@ -532,28 +527,11 @@ def tag_episodes(
     TAG: arbitrary text tag to apply
     """
     store = ctx.obj
-    interactive_mode = interactive
-    podcasts = get_podcasts(store=store, title=podcast)
-
-    click.echo(f"Tagging: {tag}.")
-
-    if interactive:
-        click.echo(INTERACTIVE_MODE_HELP.format(action="tag"))
-
-    for pod in podcasts:
-        for ep in pod.episodes.list(**{tag: False}):
-            # `interactive` can get switched from True -> False here, if the user
-            # decides to switch from interactive to bulk-assignment partway through
-            # the list of episodes.
-            confirmed, interactive_mode = handle_episode_tagging(
-                tag=tag,
-                action="tag",
-                interactive_mode=interactive_mode,
-                podcast=pod,
-                episode=ep,
-            )
-            if confirmed:
-                click.echo(f"Tagged {pod.title} -> [{ep.episode_number}] {ep.title}")
+    filter = get_filter_from_command_arguments(store=store, podcast_title=podcast)
+    for msg in tagger.tag_podcast_episodes(
+        filter.podcasts, tag=tag, interactive_mode=interactive
+    ):
+        click.echo(msg)
 
 
 @cli.command()
@@ -571,7 +549,6 @@ def tag_episodes(
 def unencrypt_store(ctx: click.Context):
     """Unencrypt the pod store, saving the data in plaintext instead."""
     store = ctx.obj
-
     store.unencrypt()
     click.echo("Store was unencrypted.")
 
@@ -589,8 +566,7 @@ def unencrypt_store(ctx: click.Context):
     "episode number.",
 )
 @git_add_and_commit(
-    commit_message_builder=tag_commit_message_builder,
-    action="untagged",
+    commit_message_builder=tagger_commit_message_builder, tagger=untagger
 )
 @save_store_changes
 @catch_pod_store_errors
@@ -607,14 +583,12 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
 
     store = ctx.obj
 
-    podcast = store.podcasts.get(podcast)
+    pod = store.podcasts.get(podcast)
     if episode:
-        ep = podcast.episodes.get(episode)
-        ep.untag(tag)
-        click.echo(f"Untagged {podcast.title}, episode {episode} -> {tag}.")
+        ep = pod.episodes.get(episode)
+        click.echo(untagger.tag_episode(ep, tag=tag))
     else:
-        click.echo(f"Untagged {podcast.title} -> {tag}.")
-        podcast.untag(tag)
+        click.echo(untagger.tag_podcast(pod, tag=tag))
 
 
 @cli.command()
@@ -634,8 +608,7 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     "`--interactive`.",
 )
 @git_add_and_commit(
-    commit_message_builder=tag_episodes_commit_message_builder,
-    action="untagged",
+    commit_message_builder=tagger_commit_message_builder, tagger=untagger
 )
 @save_store_changes
 @catch_pod_store_errors
@@ -647,28 +620,11 @@ def untag_episodes(
     TAG: tag to remove
     """
     store = ctx.obj
-    interactive_mode = interactive
-    podcasts = get_podcasts(store=store, title=podcast)
-
-    click.echo(f"Untagging: {tag}.")
-
-    if interactive:
-        click.echo(INTERACTIVE_MODE_HELP.format(action="untag"))
-
-    for pod in podcasts:
-        for ep in pod.episodes.list(**{tag: True}):
-            # `interactive` can get switched from True -> False here, if the user
-            # decides to switch from interactive to bulk-assignment partway through
-            # the list of episodes.
-            confirmed, interactive_mode = handle_episode_tagging(
-                tag=tag,
-                action="untag",
-                interactive_mode=interactive_mode,
-                podcast=pod,
-                episode=ep,
-            )
-            if confirmed:
-                click.echo(f"Untagged {pod.title} -> [{ep.episode_number}] {ep.title}")
+    filter = get_filter_from_command_arguments(store=store, podcast_title=podcast)
+    for msg in untagger.tag_podcast_episodes(
+        filter.podcasts, tag=tag, interactive_mode=interactive
+    ):
+        click.echo(msg)
 
 
 def main() -> None:
