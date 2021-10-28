@@ -1,4 +1,4 @@
-"""Classes that help filter groups of podcasts or episodes."""
+"""Filter groups of podcasts or episodes."""
 from abc import ABC
 from typing import List, Optional, Union
 

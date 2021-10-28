@@ -1,3 +1,4 @@
+"""List information about podcasts or episodes tracked in the store."""
 import string
 from abc import ABC, abstractmethod
 from shutil import get_terminal_size
@@ -55,6 +56,8 @@ class Lister(ABC):
 
 
 class EpisodeLister(Lister):
+    """List information about podcast episodes."""
+
     def list(self, verbose: bool = False) -> str:
         """List information about the episodes that match the filter.
 
@@ -68,7 +71,7 @@ class EpisodeLister(Lister):
         episodes_found = False
 
         podcasts = self._filter.podcasts
-        num_podcasts = len(podcasts) - 1
+        last_pod_idx = len(podcasts) - 1
 
         for pod_idx, pod in enumerate(podcasts):
             episodes = self._filter.get_podcast_episodes(pod)
@@ -77,15 +80,15 @@ class EpisodeLister(Lister):
 
             episodes_found = True
             yield pod.title
-            num_episodes = len(episodes) - 1
+            last_ep_idx = len(episodes) - 1
             for ep_idx, ep in enumerate(episodes):
                 if verbose:
                     yield self._get_verbose_episode_listing(ep)
-                    if ep_idx < num_episodes:
+                    if ep_idx < last_ep_idx:
                         yield ""
                 else:
                     yield self._get_episode_listing(ep)
-            if pod_idx < num_podcasts:
+            if pod_idx < last_pod_idx:
                 yield ""
 
         if not episodes_found:
@@ -124,6 +127,8 @@ class EpisodeLister(Lister):
         else:
             tags_msg = ""
 
+        # The template kwargs have to be gathered for use in the description message
+        # helper anyway. To avoid doing so twice I build a dict for them here.
         template_kwargs = {
             "episode_number": episode.episode_number,
             "title": episode.title,
@@ -138,6 +143,16 @@ class EpisodeLister(Lister):
 
     @staticmethod
     def _get_short_description_msg(short_description: str, **template_kwargs) -> str:
+        """Fit the episode description to the available size of the terminal.
+
+        Finds the available space by seeing how much room is taken up by the episode
+        listing WITHOUT the description.
+
+        Fills in the remaining space with the maximum number of words possible, tries
+        to avoid cutting off words.
+
+        This would break if the first word was too big to fit.
+        """
         terminal_width = get_terminal_size().columns
         short_description_length = terminal_width - len(
             EPISODE_LISTING_TEMPLATE.format(short_description_msg="", **template_kwargs)
@@ -153,17 +168,24 @@ class EpisodeLister(Lister):
 
 
 class PodcastLister(Lister):
+    """List information about podcasts."""
+
     def list(self, verbose: bool = False) -> str:
+        """List information about the episodes that match the filter.
+
+        verbose: bool
+            provide more detailed episode listing
+        """
         podcasts = self._filter.podcasts
 
         if not podcasts:
             raise NoPodcastsFoundError()
 
-        num_podcasts = len(podcasts) - 1
+        last_pod_idx = len(podcasts) - 1
         for idx, pod in enumerate(podcasts):
             if verbose:
                 yield self._get_verbose_podcast_listing(pod)
-                if idx < num_podcasts:
+                if idx < last_pod_idx:
                     yield ""
             else:
                 yield self._get_podcast_listing(pod)
@@ -203,6 +225,10 @@ class PodcastLister(Lister):
 def get_lister_from_command_arguments(
     list_episodes: bool = False, podcast_title: Optional[str] = None, **kwargs
 ):
+    """Helper method for building a lister based on common CLI arguments.
+
+    Builds the filter that will be used by the lister first.
+    """
     filter = get_filter_from_command_arguments(
         list_episodes=list_episodes, podcast_title=podcast_title, **kwargs
     )
