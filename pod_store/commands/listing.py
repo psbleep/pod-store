@@ -70,6 +70,9 @@ class Lister(ABC):
             filters["title"] = self._podcast_title
         return filters
 
+    def get_podcasts(self) -> List[Podcast]:
+        return self._store.podcasts.list(**self._podcast_filters)
+
     @abstractmethod
     def list(self) -> str:
         pass
@@ -83,12 +86,18 @@ class EpisodeLister(Lister):
             filters["new"] = True
         return filters
 
+    def get_episodes(self) -> List[Episode]:
+        episodes = []
+        for pod in self.get_podcasts():
+            episodes.extend(self._get_podcast_episodes(pod))
+        return episodes
+
     def list(self) -> str:
-        podcasts = self._store.podcasts.list(**self._podcast_filters)
+        podcasts = self.get_podcasts()
         num_podcasts = len(podcasts) - 1
         episodes_found = False
         for pod_idx, pod in enumerate(podcasts):
-            episodes = pod.episodes.list(allow_empty=True, **self._episode_filters)
+            episodes = self._get_podcast_episodes(pod)
             if not episodes:
                 continue
 
@@ -107,6 +116,9 @@ class EpisodeLister(Lister):
 
         if not episodes_found:
             raise NoEpisodesFoundError()
+
+    def _get_podcast_episodes(self, podcast: Podcast):
+        return podcast.episodes.list(allow_empty=True, **self._episode_filters)
 
     @staticmethod
     def _get_verbose_episode_listing(e: Episode) -> str:
@@ -180,7 +192,8 @@ class PodcastLister(Lister):
         return {**self._tag_filters, **super()._podcast_filters}
 
     def list(self) -> str:
-        podcasts = self._store.podcasts.list(**self._podcast_filters)
+        podcasts = self.get_podcasts()
+
         if not podcasts:
             raise NoPodcastsFoundError()
 

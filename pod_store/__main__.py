@@ -17,7 +17,6 @@ from .commands.decorators import (
 from .commands.helpers import (
     abort_if_false,
     display_pod_store_error_from_exception,
-    get_episodes,
     get_podcasts,
     get_tag_filters,
 )
@@ -163,10 +162,17 @@ def download(
 ):
     """Download podcast episodes."""
     store = ctx.obj
-    tag_filters = get_tag_filters(tags=tag, is_tagged=is_tagged)
-    episodes = get_episodes(store=store, new=True, podcast_title=podcast, **tag_filters)
 
-    for ep in episodes:
+    lister = get_lister_from_command_arguments(
+        store=store,
+        new_episodes=True,
+        list_episodes=True,
+        podcast_title=podcast,
+        tags=tag,
+        list_untagged_items=not is_tagged,
+    )
+
+    for ep in lister.get_episodes():
         click.echo(f"Downloading: {ep.download_path}.")
         ep.download()
 

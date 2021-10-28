@@ -3,6 +3,7 @@ from collections import namedtuple
 import pytest
 
 from pod_store.exc import NoEpisodesFoundError, NoPodcastsFoundError
+
 from pod_store.commands.listing import EpisodeLister, PodcastLister
 
 
@@ -72,6 +73,11 @@ def test_episode_lister_list_episodes_for_podcast(store):
         "[0023] hello: 'hello' -> new",
         "[0011] goodbye: 'goodbye' [X] -> foo",
     ]
+
+
+def test_episode_lister_get_episodes(store):
+    lister = EpisodeLister(store=store)
+    assert list(map(lambda e: e.id, lister.get_episodes())) == ["111", "aaa"]
 
 
 def test_episode_lister_verbose_mode(yesterday_formatted, now_formatted, store):

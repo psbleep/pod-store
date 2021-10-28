@@ -4,7 +4,6 @@ import pytest
 from click.testing import CliRunner
 
 from pod_store.__main__ import cli
-from pod_store.exc import GPGCommandError, ShellCommandError
 
 from . import (
     TEST_GPG_ID_FILE_PATH,
