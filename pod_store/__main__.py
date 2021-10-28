@@ -314,7 +314,7 @@ def ls(
         new_episodes=new,
         list_episodes=episodes,
         podcast_title=podcast,
-        filter_untagged_items=not list_tagged,
+        list_untagged_items=not list_tagged,
         tags=tag,
     )
     for msg in lister.list(verbose=verbose):
@@ -431,7 +431,10 @@ def refresh(
     """Refresh podcast episode data from the RSS feed."""
     store = ctx.obj
     filter = get_filter_from_command_arguments(
-        store=store, podcast_title=podcast, tags=tag, filter_untagged_items=not is_tagged
+        store=store,
+        podcast_title=podcast,
+        tags=tag,
+        filter_untagged_items=not is_tagged,
     )
     for podcast in filter.podcasts:
         click.echo(f"Refreshing {podcast.title}")

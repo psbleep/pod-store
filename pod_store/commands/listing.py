@@ -221,14 +221,20 @@ class PodcastLister(Lister):
 
 
 def get_lister_from_command_arguments(
-    list_episodes: bool = False, podcast_title: Optional[str] = None, **kwargs
+    list_untagged_items: bool = False,
+    list_episodes: bool = False,
+    podcast_title: Optional[str] = None,
+    **kwargs,
 ):
     """Helper method for building a lister based on common CLI arguments.
 
     Builds the filter that will be used by the lister first.
     """
     filter = get_filter_from_command_arguments(
-        filter_episodes=list_episodes, podcast_title=podcast_title, **kwargs
+        filter_untagged_items=list_untagged_items,
+        filter_episodes=list_episodes,
+        podcast_title=podcast_title,
+        **kwargs,
     )
 
     list_episodes = list_episodes or podcast_title
