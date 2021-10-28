@@ -6,7 +6,8 @@ from typing import List, Optional
 from ..episodes import Episode
 from ..exc import NoEpisodesFoundError, NoPodcastsFoundError
 from ..podcasts import Podcast
-from ..store import Store
+
+from .filtering import Filter, get_filter_from_command_arguments
 
 
 EPISODE_LISTING_TEMPLATE = (
@@ -36,41 +37,8 @@ VERBOSE_PODCAST_LISTING_TEMPLATE = (
 
 
 class Lister(ABC):
-    def __init__(
-        self,
-        store: Store,
-        new_episodes: bool = True,
-        podcast_title: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        list_untagged_items: bool = False,
-    ):
-        self._store = store
-        self._new_episodes = new_episodes
-        self._podcast_title = podcast_title
-        self._tags = tags
-        self._list_untagged_items = list_untagged_items
-
-    @property
-    def _tag_filters(self) -> dict:
-        if self._tags:
-            if self._list_untagged_items:
-                return {tag: False for tag in self._tags}
-            else:
-                return {tag: True for tag in self._tags}
-        else:
-            return {}
-
-    @property
-    def _podcast_filters(self) -> dict:
-        filters = {}
-        if self._new_episodes:
-            filters["has_new_episodes"] = True
-        if self._podcast_title:
-            filters["title"] = self._podcast_title
-        return filters
-
-    def get_podcasts(self) -> List[Podcast]:
-        return self._store.podcasts.list(**self._podcast_filters)
+    def __init__(self, filter: Filter):
+        self._filter = filter
 
     @abstractmethod
     def list(self) -> str:
@@ -78,25 +46,13 @@ class Lister(ABC):
 
 
 class EpisodeLister(Lister):
-    @property
-    def _episode_filters(self):
-        filters = self._tag_filters
-        if self._new_episodes:
-            filters["new"] = True
-        return filters
-
-    def get_episodes(self) -> List[Episode]:
-        episodes = []
-        for pod in self.get_podcasts():
-            episodes.extend(self._get_podcast_episodes(pod))
-        return episodes
-
     def list(self, verbose: bool = False) -> str:
-        podcasts = self.get_podcasts()
+        podcasts = self._filter.podcasts
+
         num_podcasts = len(podcasts) - 1
         episodes_found = False
         for pod_idx, pod in enumerate(podcasts):
-            episodes = self._get_podcast_episodes(pod)
+            episodes = self._filter.get_podcast_episodes(pod)
             if not episodes:
                 continue
 
@@ -115,9 +71,6 @@ class EpisodeLister(Lister):
 
         if not episodes_found:
             raise NoEpisodesFoundError()
-
-    def _get_podcast_episodes(self, podcast: Podcast):
-        return podcast.episodes.list(allow_empty=True, **self._episode_filters)
 
     @staticmethod
     def _get_verbose_episode_listing(e: Episode) -> str:
@@ -181,17 +134,8 @@ class EpisodeLister(Lister):
 
 
 class PodcastLister(Lister):
-    def __init__(self, podcast_title: Optional[str] = None, *args, **kwargs):
-        super().__init__(podcast_title=podcast_title, *args, **kwargs)
-        if podcast_title:
-            self._new_episodes = False
-
-    @property
-    def _podcast_filters(self):
-        return {**self._tag_filters, **super()._podcast_filters}
-
     def list(self, verbose: bool = False) -> str:
-        podcasts = self.get_podcasts()
+        podcasts = self._filter.podcasts
 
         if not podcasts:
             raise NoPodcastsFoundError()
@@ -238,23 +182,16 @@ class PodcastLister(Lister):
 
 
 def get_lister_from_command_arguments(
-    store: Store,
-    new_episodes: bool = False,
-    list_episodes: bool = False,
-    podcast_title: Optional[str] = None,
-    tags: Optional[List[str]] = None,
-    list_untagged_items: bool = None,
+    list_episodes: bool = False, podcast_title: Optional[str] = None, **kwargs
 ):
+    filter = get_filter_from_command_arguments(
+        list_episodes=list_episodes, podcast_title=podcast_title, **kwargs
+    )
+
     list_episodes = list_episodes or podcast_title
     if list_episodes:
         lister_cls = EpisodeLister
     else:
         lister_cls = PodcastLister
 
-    return lister_cls(
-        store=store,
-        new_episodes=new_episodes,
-        podcast_title=podcast_title,
-        tags=tags,
-        list_untagged_items=list_untagged_items,
-    )
+    return lister_cls(filter=filter)

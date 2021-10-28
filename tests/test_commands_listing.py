@@ -2,10 +2,8 @@ from collections import namedtuple
 
 import pytest
 
-from pod_store.exc import NoEpisodesFoundError, NoPodcastsFoundError
-
+from pod_store.commands.filtering import EpisodeFilter, PodcastFilter
 from pod_store.commands.listing import EpisodeLister, PodcastLister
-
 
 fake_terminal_size = namedtuple("fake_terminal_size", ["columns"])
 
@@ -18,20 +16,20 @@ def fake_terminal_width(mocker):
     )
 
 
-def test_episode_lister_list_new_episodes(store):
-    lister = EpisodeLister(store=store, new_episodes=True)
-    assert list(lister.list()) == [
-        "farewell",
-        "[0001] gone: 'all' -> new, bar",
-        "",
-        "greetings",
-        "[0023] hello: 'hello' -> new",
-    ]
+@pytest.fixture
+def episode_lister(store):
+    filter = EpisodeFilter(store=store)
+    return EpisodeLister(filter=filter)
 
 
-def test_episode_lister_list_all_episodes(store):
-    lister = EpisodeLister(store=store, new_episodes=False)
-    assert list(lister.list()) == [
+@pytest.fixture
+def podcast_lister(store):
+    filter = PodcastFilter(store=store)
+    return PodcastLister(filter=filter)
+
+
+def test_episode_lister_list(episode_lister):
+    assert list(episode_lister.list()) == [
         "farewell",
         "[0001] gone: 'all' -> new, bar",
         "[0002] not forgotten: 'never' -> foo, bar",
@@ -42,47 +40,10 @@ def test_episode_lister_list_all_episodes(store):
     ]
 
 
-def test_episode_lister_episodes_with_tags(store):
-    lister = EpisodeLister(store=store, new_episodes=False, tags=["foo"])
-    assert list(lister.list()) == [
-        "farewell",
-        "[0002] not forgotten: 'never' -> foo, bar",
-        "",
-        "greetings",
-        "[0011] goodbye: 'goodbye' [X] -> foo",
-    ]
-
-
-def test_episode_lister_episodes_without_tags(store):
-    lister = EpisodeLister(
-        store=store, new_episodes=False, tags=["foo"], list_untagged_items=True
-    )
-    assert list(lister.list()) == [
-        "farewell",
-        "[0001] gone: 'all' -> new, bar",
-        "",
-        "greetings",
-        "[0023] hello: 'hello' -> new",
-    ]
-
-
-def test_episode_lister_list_episodes_for_podcast(store):
-    lister = EpisodeLister(store=store, new_episodes=False, podcast_title="greetings")
-    assert list(lister.list()) == [
-        "greetings",
-        "[0023] hello: 'hello' -> new",
-        "[0011] goodbye: 'goodbye' [X] -> foo",
-    ]
-
-
-def test_episode_lister_get_episodes(store):
-    lister = EpisodeLister(store=store)
-    assert list(map(lambda e: e.id, lister.get_episodes())) == ["111", "aaa"]
-
-
-def test_episode_lister_list_verbose_mode(yesterday_formatted, now_formatted, store):
-    lister = EpisodeLister(store=store, new_episodes=False)
-    assert list(lister.list(verbose=True)) == [
+def test_episode_lister_list_verbose_mode(
+    yesterday_formatted, now_formatted, episode_lister
+):
+    assert list(episode_lister.list(verbose=True)) == [
         "farewell",
         f"""[0001] gone
 id: 111
@@ -116,38 +77,27 @@ goodbye world (longer description)""",
     ]
 
 
-def test_episode_lister_list_no_episodes_matching_criteria(store):
-    lister = EpisodeLister(store=store, tags=["whooo"])
-    with pytest.raises(NoEpisodesFoundError):
-        list(lister.list())
+def test_podcast_lister_list(podcast_lister):
+    assert list(podcast_lister.list()) == [
+        "farewell [1]",
+        "other",
+        "greetings [1] -> hello",
+    ]
 
 
-def test_podcast_lister_list_podcasts_with_new_episodes(store):
-    lister = PodcastLister(store=store, new_episodes=True)
-    assert list(lister.list()) == ["farewell [1]", "greetings [1] -> hello"]
-
-
-def test_podcast_lister_list_all_podcasts(store):
-    lister = PodcastLister(store=store, new_episodes=False)
-    assert list(lister.list()) == ["farewell [1]", "other", "greetings [1] -> hello"]
-
-
-def test_podcast_lister_list_podcasts_with_tags(store):
-    lister = PodcastLister(store=store, tags=["hello"])
-    assert list(lister.list()) == ["greetings [1] -> hello"]
-
-
-def test_podcast_lister_list_podcasts_without_tags(store):
-    lister = PodcastLister(store=store, tags=["hello"], list_untagged_items=True)
-    assert list(lister.list()) == ["farewell [1]"]
-
-
-def test_podcast_lister_list_verbose_mode(yesterday_formatted, now_formatted, store):
-    lister = PodcastLister(store=store)
-    assert list(lister.list(verbose=True)) == [
+def test_podcast_lister_list_verbose_mode(
+    yesterday_formatted, now_formatted, podcast_lister
+):
+    assert list(podcast_lister.list(verbose=True)) == [
         f"""farewell
 1 new episodes
 feed: http://goodbye.world/rss
+created at: {yesterday_formatted}
+updated at: {now_formatted}""",
+        "",
+        f"""other
+0 new episodes
+feed: http://other.thing/rss
 created at: {yesterday_formatted}
 updated at: {now_formatted}""",
         "",
@@ -158,21 +108,3 @@ feed: http://hello.world/rss
 created at: {now_formatted}
 updated at: {now_formatted}""",
     ]
-
-
-def test_podcast_lister_single_podcast(store):
-    lister = PodcastLister(store=store, new_episodes=True, podcast_title="farewell")
-    assert list(lister.list()) == ["farewell [1]"]
-
-
-def test_podcast_lister_list_single_podcast_will_list_podcast_without_new_episodes(
-    store,
-):
-    lister = PodcastLister(store=store, new_episodes=True, podcast_title="other")
-    assert list(lister.list()) == ["other"]
-
-
-def test_podcast_lister_without_podcasts_matching_criteria(store):
-    lister = PodcastLister(store=store, tags=["super"])
-    with pytest.raises(NoPodcastsFoundError):
-        list(lister.list())

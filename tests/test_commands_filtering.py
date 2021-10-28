@@ -1,3 +1,6 @@
+import pytest
+
+from pod_store.exc import NoEpisodesFoundError, NoPodcastsFoundError
 from pod_store.commands.filtering import EpisodeFilter, PodcastFilter
 
 
@@ -36,6 +39,12 @@ def test_episode_filter_for_podcast(store):
     assert _get_episode_ids(filter.episodes) == ["aaa", "zzz"]
 
 
+def test_episode_filter_raises_exception_if_no_episodes_found(store):
+    filter = EpisodeFilter(store=store, tags=["whoooo"])
+    with pytest.raises(NoEpisodesFoundError):
+        filter.episodes
+
+
 def test_podcast_filter_all_podcasts(store):
     filter = PodcastFilter(store=store)
     assert _get_podcast_titles(filter.podcasts) == ["farewell", "other", "greetings"]
@@ -59,3 +68,9 @@ def test_podcast_filter_list_podcasts_without_tags(store):
 def test_podcast_filter_single_podcast(store):
     filter = PodcastFilter(store=store, new_episodes=True, podcast_title="farewell")
     assert _get_podcast_titles(filter.podcasts) == ["farewell"]
+
+
+def test_podcast_filter_raises_exception_if_no_podcasts_found(store):
+    filter = PodcastFilter(store=store, tags=["whoooo"])
+    with pytest.raises(NoPodcastsFoundError):
+        filter.podcasts

@@ -2,6 +2,7 @@ from abc import ABC
 from typing import List, Optional
 
 from ..episodes import Episode
+from ..exc import NoEpisodesFoundError, NoPodcastsFoundError
 from ..podcasts import Podcast
 from ..store import Store
 
@@ -42,7 +43,10 @@ class Filter(ABC):
 
     @property
     def podcasts(self) -> List[Podcast]:
-        return self._store.podcasts.list(**self._podcast_filters)
+        podcasts = self._store.podcasts.list(**self._podcast_filters)
+        if not podcasts:
+            raise NoPodcastsFoundError()
+        return podcasts
 
 
 class EpisodeFilter(Filter):
@@ -57,10 +61,12 @@ class EpisodeFilter(Filter):
     def episodes(self) -> List[Episode]:
         episodes = []
         for pod in self.podcasts:
-            episodes.extend(self._get_podcast_episodes(pod))
+            episodes.extend(self.get_podcast_episodes(pod))
+        if not episodes:
+            raise NoEpisodesFoundError()
         return episodes
 
-    def _get_podcast_episodes(self, podcast: Podcast):
+    def get_podcast_episodes(self, podcast: Podcast):
         return podcast.episodes.list(allow_empty=True, **self._episode_filters)
 
 
