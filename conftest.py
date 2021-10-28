@@ -44,6 +44,11 @@ def mocked_feedparser_parse(mocker):
 
 
 @pytest.fixture
+def mocked_command_helpers_click_secho(mocker):
+    return mocker.patch("pod_store.commands.helpers.click.secho")
+
+
+@pytest.fixture
 def audio_file_content():
     with open(TEST_AUDIO_FILE_PATH, "rb") as f:
         return f.read()

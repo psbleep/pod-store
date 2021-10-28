@@ -18,10 +18,8 @@ fake_ctx = namedtuple("fake_ctx", ["obj", "params"])
 
 
 def test_catch_pod_store_errors_decorator_aborts_command_and_displays_error_message(
-    mocker,
+    mocked_command_helpers_click_secho,
 ):
-    mocked_click_secho = mocker.patch("pod_store.commands.helpers.click.secho")
-
     @catch_pod_store_errors
     def raise_error():
         raise EpisodeDoesNotExistError("hello")
@@ -29,7 +27,9 @@ def test_catch_pod_store_errors_decorator_aborts_command_and_displays_error_mess
     with pytest.raises(click.Abort):
         raise_error()
 
-    mocked_click_secho.assert_called_with("Episode not found: hello.", fg="red")
+    mocked_command_helpers_click_secho.assert_called_with(
+        "Episode not found: hello.", fg="red"
+    )
 
 
 def test_git_add_and_commit_adds_changes_and_builds_commit_message(mocker):
