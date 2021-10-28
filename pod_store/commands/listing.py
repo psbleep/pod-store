@@ -5,7 +5,7 @@ from shutil import get_terminal_size
 from typing import List, Optional
 
 from ..episodes import Episode
-from ..exc import NoEpisodesFoundError, NoPodcastsFoundError
+from ..exc import NoEpisodesFoundError
 from ..podcasts import Podcast
 from .filtering import Filter, get_filter_from_command_arguments
 
@@ -175,9 +175,6 @@ class PodcastLister(Lister):
             provide more detailed podcast listing
         """
         podcasts = self._filter.podcasts
-
-        if not podcasts:
-            raise NoPodcastsFoundError()
 
         last_pod_idx = len(podcasts) - 1
         for idx, pod in enumerate(podcasts):
