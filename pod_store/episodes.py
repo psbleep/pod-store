@@ -155,6 +155,7 @@ class Episode:
 
         f = music_tag.load_file(download_path)
         f["artist"] = self.podcast.title
+        f["album"] = self.podcast.title
         f["album_artist"] = self.podcast.title
         f["title"] = self.title
         f["track_title"] = self.title

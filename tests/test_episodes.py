@@ -59,6 +59,7 @@ def test_episode_download(now, audio_file_content, episode):
 
     metadata = music_tag.load_file(episode.download_path)
     assert metadata["artist"].value == "greetings"
+    assert metadata["album"].value == "greetings"
     assert metadata["album_artist"].value == "greetings"
     assert metadata["title"].value == "hello"
     assert metadata["track_title"].value == "hello"
