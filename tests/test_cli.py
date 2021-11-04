@@ -1,8 +1,7 @@
 import os
 
-import requests
-
 import pytest
+import requests
 from click.testing import CliRunner
 
 from pod_store.__main__ import cli
