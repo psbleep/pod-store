@@ -451,7 +451,7 @@ def refresh(
         click.echo(f"Refreshing {podcast.title}")
         try:
             podcast.refresh()
-        except requests.ReadTimeout:
+        except requests.ConnectTimeout:
             click.secho("Error: timed out when reading RSS feed.", fg="red")
 
 

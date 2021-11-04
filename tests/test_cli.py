@@ -267,7 +267,7 @@ def test_refresh_podcasts_without_tag(runner):
 
 
 def test_refresh_podcast_times_out(mocked_requests_get, runner):
-    mocked_requests_get.configure_mock(**{"side_effect": requests.ReadTimeout()})
+    mocked_requests_get.configure_mock(**{"side_effect": requests.ConnectTimeout()})
     result = runner.invoke(cli, ["refresh", "-p", "greetings"])
     assert result.exit_code == 0
     assert "timed out" in result.output
