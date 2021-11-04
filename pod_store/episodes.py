@@ -12,7 +12,7 @@ from typing import Any, List, Optional, Type, TypeVar
 import music_tag
 import requests
 
-from . import DO_NOT_SET_EPISODE_METADATA, util
+from . import EPISODE_DOWNLOAD_TIMEOUT, DO_NOT_SET_EPISODE_METADATA, util
 
 DOWNLOAD_CHUNK_SIZE = 2000
 
@@ -44,7 +44,9 @@ class EpisodeDownloadManager:
         self._episode = episode
 
     def __enter__(self):
-        response = requests.get(self._episode.url, stream=True)
+        response = requests.get(
+            self._episode.url, stream=True, timeout=EPISODE_DOWNLOAD_TIMEOUT
+        )
 
         try:
             download_length = math.ceil(
