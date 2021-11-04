@@ -2,7 +2,7 @@
 
 import functools
 import os
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 import click
 
@@ -26,6 +26,22 @@ def catch_pod_store_errors(f: Callable) -> Callable:
             display_pod_store_error_from_exception(err)
 
     return catch_pod_store_errors_inner
+
+
+def prompt_for_confirmation(
+    param: str, value: Any, override: Optional[str] = None
+) -> Callable:
+    def prompt_for_confirmation_wrapper(f: Callable) -> Callable:
+        @functools.wraps(f)
+        def prompt_for_confirmation_inner(ctx, *args, **kwargs):
+            if ctx.params.get(param) == value and not ctx.params.get(override) is True:
+                if click.prompt("Confirm?", type=click.Choice(["y", "n"])) != "y":
+                    raise click.Abort()
+            return f(ctx, *args, **kwargs)
+
+        return prompt_for_confirmation_inner
+
+    return prompt_for_confirmation_wrapper
 
 
 def git_add_and_commit(
