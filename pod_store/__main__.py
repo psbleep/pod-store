@@ -111,10 +111,10 @@ def cli(ctx):
 @click.pass_context
 @click.argument("title")
 @click.argument("feed")
+@catch_pod_store_errors
 @require_store
 @git_add_and_commit(message="Added podcast: {title!r}.", params=["title"])
 @save_store_changes
-@catch_pod_store_errors
 def add(ctx: click.Context, title: str, feed: str):
     """Add a podcast to the store.
 
@@ -147,10 +147,10 @@ def add(ctx: click.Context, title: str, feed: str):
     default=[],
     help="Supply tags to search for episodes with. Multiple tags can be provided.",
 )
+@catch_pod_store_errors
 @require_store
 @git_add_and_commit(commit_message_builder=download_commit_message_builder)
 @save_store_changes
-@catch_pod_store_errors
 def download(
     ctx: click.Context, podcast: Optional[str], is_tagged: bool, tag: List[str]
 ):
@@ -183,6 +183,7 @@ def download(
     prompt="Are you sure you want to encrypt the pod store?",
     help="Skip the confirmation prompt.",
 )
+@catch_pod_store_errors
 @require_store
 @git_add_and_commit(message="Encrypted the store.")
 def encrypt_store(ctx: click.Context, gpg_id: str):
@@ -297,8 +298,8 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
     help="(flag): Determines how much detail to provide in the listing. "
     "Defaults to `--not-verbose`.",
 )
-@require_store
 @catch_pod_store_errors
+@require_store
 def ls(
     ctx: click.Context,
     new: bool,
@@ -340,10 +341,10 @@ def ls(
     help="(flag): Run this command in interactive mode to select which episodes to "
     "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
+@catch_pod_store_errors
 @require_store
 @git_add_and_commit(commit_message_builder=tagger_commit_message_builder, tagger=marker)
 @save_store_changes
-@catch_pod_store_errors
 def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
     """Add the `new` tag to a group of episodes.
 
@@ -372,12 +373,12 @@ def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
     help="(flag): Run this command in interactive mode to select which episodes to "
     "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
+@catch_pod_store_errors
 @require_store
 @git_add_and_commit(
     commit_message_builder=tagger_commit_message_builder, tagger=unmarker
 )
 @save_store_changes
-@catch_pod_store_errors
 def mark_as_old(ctx: click.Context, podcast: Optional[str], interactive: bool):
     """Remove the `new` tag from a group of episodes. Alias for the `untag` command."""
     store = ctx.obj
@@ -392,12 +393,12 @@ def mark_as_old(ctx: click.Context, podcast: Optional[str], interactive: bool):
 @click.pass_context
 @click.argument("old")
 @click.argument("new")
+@catch_pod_store_errors
 @require_store
 @git_add_and_commit(
     message="Renamed podcast: {old!r} -> {new!r}.", params=["old", "new"]
 )
 @save_store_changes
-@catch_pod_store_errors
 def mv(ctx: click.Context, old: str, new: str):
     """Rename a podcast in the store.
 
@@ -430,10 +431,10 @@ def mv(ctx: click.Context, old: str, new: str):
     default=[],
     help="Filter podcasts by tag. Multiple tags can be provided.",
 )
+@catch_pod_store_errors
 @require_store
 @git_add_and_commit(commit_message_builder=refresh_commit_message_builder)
 @save_store_changes
-@catch_pod_store_errors
 def refresh(
     ctx: click.Context, podcast: Optional[str], is_tagged: bool, tag: List[str]
 ):
@@ -462,10 +463,10 @@ def refresh(
     prompt="Are you sure you want to delete this podcast?",
     help="Skip confirmation prompt.",
 )
+@catch_pod_store_errors
 @require_store
 @git_add_and_commit(message="Removed podcast: {title!r}.", params=["title"])
 @save_store_changes
-@catch_pod_store_errors
 def rm(ctx: click.Context, title: str):
     """Remove a podcast from the store. This command will NOT delete the podcast
     episodes that have been downloaded.
@@ -488,10 +489,10 @@ def rm(ctx: click.Context, title: str):
     "Note that this is the ID from the `ls --episodes --verbose` listing, not the "
     "episode number.",
 )
+@catch_pod_store_errors
 @require_store
 @git_add_and_commit(commit_message_builder=tagger_commit_message_builder, tagger=tagger)
 @save_store_changes
-@catch_pod_store_errors
 def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     """Tag a single podcast or episode with an arbitrary text tag. If the optional
     episode ID is provided, it will be tagged. Otherwise, the podcast itself will
@@ -527,10 +528,10 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     help="(flag): Run this command in interactive mode to select which episodes to "
     "tag, or bulk mode to tag all episodes in the group. Defaults to `--interactive`.",
 )
+@catch_pod_store_errors
 @require_store
 @git_add_and_commit(commit_message_builder=tagger_commit_message_builder, tagger=tagger)
 @save_store_changes
-@catch_pod_store_errors
 def tag_episodes(
     ctx: click.Context, tag: str, podcast: Optional[str], interactive: bool
 ):
@@ -557,6 +558,7 @@ def tag_episodes(
     prompt="Are you sure you want to unencrypt the pod store?",
     help="Skip the confirmation prompt.",
 )
+@catch_pod_store_errors
 @require_store
 @git_add_and_commit(message="Unencrypted the store.")
 def unencrypt_store(ctx: click.Context):
@@ -578,12 +580,12 @@ def unencrypt_store(ctx: click.Context):
     "Note that this is the ID from the `ls --episodes --verbose` listing, not the "
     "episode number.",
 )
+@catch_pod_store_errors
 @require_store
 @git_add_and_commit(
     commit_message_builder=tagger_commit_message_builder, tagger=untagger
 )
 @save_store_changes
-@catch_pod_store_errors
 def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     """Untag a single podcast or episode. If the optional episode ID is provided,
     it will be untagged. Otherwise, the podcast itself will be untagged.
@@ -621,12 +623,12 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     "untag, or bulk mode to untag all episodes in the group. Defaults to "
     "`--interactive`.",
 )
+@catch_pod_store_errors
 @require_store
 @git_add_and_commit(
     commit_message_builder=tagger_commit_message_builder, tagger=untagger
 )
 @save_store_changes
-@catch_pod_store_errors
 def untag_episodes(
     ctx: click.Context, tag: str, podcast: Optional[str], interactive: bool
 ):
