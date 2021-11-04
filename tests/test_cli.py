@@ -1,5 +1,7 @@
 import os
 
+import requests
+
 import pytest
 from click.testing import CliRunner
 
@@ -262,6 +264,13 @@ def test_refresh_podcasts_without_tag(runner):
     result = runner.invoke(cli, ["refresh", "--not-tagged", "-t", "hello"])
     assert result.exit_code == 0
     assert result.output == "Refreshing farewell\nRefreshing other\n"
+
+
+def test_refresh_podcast_times_out(mocked_requests_get, runner):
+    mocked_requests_get.configure_mock(**{"side_effect": requests.ReadTimeout()})
+    result = runner.invoke(cli, ["refresh", "-p", "greetings"])
+    assert result.exit_code == 0
+    assert "timed out" in result.output
 
 
 def test_rm(runner):

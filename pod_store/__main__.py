@@ -3,6 +3,7 @@ import os
 from typing import Any, List, Optional
 
 import click
+import requests
 
 from . import GPG_ID, PODCAST_DOWNLOADS_PATH, STORE_FILE_PATH, STORE_PATH
 from .commands.commit_messages import (
@@ -448,7 +449,10 @@ def refresh(
     )
     for podcast in filter.podcasts:
         click.echo(f"Refreshing {podcast.title}")
-        podcast.refresh()
+        try:
+            podcast.refresh()
+        except requests.ReadTimeout:
+            click.secho("Error: timed out when reading RSS feed.", fg="red")
 
 
 @cli.command()
