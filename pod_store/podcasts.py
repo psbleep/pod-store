@@ -10,7 +10,7 @@ from typing import Any, List, Optional, Type, TypeVar
 import feedparser
 import requests
 
-from . import PODCAST_DOWNLOADS_PATH, util
+from . import PODCAST_DOWNLOADS_PATH, PODCAST_REFRESH_TIMEOUT, util
 from .episodes import Episode
 from .exc import EpisodeDoesNotExistError, NoEpisodesFoundError
 
@@ -199,7 +199,7 @@ class Podcast:
         """
         episodes_seen = []
 
-        resp = requests.get(self.feed, timeout=15)
+        resp = requests.get(self.feed, timeout=PODCAST_REFRESH_TIMEOUT)
         content = BytesIO(resp.content)
         feed_data = feedparser.parse(content)
 
