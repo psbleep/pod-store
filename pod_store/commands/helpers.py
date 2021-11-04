@@ -11,6 +11,7 @@ from ..exc import (
     PodcastDoesNotExistError,
     PodcastExistsError,
     ShellCommandError,
+    StoreDoesNotExistError,
     StoreExistsError,
 )
 
@@ -22,6 +23,9 @@ POD_STORE_EXCEPTIONS_AND_ERROR_MESSAGE_TEMPLATES = {
     PodcastDoesNotExistError: "Podcast not found: {}.",
     PodcastExistsError: "Podcast with title already exists: {}.",
     ShellCommandError: "Error running shell command: {}.",
+    StoreDoesNotExistError: (
+        "Store has not been set up. See the `init` command for set up instructions."
+    ),
     StoreExistsError: "Store already initialized: {}.",
 }
 
