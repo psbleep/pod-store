@@ -21,6 +21,16 @@ P = TypeVar("Podcast")
 
 
 class EpisodeDownloader:
+    """Iterator class that handles downloading a podcast episode, dispatched by the
+    `EpisodeDownloadManager` context manager class.
+
+    A regular generator function defined on the context manager class would be the most
+    obvious approach here, except that it cannot hold a `length` attribute to enable
+    constructing status indicators (e.g. progress bars).
+
+    Defining this custom iterator class allows setting that `length` attribute.
+    """
+
     def __init__(
         self,
         path: str,
@@ -40,6 +50,18 @@ class EpisodeDownloader:
 
 
 class EpisodeDownloadManager:
+    """Context manager for downloading a podcast episode.
+
+    Makes the download request and passes off the details of downloading to an iterator
+    class that handles the process.
+
+    If the download is finished successfully:
+
+        - Sets the episode downloaded-at timestamp
+        - Untags the episode as "new"
+        - Tags the audio file metadata
+    """
+
     def __init__(self, episode: E) -> None:
         self._episode = episode
 
