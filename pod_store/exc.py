@@ -36,5 +36,9 @@ class ShellCommandError(Exception):
     pass
 
 
+class StoreDoesNotExistError(Exception):
+    pass
+
+
 class StoreExistsError(Exception):
     pass

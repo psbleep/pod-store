@@ -7,7 +7,7 @@ from typing import Any, Callable
 import click
 
 from .. import STORE_GIT_REPO
-from ..exc import ShellCommandError
+from ..exc import ShellCommandError, StoreDoesNotExistError
 from ..util import run_git_command
 from .commit_messages import default_commit_message_builder
 from .helpers import display_pod_store_error_from_exception
@@ -70,6 +70,16 @@ def git_add_and_commit(
         return git_add_and_commit_inner
 
     return git_add_and_commit_wrapper
+
+
+def require_store(f: Callable) -> Callable:
+    @functools.wraps(f)
+    def require_store_inner(ctx: click.Context, *args, **kwargs):
+        if not ctx.obj:
+            raise StoreDoesNotExistError()
+        return f(ctx, *args, **kwargs)
+
+    return require_store_inner
 
 
 def save_store_changes(f: Callable) -> Callable:
