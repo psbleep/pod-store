@@ -20,7 +20,13 @@ from .commands.decorators import (
 from .commands.filtering import get_filter_from_command_arguments
 from .commands.helpers import abort_if_false, display_pod_store_error_from_exception
 from .commands.listing import get_lister_from_command_arguments
-from .commands.tagging import marker, tagger, unmarker, untagger
+from .commands.tagging import (
+    prompt_for_confirmation_in_bulk_mode,
+    marker,
+    tagger,
+    unmarker,
+    untagger,
+)
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
 from .util import run_git_command
@@ -348,15 +354,27 @@ def ls(
     help="(flag): Run this command in interactive mode to select which episodes to "
     "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
+@click.option(
+    "-f",
+    "--force",
+    is_flag=True,
+    help="Skip confirmation prompt for bulk mode actions.",
+)
 @catch_pod_store_errors
 @require_store
 @git_add_and_commit(commit_message_builder=tagger_commit_message_builder, tagger=marker)
 @save_store_changes
-def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
+def mark_as_new(
+    ctx: click.Context,
+    podcast: Optional[str],
+    interactive: bool,
+    force: Optional[bool],
+):
     """Add the `new` tag to a group of episodes.
 
     See the `tag-episodes` command help for usage options.
     """
+    prompt_for_confirmation_in_bulk_mode(interactive=interactive, force=force)
     store = ctx.obj
     filter = get_filter_from_command_arguments(store=store, podcast_title=podcast)
 
