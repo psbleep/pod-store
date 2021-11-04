@@ -58,15 +58,17 @@ def audio_file_content():
 # Autouse to prevent real network calls during tests.
 @pytest.fixture(autouse=True)
 def mocked_requests_get(audio_file_content, mocker):
+    # Provide fake data for both `iter_content`  attribute (episode download tests)
+    # and `content` attribute (podcast RSS refresh tests).
+    fake_response = namedtuple("FakeResponse", ["iter_content", "content"])
     stream_content = [audio_file_content]
 
     def iter_content(_):
         for chunk in stream_content:
             yield chunk
 
-    fake_response = namedtuple("FakeResponse", "iter_content")
-    resp = fake_response(iter_content=iter_content)
-    return mocker.patch("pod_store.episodes.requests.get", return_value=resp)
+    resp = fake_response(iter_content=iter_content, content=b"")
+    return mocker.patch("requests.get", return_value=resp)
 
 
 # Autouse to prevent real shell commands being run during tests.

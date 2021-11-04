@@ -4,9 +4,11 @@ Podcast objects are created/managed using the `pod_store.store.StorePodcasts` cl
 import os
 import re
 from datetime import datetime
+from io import BytesIO
 from typing import Any, List, Optional, Type, TypeVar
 
 import feedparser
+import requests
 
 from . import PODCAST_DOWNLOADS_PATH, util
 from .episodes import Episode
@@ -197,7 +199,10 @@ class Podcast:
         """
         episodes_seen = []
 
-        feed_data = feedparser.parse(self.feed)
+        resp = requests.get(self.feed, timeout=15)
+        content = BytesIO(resp.content)
+        feed_data = feedparser.parse(content)
+
         number_of_entries = len(feed_data.entries)
         for entry_number, raw_data in enumerate(feed_data.entries):
             episode_data = self._parse_episode_feed_data(**raw_data)
