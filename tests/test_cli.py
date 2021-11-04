@@ -27,6 +27,11 @@ def runner():
     return CliRunner()
 
 
+@pytest.fixture
+def timed_out_request(mocked_requests_get):
+    mocked_requests_get.configure_mock(**{"side_effect": requests.ConnectTimeout()})
+
+
 def test_add(runner):
     result = runner.invoke(cli, ["add", "hello", "https://www.hello.world/rss"])
     assert result.exit_code == 0
@@ -36,27 +41,33 @@ def test_download_all_new_podcast_episodes(runner):
     result = runner.invoke(cli, ["download"])
     assert result.exit_code == 0
     assert result.output == (
-        f"Downloading: {TEST_OTHER_EPISODE_DOWNLOAD_PATH}.\n"
-        f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n"
+        f"Downloading: {TEST_OTHER_EPISODE_DOWNLOAD_PATH}.\n\n"
+        f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n\n"
     )
 
 
 def test_download_single_podcast_new_episodes(runner):
     result = runner.invoke(cli, ["download", "-p", "greetings"])
     assert result.exit_code == 0
-    assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n"
+    assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n\n"
 
 
 def test_download_new_episodes_with_tag(runner):
     result = runner.invoke(cli, ["download", "-t", "bar"])
     assert result.exit_code == 0
-    assert result.output == f"Downloading: {TEST_OTHER_EPISODE_DOWNLOAD_PATH}.\n"
+    assert result.output == f"Downloading: {TEST_OTHER_EPISODE_DOWNLOAD_PATH}.\n\n"
 
 
 def test_download_new_episodes_without_tag(runner):
     result = runner.invoke(cli, ["download", "--not-tagged", "-t", "bar"])
     assert result.exit_code == 0
-    assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n"
+    assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n\n"
+
+
+def test_download_times_out(timed_out_request, runner):
+    result = runner.invoke(cli, ["download", "-p", "greetings"])
+    assert result.exit_code == 0
+    assert "timed out" in result.output
 
 
 def test_encrypt_store(runner):
@@ -265,8 +276,7 @@ def test_refresh_podcasts_without_tag(runner):
     assert result.output == "Refreshing farewell\nRefreshing other\n"
 
 
-def test_refresh_podcast_times_out(mocked_requests_get, runner):
-    mocked_requests_get.configure_mock(**{"side_effect": requests.ConnectTimeout()})
+def test_refresh_podcast_times_out(timed_out_request, runner):
     result = runner.invoke(cli, ["refresh", "-p", "greetings"])
     assert result.exit_code == 0
     assert "timed out" in result.output

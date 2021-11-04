@@ -155,6 +155,7 @@ A similar command allows untagging episodes in groups:
     POD_STORE_FILE_NAME  # defaults to "pod-store.json"
     POD_STORE_PODCAST_DOWNLOAD_PATH  # defaults to /home/<username>/Podcasts
     POD_STORE_PODCAST_REFRESH_TIMEOUT  # seconds to wait before timing out a podcast RSS refresh. defaults to 15 seconds
+    POD_STORE_EPISODE_DOWNLOAD_TIMEOUT  # seconds to wait before timing out an episode download. defaults to the value of `POD_STORE_PODCAST_REFRESH_TIMEOUT`
     POD_STORE_GPG_ID_FILE  # defaults to <POD_STORE_PATH>/.gpg-id
     DO_NOT_SET_POD_STORE_EPISODE_METADATA  # set this to prevent setting metadata on downloaded episodes
 

@@ -60,14 +60,16 @@ def audio_file_content():
 def mocked_requests_get(audio_file_content, mocker):
     # Provide fake data for both `iter_content`  attribute (episode download tests)
     # and `content` attribute (podcast RSS refresh tests).
-    fake_response = namedtuple("FakeResponse", ["iter_content", "content"])
+    fake_response = namedtuple("FakeResponse", ["iter_content", "content", "headers"])
     stream_content = [audio_file_content]
 
     def iter_content(_):
         for chunk in stream_content:
             yield chunk
 
-    resp = fake_response(iter_content=iter_content, content=b"")
+    resp = fake_response(
+        iter_content=iter_content, content=b"", headers={"content-length": "2000"}
+    )
     return mocker.patch("requests.get", return_value=resp)
 
 

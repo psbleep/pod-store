@@ -73,6 +73,14 @@ def git_add_and_commit(
 
 
 def require_store(f: Callable) -> Callable:
+    """Decorator for commands that require the pod store to be initialized.
+
+    Will raise an exception if the Click context is passed without a value assigned
+    for `ctx.obj`.
+
+    If a value has been assigned to `ctx.obj`, assume it is the pod store and carry on.
+    """
+
     @functools.wraps(f)
     def require_store_inner(ctx: click.Context, *args, **kwargs):
         if not ctx.obj:

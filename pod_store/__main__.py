@@ -169,7 +169,13 @@ def download(
 
     for ep in filter.episodes:
         click.echo(f"Downloading: {ep.download_path}.")
-        ep.download()
+        try:
+            with ep.download() as download:
+                with click.progressbar(download, length=download.length) as bar:
+                    for _ in bar:
+                        pass
+        except requests.ConnectTimeout:
+            click.secho("Error: timed out when downloading episode.", fg="red")
 
 
 @cli.command()

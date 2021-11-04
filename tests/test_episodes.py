@@ -1,6 +1,7 @@
 import os
 
 import music_tag
+import pytest
 
 from pod_store.episodes import Episode
 
@@ -52,7 +53,8 @@ def test_episode_download_path_is_correct_path_for_filetype_without_invalid_char
 
 
 def test_episode_download(now, audio_file_content, episode):
-    episode.download()
+    with episode.download() as download:
+        list(download)
 
     assert episode.downloaded_at == now
     assert "new" not in episode.tags
@@ -69,6 +71,18 @@ def test_episode_download(now, audio_file_content, episode):
 
     with open(episode.download_path, "rb") as f:
         assert f.read()[-1000:] == audio_file_content[-1000:]
+
+
+def test_episode_download_does_not_run_clean_up_if_errors_encoutnered(
+    mocked_requests_get, episode
+):
+    mocked_requests_get.configure_mock(**{"side_effect": TypeError})
+    with pytest.raises(TypeError):
+        with episode.download() as download:
+            list(download)
+
+    assert episode.downloaded_at is None
+    assert "new" in episode.tags
 
 
 def test_episode_update(episode):

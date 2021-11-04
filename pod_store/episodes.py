@@ -3,6 +3,7 @@
 Episode objects are created/managed using the `pod_store.podcasts.PodcastEpisodes`
 class.
 """
+import math
 import os
 import re
 from datetime import datetime
@@ -11,12 +12,83 @@ from typing import Any, List, Optional, Type, TypeVar
 import music_tag
 import requests
 
-from . import DO_NOT_SET_EPISODE_METADATA, util
+from . import DO_NOT_SET_EPISODE_METADATA, EPISODE_DOWNLOAD_TIMEOUT, util
 
 DOWNLOAD_CHUNK_SIZE = 2000
 
 E = TypeVar("E", bound="Episode")
 P = TypeVar("Podcast")
+
+
+class EpisodeDownloader:
+    """Iterator class that handles downloading a podcast episode, dispatched by the
+    `EpisodeDownloadManager` context manager class.
+
+    A regular generator function defined on the context manager class would be the most
+    obvious approach here, except that it cannot hold a `length` attribute to enable
+    constructing status indicators (e.g. progress bars).
+
+    Defining this custom iterator class allows setting that `length` attribute.
+    """
+
+    def __init__(
+        self,
+        path: str,
+        content: bytes,
+        length: Optional[int] = None,
+    ):
+        self.length = length
+        self._path = path
+        self._content = content
+
+    def __iter__(self):
+        os.makedirs(os.path.dirname(self._path), exist_ok=True)
+        with open(self._path, "wb") as f:
+            for chunk in self._content:
+                f.write(chunk)
+                yield chunk
+
+
+class EpisodeDownloadManager:
+    """Context manager for downloading a podcast episode.
+
+    Makes the download request and passes off the details of downloading to an iterator
+    class that handles the process.
+
+    If the download is finished successfully:
+
+        - Sets the episode downloaded-at timestamp
+        - Untags the episode as "new"
+        - Tags the audio file metadata
+    """
+
+    def __init__(self, episode: E) -> None:
+        self._episode = episode
+
+    def __enter__(self):
+        response = requests.get(
+            self._episode.url, stream=True, timeout=EPISODE_DOWNLOAD_TIMEOUT
+        )
+
+        try:
+            download_length = math.ceil(
+                int(response.headers["content-length"]) / DOWNLOAD_CHUNK_SIZE
+            )
+        except (KeyError, TypeError):
+            download_length = None
+
+        return EpisodeDownloader(
+            path=self._episode.download_path,
+            length=download_length,
+            content=response.iter_content(DOWNLOAD_CHUNK_SIZE),
+        )
+
+    def __exit__(self, exc, *args, **kwargs):
+        if exc:
+            return
+        self._episode.downloaded_at = datetime.utcnow()
+        self._episode.untag("new")
+        self._episode.set_audio_file_metadata()
 
 
 class Episode:
@@ -119,19 +191,9 @@ class Episode:
 
     def download(self) -> None:
         """Download the audio file of the episode to the file system."""
-        os.makedirs(os.path.dirname(self.download_path), exist_ok=True)
+        return EpisodeDownloadManager(episode=self)
 
-        resp = requests.get(self.url, stream=True)
-        with open(self.download_path, "wb") as f:
-            for chunk in resp.iter_content(DOWNLOAD_CHUNK_SIZE):
-                f.write(chunk)
-
-        self.downloaded_at = datetime.utcnow()
-        self.untag("new")
-
-        self._set_audio_file_metadata(self.download_path)
-
-    def _set_audio_file_metadata(self, download_path: str) -> None:
+    def set_audio_file_metadata(self) -> None:
         """Helper to set metadata on the downloaded MP3 file.
 
         Matches the following audio metadata tags to the values:
@@ -153,7 +215,7 @@ class Episode:
         if DO_NOT_SET_EPISODE_METADATA:
             return
 
-        f = music_tag.load_file(download_path)
+        f = music_tag.load_file(self.download_path)
         f["artist"] = self.podcast.title
         f["album"] = self.podcast.title
         f["album_artist"] = self.podcast.title
