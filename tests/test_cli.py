@@ -36,27 +36,27 @@ def test_download_all_new_podcast_episodes(runner):
     result = runner.invoke(cli, ["download"])
     assert result.exit_code == 0
     assert result.output == (
-        f"Downloading: {TEST_OTHER_EPISODE_DOWNLOAD_PATH}.\n"
-        f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n"
+        f"Downloading: {TEST_OTHER_EPISODE_DOWNLOAD_PATH}.\n\n"
+        f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n\n"
     )
 
 
 def test_download_single_podcast_new_episodes(runner):
     result = runner.invoke(cli, ["download", "-p", "greetings"])
     assert result.exit_code == 0
-    assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n"
+    assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n\n"
 
 
 def test_download_new_episodes_with_tag(runner):
     result = runner.invoke(cli, ["download", "-t", "bar"])
     assert result.exit_code == 0
-    assert result.output == f"Downloading: {TEST_OTHER_EPISODE_DOWNLOAD_PATH}.\n"
+    assert result.output == f"Downloading: {TEST_OTHER_EPISODE_DOWNLOAD_PATH}.\n\n"
 
 
 def test_download_new_episodes_without_tag(runner):
     result = runner.invoke(cli, ["download", "--not-tagged", "-t", "bar"])
     assert result.exit_code == 0
-    assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n"
+    assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n\n"
 
 
 def test_encrypt_store(runner):

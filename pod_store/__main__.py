@@ -169,7 +169,10 @@ def download(
 
     for ep in filter.episodes:
         click.echo(f"Downloading: {ep.download_path}.")
-        ep.download()
+        with ep.download() as download:
+            with click.progressbar(download, length=download.length) as bar:
+                for _ in bar:
+                    pass
 
 
 @cli.command()
