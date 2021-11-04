@@ -13,6 +13,7 @@ from .commands.commit_messages import (
 from .commands.decorators import (
     catch_pod_store_errors,
     git_add_and_commit,
+    require_store,
     save_store_changes,
 )
 from .commands.filtering import get_filter_from_command_arguments
@@ -110,6 +111,7 @@ def cli(ctx):
 @click.pass_context
 @click.argument("title")
 @click.argument("feed")
+@require_store
 @git_add_and_commit(message="Added podcast: {title!r}.", params=["title"])
 @save_store_changes
 @catch_pod_store_errors
@@ -145,6 +147,7 @@ def add(ctx: click.Context, title: str, feed: str):
     default=[],
     help="Supply tags to search for episodes with. Multiple tags can be provided.",
 )
+@require_store
 @git_add_and_commit(commit_message_builder=download_commit_message_builder)
 @save_store_changes
 @catch_pod_store_errors
@@ -180,6 +183,7 @@ def download(
     prompt="Are you sure you want to encrypt the pod store?",
     help="Skip the confirmation prompt.",
 )
+@require_store
 @git_add_and_commit(message="Encrypted the store.")
 def encrypt_store(ctx: click.Context, gpg_id: str):
     """Encrypt the pod store file with the provided gpg keys.
@@ -293,6 +297,7 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
     help="(flag): Determines how much detail to provide in the listing. "
     "Defaults to `--not-verbose`.",
 )
+@require_store
 @catch_pod_store_errors
 def ls(
     ctx: click.Context,
@@ -335,6 +340,7 @@ def ls(
     help="(flag): Run this command in interactive mode to select which episodes to "
     "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
+@require_store
 @git_add_and_commit(commit_message_builder=tagger_commit_message_builder, tagger=marker)
 @save_store_changes
 @catch_pod_store_errors
@@ -366,6 +372,7 @@ def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
     help="(flag): Run this command in interactive mode to select which episodes to "
     "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
+@require_store
 @git_add_and_commit(
     commit_message_builder=tagger_commit_message_builder, tagger=unmarker
 )
@@ -385,6 +392,7 @@ def mark_as_old(ctx: click.Context, podcast: Optional[str], interactive: bool):
 @click.pass_context
 @click.argument("old")
 @click.argument("new")
+@require_store
 @git_add_and_commit(
     message="Renamed podcast: {old!r} -> {new!r}.", params=["old", "new"]
 )
@@ -422,6 +430,7 @@ def mv(ctx: click.Context, old: str, new: str):
     default=[],
     help="Filter podcasts by tag. Multiple tags can be provided.",
 )
+@require_store
 @git_add_and_commit(commit_message_builder=refresh_commit_message_builder)
 @save_store_changes
 @catch_pod_store_errors
@@ -453,6 +462,7 @@ def refresh(
     prompt="Are you sure you want to delete this podcast?",
     help="Skip confirmation prompt.",
 )
+@require_store
 @git_add_and_commit(message="Removed podcast: {title!r}.", params=["title"])
 @save_store_changes
 @catch_pod_store_errors
@@ -478,6 +488,7 @@ def rm(ctx: click.Context, title: str):
     "Note that this is the ID from the `ls --episodes --verbose` listing, not the "
     "episode number.",
 )
+@require_store
 @git_add_and_commit(commit_message_builder=tagger_commit_message_builder, tagger=tagger)
 @save_store_changes
 @catch_pod_store_errors
@@ -516,6 +527,7 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     help="(flag): Run this command in interactive mode to select which episodes to "
     "tag, or bulk mode to tag all episodes in the group. Defaults to `--interactive`.",
 )
+@require_store
 @git_add_and_commit(commit_message_builder=tagger_commit_message_builder, tagger=tagger)
 @save_store_changes
 @catch_pod_store_errors
@@ -545,6 +557,7 @@ def tag_episodes(
     prompt="Are you sure you want to unencrypt the pod store?",
     help="Skip the confirmation prompt.",
 )
+@require_store
 @git_add_and_commit(message="Unencrypted the store.")
 def unencrypt_store(ctx: click.Context):
     """Unencrypt the pod store, saving the data in plaintext instead."""
@@ -565,6 +578,7 @@ def unencrypt_store(ctx: click.Context):
     "Note that this is the ID from the `ls --episodes --verbose` listing, not the "
     "episode number.",
 )
+@require_store
 @git_add_and_commit(
     commit_message_builder=tagger_commit_message_builder, tagger=untagger
 )
@@ -607,6 +621,7 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     "untag, or bulk mode to untag all episodes in the group. Defaults to "
     "`--interactive`.",
 )
+@require_store
 @git_add_and_commit(
     commit_message_builder=tagger_commit_message_builder, tagger=untagger
 )
