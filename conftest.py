@@ -68,7 +68,7 @@ def mocked_requests_get(audio_file_content, mocker):
             yield chunk
 
     resp = fake_response(
-        iter_content=iter_content, content=b"", headers={"content-length": 2000}
+        iter_content=iter_content, content=b"", headers={"content-length": "2000"}
     )
     return mocker.patch("requests.get", return_value=resp)
 

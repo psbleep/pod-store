@@ -20,36 +20,44 @@ E = TypeVar("E", bound="Episode")
 P = TypeVar("Podcast")
 
 
+class EpisodeDownloader:
+    def __init__(
+        self,
+        path: str,
+        content: bytes,
+        length: Optional[int] = None,
+    ):
+        self.length = length
+        self._path = path
+        self._content = content
+
+    def __iter__(self):
+        os.makedirs(os.path.dirname(self._path), exist_ok=True)
+        with open(self._path, "wb") as f:
+            for chunk in self._content:
+                f.write(chunk)
+                yield chunk
+
+
 class EpisodeDownloadManager:
-    """Contextmanager class for handling podcast episode downloads.
-
-    Makes the download request and writes the data to the file system.
-
-    Determines how many chunks of data will be involved (for use by progress bars or other
-    status indicators).
-
-    After the download is complete, it sets the episode's downloaded-at timestamp,
-    untags it as `new`, and sets the audio file metadata.
-    """
-
     def __init__(self, episode: E) -> None:
         self._episode = episode
 
-        os.makedirs(os.path.dirname(episode.download_path), exist_ok=True)
-        self._response = requests.get(episode.url, stream=True)
+    def __enter__(self):
+        response = requests.get(self._episode.url, stream=True)
 
         try:
-            self.number_of_chunks = math.ceil(
-                self._response.headers["content-length"] / DOWNLOAD_CHUNK_SIZE
+            download_length = math.ceil(
+                int(response.headers["content-length"]) / DOWNLOAD_CHUNK_SIZE
             )
         except (KeyError, TypeError):
-            self.number_of_cunks = None
+            download_length = None
 
-    def __enter__(self):
-        with open(self._episode.download_path, "wb") as f:
-            for chunk in self._response.iter_content(DOWNLOAD_CHUNK_SIZE):
-                f.write(chunk)
-                yield
+        return EpisodeDownloader(
+            path=self._episode.download_path,
+            length=download_length,
+            content=response.iter_content(DOWNLOAD_CHUNK_SIZE),
+        )
 
     def __exit__(self, *args, **kwargs):
         self._episode.downloaded_at = datetime.utcnow()
