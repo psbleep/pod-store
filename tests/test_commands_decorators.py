@@ -8,9 +8,10 @@ import pytest
 from pod_store.commands.decorators import (
     catch_pod_store_errors,
     git_add_and_commit,
+    require_store,
     save_store_changes,
 )
-from pod_store.exc import EpisodeDoesNotExistError
+from pod_store.exc import EpisodeDoesNotExistError, StoreDoesNotExistError
 
 from . import TEST_STORE_FILE_PATH
 
@@ -47,6 +48,27 @@ def test_git_add_and_commit_adds_changes_and_builds_commit_message(mocker):
     mocked_run_git_command.assert_has_calls(
         [call("add ."), call("commit -m 'hello world'")]
     )
+
+
+def test_require_store_does_not_raise_error_if_store_exists(store):
+    @require_store
+    def store_exists(ctx):
+        return ctx.obj
+
+    ctx = fake_ctx(obj=store, params=None)
+
+    assert store_exists(ctx) == store
+
+
+def test_require_store_raises_error_if_store_does_not_exist():
+    @require_store
+    def no_store(ctx):
+        return ctx.obj
+
+    ctx = fake_ctx(obj=None, params=None)
+
+    with pytest.raises(StoreDoesNotExistError):
+        no_store(ctx)
 
 
 def test_save_store_changes_saves_current_store_state_in_store_file(store):
