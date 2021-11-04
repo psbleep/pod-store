@@ -12,7 +12,7 @@ from typing import Any, List, Optional, Type, TypeVar
 import music_tag
 import requests
 
-from . import EPISODE_DOWNLOAD_TIMEOUT, DO_NOT_SET_EPISODE_METADATA, util
+from . import DO_NOT_SET_EPISODE_METADATA, EPISODE_DOWNLOAD_TIMEOUT, util
 
 DOWNLOAD_CHUNK_SIZE = 2000
 
