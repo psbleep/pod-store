@@ -59,7 +59,9 @@ class EpisodeDownloadManager:
             content=response.iter_content(DOWNLOAD_CHUNK_SIZE),
         )
 
-    def __exit__(self, *args, **kwargs):
+    def __exit__(self, exc, *args, **kwargs):
+        if exc:
+            return
         self._episode.downloaded_at = datetime.utcnow()
         self._episode.untag("new")
         self._episode.set_audio_file_metadata()
