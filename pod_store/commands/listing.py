@@ -111,7 +111,7 @@ class EpisodeLister(Lister):
             created_at=e.created_at.isoformat(),
             updated_at=e.updated_at.isoformat(),
             downloaded_at_msg=downloaded_at_msg,
-            long_description=e.long_description,
+            long_description=e.long_description or "(no description)",
         )
 
     def _get_episode_listing(self, episode: Episode):
