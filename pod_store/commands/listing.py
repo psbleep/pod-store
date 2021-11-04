@@ -10,7 +10,7 @@ from ..podcasts import Podcast
 from .filtering import Filter, get_filter_from_command_arguments
 
 EPISODE_LISTING_TEMPLATE = (
-    "[{episode_number}] {title}: {short_description_msg!r}{downloaded_msg}{tags_msg}"
+    "[{episode_number}] {title}: {short_description_msg}{downloaded_msg}{tags_msg}"
 )
 
 PODCAST_LISTING_TEMPLATE = "{title}{episodes_msg}{tags_msg}"
@@ -111,7 +111,7 @@ class EpisodeLister(Lister):
             created_at=e.created_at.isoformat(),
             updated_at=e.updated_at.isoformat(),
             downloaded_at_msg=downloaded_at_msg,
-            long_description=e.long_description,
+            long_description=e.long_description or "(no description)",
         )
 
     def _get_episode_listing(self, episode: Episode):
@@ -151,6 +151,9 @@ class EpisodeLister(Lister):
 
         This would break if the first word was too big to fit.
         """
+        if not short_description:
+            return "(no description)"
+
         terminal_width = get_terminal_size().columns
         short_description_length = terminal_width - len(
             EPISODE_LISTING_TEMPLATE.format(short_description_msg="", **template_kwargs)
@@ -162,7 +165,10 @@ class EpisodeLister(Lister):
             if len(new_short_description_msg) > short_description_length:
                 break
             short_description_msg = new_short_description_msg
-        return short_description_msg.rstrip(string.punctuation)
+        stripped_short_description_msg = short_description_msg.rstrip(
+            string.punctuation
+        )
+        return f"{stripped_short_description_msg!r}"
 
 
 class PodcastLister(Lister):

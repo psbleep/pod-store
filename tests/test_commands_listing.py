@@ -78,6 +78,25 @@ goodbye world (longer description)""",
     ]
 
 
+def test_episode_lister_allows_empty_short_description(store, episode_lister):
+    podcast = store.podcasts.get("greetings")
+    episode = podcast.episodes.get("aaa")
+    episode.short_description = ""
+
+    assert "[0023] hello: (no description) -> new" in list(episode_lister.list())
+
+
+def test_episode_lister_allows_empty_long_description_in_verbose_mode(
+    store, episode_lister
+):
+    podcast = store.podcasts.get("farewell")
+    episode = podcast.episodes.get("111")
+    episode.long_description = ""
+
+    verbose_episode_listing = list(episode_lister.list(verbose=True))[1]
+    assert "(no description)" in verbose_episode_listing
+
+
 def test_episode_lister_list_raises_exception_when_no_episodes_found(store):
     filter = EpisodeFilter(store=store, tags=["whoooooo"])
     episode_lister = EpisodeLister(filter=filter)
