@@ -3,6 +3,7 @@
 Episode objects are created/managed using the `pod_store.podcasts.PodcastEpisodes`
 class.
 """
+import math
 import os
 import re
 from datetime import datetime
@@ -17,6 +18,43 @@ DOWNLOAD_CHUNK_SIZE = 2000
 
 E = TypeVar("E", bound="Episode")
 P = TypeVar("Podcast")
+
+
+class EpisodeDownloadManager:
+    """Contextmanager class for handling podcast episode downloads.
+
+    Makes the download request and writes the data to the file system.
+
+    Determines how many chunks of data will be involved (for use by progress bars or other
+    status indicators).
+
+    After the download is complete, it sets the episode's downloaded-at timestamp,
+    untags it as `new`, and sets the audio file metadata.
+    """
+
+    def __init__(self, episode: E) -> None:
+        self._episode = episode
+
+        os.makedirs(os.path.dirname(episode.download_path), exist_ok=True)
+        self._response = requests.get(episode.url, stream=True)
+
+        try:
+            self.number_of_chunks = math.ceil(
+                self._response.headers["content-length"] / DOWNLOAD_CHUNK_SIZE
+            )
+        except (KeyError, TypeError):
+            self.number_of_cunks = None
+
+    def __enter__(self):
+        with open(self._episode.download_path, "wb") as f:
+            for chunk in self._response.iter_content(DOWNLOAD_CHUNK_SIZE):
+                f.write(chunk)
+                yield
+
+    def __exit__(self, *args, **kwargs):
+        self._episode.downloaded_at = datetime.utcnow()
+        self._episode.untag("new")
+        self._episode.set_audio_file_metadata()
 
 
 class Episode:
@@ -119,19 +157,9 @@ class Episode:
 
     def download(self) -> None:
         """Download the audio file of the episode to the file system."""
-        os.makedirs(os.path.dirname(self.download_path), exist_ok=True)
+        return EpisodeDownloadManager(episode=self)
 
-        resp = requests.get(self.url, stream=True)
-        with open(self.download_path, "wb") as f:
-            for chunk in resp.iter_content(DOWNLOAD_CHUNK_SIZE):
-                f.write(chunk)
-
-        self.downloaded_at = datetime.utcnow()
-        self.untag("new")
-
-        self._set_audio_file_metadata(self.download_path)
-
-    def _set_audio_file_metadata(self, download_path: str) -> None:
+    def set_audio_file_metadata(self) -> None:
         """Helper to set metadata on the downloaded MP3 file.
 
         Matches the following audio metadata tags to the values:
@@ -153,7 +181,7 @@ class Episode:
         if DO_NOT_SET_EPISODE_METADATA:
             return
 
-        f = music_tag.load_file(download_path)
+        f = music_tag.load_file(self.download_path)
         f["artist"] = self.podcast.title
         f["album"] = self.podcast.title
         f["album_artist"] = self.podcast.title
