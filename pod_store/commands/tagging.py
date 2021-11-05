@@ -216,15 +216,6 @@ class Untagger(BaseTagger):
         item.untag(tag)
 
 
-def conditional_confirmation_prompt_in_bulk_mode(
-    interactive: bool, force: bool
-) -> None:
-    bulk_mode = not interactive
-    if bulk_mode and not force:
-        if not click.prompt("Confirm? [y/n]") == "y":
-            raise click.Abort()
-
-
 # These instances of the tagger classes are used to customize the language used in
 # displaying output to the user. The marker/unmarker objects also work with a default
 # tag.
