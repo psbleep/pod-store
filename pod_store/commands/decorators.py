@@ -72,7 +72,7 @@ def git_add_and_commit(
     return git_add_and_commit_wrapper
 
 
-def prompt_for_confirmation(
+def conditional_confirmation_prompt(
     param: str, value: Any, override: Optional[str] = None
 ) -> Callable:
     """Decorator for prompting the user to confirm the command if conditions are met.
@@ -84,7 +84,7 @@ def prompt_for_confirmation(
 
     For example:
 
-    @prompt_for_confirmation(param="hello", value="world", override="force")
+    @conditional_confirmation_prompt(param="hello", value="world", override="force")
     ...
 
     Would show a prompt if:
@@ -95,17 +95,17 @@ def prompt_for_confirmation(
     If the user does not confirm the action, the command is aborted.
     """
 
-    def prompt_for_confirmation_wrapper(f: Callable) -> Callable:
+    def conditional_confirmation_prompt_wrapper(f: Callable) -> Callable:
         @functools.wraps(f)
-        def prompt_for_confirmation_inner(ctx, *args, **kwargs) -> Any:
+        def conditional_confirmation_prompt_inner(ctx, *args, **kwargs) -> Any:
             if ctx.params.get(param) == value and not ctx.params.get(override) is True:
                 if click.prompt("Confirm?", type=click.Choice(["y", "n"])) != "y":
                     raise click.Abort()
             return f(ctx, *args, **kwargs)
 
-        return prompt_for_confirmation_inner
+        return conditional_confirmation_prompt_inner
 
-    return prompt_for_confirmation_wrapper
+    return conditional_confirmation_prompt_wrapper
 
 
 def require_store(f: Callable) -> Callable:

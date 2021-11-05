@@ -8,7 +8,7 @@ import pytest
 from pod_store.commands.decorators import (
     catch_pod_store_errors,
     git_add_and_commit,
-    prompt_for_confirmation,
+    conditional_confirmation_prompt,
     require_store,
     save_store_changes,
 )
@@ -51,8 +51,8 @@ def test_git_add_and_commit_adds_changes_and_builds_commit_message(mocker):
     )
 
 
-def test_prompt_for_confirmation_param_does_not_match_value():
-    @prompt_for_confirmation(param="hello", value=False)
+def test_conditional_confirmation_prompt_param_does_not_match_value():
+    @conditional_confirmation_prompt(param="hello", value=False)
     def no_match(ctx):
         return True
 
@@ -60,8 +60,8 @@ def test_prompt_for_confirmation_param_does_not_match_value():
     assert no_match(ctx) is True
 
 
-def test_prompt_for_confirmation_param_matches_value_but_override_flag_is_set():
-    @prompt_for_confirmation(param="hello", value=True, override="flagged")
+def test_conditional_confirmation_prompt_param_matches_value_but_override_flag_is_set():
+    @conditional_confirmation_prompt(param="hello", value=True, override="flagged")
     def flagged(ctx):
         return True
 
@@ -69,12 +69,12 @@ def test_prompt_for_confirmation_param_matches_value_but_override_flag_is_set():
     assert flagged(ctx) is True
 
 
-def test_prompt_for_confirmation_param_matches_override_not_set_prompt_confirmed(
+def test_conditional_confirmation_prompt_param_matches_override_not_set_prompt_confirmed(
     mocker,
 ):
     mocker.patch("click.prompt", return_value="y")
 
-    @prompt_for_confirmation(param="hello", value=True, override="flagged")
+    @conditional_confirmation_prompt(param="hello", value=True, override="flagged")
     def prompt_passed(ctx):
         return True
 
@@ -82,12 +82,12 @@ def test_prompt_for_confirmation_param_matches_override_not_set_prompt_confirmed
     assert prompt_passed(ctx) is True
 
 
-def test_prompt_for_confirmation_param_matches_override_not_set_prompt_not_confirmed(
+def test_conditional_confirmation_prompt_param_matches_override_not_set_prompt_not_confirmed(
     mocker,
 ):
     mocker.patch("click.prompt", return_value="n")
 
-    @prompt_for_confirmation(param="hello", value=True, override="flagged")
+    @conditional_confirmation_prompt(param="hello", value=True, override="flagged")
     def prompt_failed(ctx):
         return True
 

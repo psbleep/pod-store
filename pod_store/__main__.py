@@ -14,7 +14,7 @@ from .commands.commit_messages import (
 from .commands.decorators import (
     catch_pod_store_errors,
     git_add_and_commit,
-    prompt_for_confirmation,
+    conditional_confirmation_prompt,
     require_store,
     save_store_changes,
 )
@@ -360,7 +360,7 @@ def ls(
     is_flag=True,
     help="Skip confirmation prompt for bulk mode actions.",
 )
-@prompt_for_confirmation(param="interactive", value=False, override="force")
+@conditional_confirmation_prompt(param="interactive", value=False, override="force")
 @catch_pod_store_errors
 @require_store
 @git_add_and_commit(commit_message_builder=tagger_commit_message_builder, tagger=marker)
@@ -404,7 +404,7 @@ def mark_as_new(
     is_flag=True,
     help="Skip confirmation prompt for bulk mode actions.",
 )
-@prompt_for_confirmation(param="interactive", value=False, override="force")
+@conditional_confirmation_prompt(param="interactive", value=False, override="force")
 @catch_pod_store_errors
 @require_store
 @git_add_and_commit(
@@ -574,7 +574,7 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     is_flag=True,
     help="Skip confirmation prompt for bulk mode actions.",
 )
-@prompt_for_confirmation(param="interactive", value=False, override="force")
+@conditional_confirmation_prompt(param="interactive", value=False, override="force")
 @catch_pod_store_errors
 @require_store
 @git_add_and_commit(commit_message_builder=tagger_commit_message_builder, tagger=tagger)
@@ -680,7 +680,7 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     is_flag=True,
     help="Skip confirmation prompt for bulk mode actions.",
 )
-@prompt_for_confirmation(param="interactive", value=False, override="force")
+@conditional_confirmation_prompt(param="interactive", value=False, override="force")
 @catch_pod_store_errors
 @require_store
 @git_add_and_commit(

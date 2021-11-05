@@ -216,7 +216,7 @@ class Untagger(BaseTagger):
         item.untag(tag)
 
 
-def prompt_for_confirmation_in_bulk_mode(interactive: bool, force: bool) -> None:
+def conditional_confirmation_prompt_in_bulk_mode(interactive: bool, force: bool) -> None:
     bulk_mode = not interactive
     if bulk_mode and not force:
         if not click.prompt("Confirm? [y/n]") == "y":
