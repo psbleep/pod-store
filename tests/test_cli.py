@@ -202,20 +202,14 @@ def test_ls_podcast_episodes(runner):
 
 
 def test_mark_as_new_all_episodes_bulk_mode(runner):
-    result = runner.invoke(cli, ["mark-as-new", "-f", "--bulk"])
+    result = runner.invoke(cli, ["mark-as-new", "--force", "--bulk"])
     assert result.exit_code == 0
     assert "Marked as 'new': farewell" in result.output
     assert "Marked as 'new': greetings" in result.output
 
 
-def test_mark_as_new_bulk_mode_does_not_run_if_not_confirmed(runner):
-    result = runner.invoke(cli, ["mark-as-new", "--bulk"], input="n\n")
-    assert result.exit_code == 1
-    assert "Marked" not in result.output
-
-
 def test_mark_as_new_for_single_podcast(runner):
-    result = runner.invoke(cli, ["mark-as-new", "-f", "-p", "farewell", "--bulk"])
+    result = runner.invoke(cli, ["mark-as-new", "--force", "--bulk", "-p", "farewell"])
     assert result.exit_code == 0
     assert "Marked as 'new': farewell" in result.output
     assert "Marked as 'new': greetings" not in result.output
@@ -230,14 +224,14 @@ def test_mark_as_new_interactive_mode(runner):
 
 
 def test_mark_as_old_all_episodes_bulk_mode(runner):
-    result = runner.invoke(cli, ["mark-as-old", "--bulk"])
+    result = runner.invoke(cli, ["mark-as-old", "--force", "--bulk"])
     assert result.exit_code == 0
     assert "Unmarked as 'new': farewell" in result.output
     assert "Unmarked as 'new': greetings" in result.output
 
 
 def test_mark_as_old_for_single_podcast(runner):
-    result = runner.invoke(cli, ["mark-as-old", "-p", "farewell", "--bulk"])
+    result = runner.invoke(cli, ["mark-as-old", "--force", "--bulk", "-p", "farewell"])
     assert result.exit_code == 0
     assert "Unmarked as 'new': farewell" in result.output
     assert "Unmarked as 'new': greetings" not in result.output
@@ -311,14 +305,16 @@ def test_tag_a_pocast_episode(runner):
 
 
 def test_tag_episodes_all_episodes_bulk_mode(runner):
-    result = runner.invoke(cli, ["tag-episodes", "foo", "--bulk"])
+    result = runner.invoke(cli, ["tag-episodes", "foo", "--force", "--bulk"])
     assert result.exit_code == 0
     assert "Tagged as 'foo': farewell" in result.output
     assert "Tagged as 'foo': greetings" in result.output
 
 
 def test_tag_episodes_for_single_podcast(runner):
-    result = runner.invoke(cli, ["tag-episodes", "zozo", "-p", "greetings", "--bulk"])
+    result = runner.invoke(
+        cli, ["tag-episodes", "zozo", "--force", "--bulk", "-p", "greetings"]
+    )
     assert result.exit_code == 0
     assert "Tagged as 'zozo': farewell" not in result.output
     assert "Tagged as 'zozo': greetings" in result.output
@@ -359,14 +355,16 @@ def test_untag_single_pocast_episode(runner):
 
 
 def test_untag_episodes_all_episodes_bulk_mode(runner):
-    result = runner.invoke(cli, ["untag-episodes", "foo", "--bulk"])
+    result = runner.invoke(cli, ["untag-episodes", "foo", "--force", "--bulk"])
     assert result.exit_code == 0
     assert "Untagged as 'foo': farewell" in result.output
     assert "Untagged as 'foo': greetings" in result.output
 
 
 def test_untag_episodes_for_single_podcast(runner):
-    result = runner.invoke(cli, ["untag-episodes", "foo", "-p", "greetings", "--bulk"])
+    result = runner.invoke(
+        cli, ["untag-episodes", "foo", "--force", "--bulk", "-p", "greetings"]
+    )
     assert result.exit_code == 0
     assert "Untagged as 'foo': farewell" not in result.output
     assert "Untagged as 'foo': greetings" in result.output
