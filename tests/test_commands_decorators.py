@@ -34,23 +34,6 @@ def test_catch_pod_store_errors_decorator_aborts_command_and_displays_error_mess
     )
 
 
-def test_git_add_and_commit_adds_changes_and_builds_commit_message(mocker):
-    mocked_run_git_command = mocker.patch(
-        "pod_store.commands.decorators.run_git_command"
-    )
-
-    @git_add_and_commit(message="hello world")
-    def committed(ctx):
-        pass
-
-    ctx = fake_ctx(obj=None, params=None)
-    committed(ctx)
-
-    mocked_run_git_command.assert_has_calls(
-        [call("add ."), call("commit -m 'hello world'")]
-    )
-
-
 def test_conditional_confirmation_prompt_param_does_not_match_value():
     @conditional_confirmation_prompt(param="hello", value=False)
     def no_match(ctx):
@@ -94,6 +77,23 @@ def test_conditional_confirmation_prompt_param_no_override_prompt_not_confirmed(
     ctx = fake_ctx(obj=None, params={"hello": True})
     with pytest.raises(click.Abort):
         prompt_failed(ctx)
+
+
+def test_git_add_and_commit_adds_changes_and_builds_commit_message(mocker):
+    mocked_run_git_command = mocker.patch(
+        "pod_store.commands.decorators.run_git_command"
+    )
+
+    @git_add_and_commit(message="hello world")
+    def committed(ctx):
+        pass
+
+    ctx = fake_ctx(obj=None, params=None)
+    committed(ctx)
+
+    mocked_run_git_command.assert_has_calls(
+        [call("add ."), call("commit -m 'hello world'")]
+    )
 
 
 def test_require_store_does_not_raise_error_if_store_exists(store):
