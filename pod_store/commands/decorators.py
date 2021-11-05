@@ -6,7 +6,7 @@ from typing import Any, Callable, Optional
 
 import click
 
-from .. import STORE_GIT_REPO
+from .. import SECURE_GIT_MODE, STORE_GIT_REPO
 from ..exc import ShellCommandError, StoreDoesNotExistError
 from ..util import run_git_command
 from .commit_messages import default_commit_message_builder
@@ -26,50 +26,6 @@ def catch_pod_store_errors(f: Callable) -> Callable:
             display_pod_store_error_from_exception(err)
 
     return catch_pod_store_errors_inner
-
-
-def git_add_and_commit(
-    commit_message_builder: Callable = default_commit_message_builder,
-    **commit_message_builder_kwargs,
-) -> Callable:
-    """Decorator for checking in and commiting git changes made after running a command.
-
-    If no git repo is detected within the pod store, this will be a no-op.
-
-    Requires the `click.Context` object as a first argument to the decorated function.
-    (see `click.pass_context`)
-
-    For default behavior, check out the `default_commit_message_builder` helper
-    function docs.
-
-    For custom behavior, pass in a callable as a keyword arugment for
-    `commit_message_builder`.
-
-    The message builder callable will receive a `ctx_params` dict
-    (passed in from `click.Context.params`), and any additional keyword
-    arguments for the decorator will be passed on as well.
-    """
-
-    def git_add_and_commit_wrapper(f: Callable) -> Callable:
-        @functools.wraps(f)
-        def git_add_and_commit_inner(ctx: click.Context, *args, **kwargs) -> Any:
-            resp = f(ctx, *args, **kwargs)
-            if not os.path.exists(STORE_GIT_REPO):
-                return resp
-
-            run_git_command("add .")
-            commit_msg = commit_message_builder(
-                ctx_params=ctx.params, **commit_message_builder_kwargs
-            )
-            try:
-                run_git_command(f"commit -m {commit_msg!r}")
-            except ShellCommandError:
-                pass
-            return resp
-
-        return git_add_and_commit_inner
-
-    return git_add_and_commit_wrapper
 
 
 def conditional_confirmation_prompt(
@@ -106,6 +62,55 @@ def conditional_confirmation_prompt(
         return conditional_confirmation_prompt_inner
 
     return conditional_confirmation_prompt_wrapper
+
+
+def git_add_and_commit(
+    secure_git_mode_message: str = "",
+    commit_message_builder: Callable = default_commit_message_builder,
+    **commit_message_builder_kwargs,
+) -> Callable:
+    """Decorator for checking in and commiting git changes made after running a command.
+
+    If no git repo is detected within the pod store, this will be a no-op.
+
+    Requires the `click.Context` object as a first argument to the decorated function.
+    (see `click.pass_context`)
+
+    For default behavior, check out the `default_commit_message_builder` helper
+    function docs.
+
+    For custom behavior, pass in a callable as a keyword arugment for
+    `commit_message_builder`.
+
+    The message builder callable will receive a `ctx_params` dict
+    (passed in from `click.Context.params`), and any additional keyword
+    arguments for the decorator will be passed on as well.
+    """
+
+    def git_add_and_commit_wrapper(f: Callable) -> Callable:
+        @functools.wraps(f)
+        def git_add_and_commit_inner(ctx: click.Context, *args, **kwargs) -> Any:
+            resp = f(ctx, *args, **kwargs)
+            if not os.path.exists(STORE_GIT_REPO):
+                return resp
+
+            if SECURE_GIT_MODE:
+                commit_msg = secure_git_mode_message
+            else:
+                commit_msg = commit_message_builder(
+                    ctx_params=ctx.params, **commit_message_builder_kwargs
+                )
+
+            run_git_command("add .")
+            try:
+                run_git_command(f"commit -m {commit_msg!r}")
+            except ShellCommandError:
+                pass
+            return resp
+
+        return git_add_and_commit_inner
+
+    return git_add_and_commit_wrapper
 
 
 def require_store(f: Callable) -> Callable:

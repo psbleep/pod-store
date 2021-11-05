@@ -5,13 +5,7 @@ from unittest.mock import call
 import click
 import pytest
 
-from pod_store.commands.decorators import (
-    catch_pod_store_errors,
-    conditional_confirmation_prompt,
-    git_add_and_commit,
-    require_store,
-    save_store_changes,
-)
+from pod_store.commands import decorators
 from pod_store.exc import EpisodeDoesNotExistError, StoreDoesNotExistError
 
 from . import TEST_STORE_FILE_PATH
@@ -19,10 +13,15 @@ from . import TEST_STORE_FILE_PATH
 fake_ctx = namedtuple("fake_ctx", ["obj", "params"])
 
 
+@pytest.fixture
+def mocked_run_git_command(mocker):
+    return mocker.patch("pod_store.commands.decorators.run_git_command")
+
+
 def test_catch_pod_store_errors_decorator_aborts_command_and_displays_error_message(
     mocked_command_helpers_click_secho,
 ):
-    @catch_pod_store_errors
+    @decorators.catch_pod_store_errors
     def raise_error():
         raise EpisodeDoesNotExistError("hello")
 
@@ -34,25 +33,8 @@ def test_catch_pod_store_errors_decorator_aborts_command_and_displays_error_mess
     )
 
 
-def test_git_add_and_commit_adds_changes_and_builds_commit_message(mocker):
-    mocked_run_git_command = mocker.patch(
-        "pod_store.commands.decorators.run_git_command"
-    )
-
-    @git_add_and_commit(message="hello world")
-    def committed(ctx):
-        pass
-
-    ctx = fake_ctx(obj=None, params=None)
-    committed(ctx)
-
-    mocked_run_git_command.assert_has_calls(
-        [call("add ."), call("commit -m 'hello world'")]
-    )
-
-
 def test_conditional_confirmation_prompt_param_does_not_match_value():
-    @conditional_confirmation_prompt(param="hello", value=False)
+    @decorators.conditional_confirmation_prompt(param="hello", value=False)
     def no_match(ctx):
         return True
 
@@ -61,7 +43,9 @@ def test_conditional_confirmation_prompt_param_does_not_match_value():
 
 
 def test_conditional_confirmation_prompt_param_matches_value_but_override_flag_is_set():
-    @conditional_confirmation_prompt(param="hello", value=True, override="flagged")
+    @decorators.conditional_confirmation_prompt(
+        param="hello", value=True, override="flagged"
+    )
     def flagged(ctx):
         return True
 
@@ -74,7 +58,7 @@ def test_conditional_confirmation_prompt_param_matches_no_override_prompt_confir
 ):
     mocker.patch("click.prompt", return_value="y")
 
-    @conditional_confirmation_prompt(param="hello", value=True)
+    @decorators.conditional_confirmation_prompt(param="hello", value=True)
     def prompt_passed(ctx):
         return True
 
@@ -87,7 +71,7 @@ def test_conditional_confirmation_prompt_param_no_override_prompt_not_confirmed(
 ):
     mocker.patch("click.prompt", return_value="n")
 
-    @conditional_confirmation_prompt(param="hello", value=True)
+    @decorators.conditional_confirmation_prompt(param="hello", value=True)
     def prompt_failed(ctx):
         return True
 
@@ -96,8 +80,53 @@ def test_conditional_confirmation_prompt_param_no_override_prompt_not_confirmed(
         prompt_failed(ctx)
 
 
+def test_git_add_and_commit_adds_changes_and_builds_commit_message(
+    mocked_run_git_command,
+):
+    @decorators.git_add_and_commit(message="hello world")
+    def committed(ctx):
+        return True
+
+    ctx = fake_ctx(obj=None, params=None)
+    assert committed(ctx) is True
+
+    mocked_run_git_command.assert_has_calls(
+        [call("add ."), call("commit -m 'hello world'")]
+    )
+
+
+def test_git_add_and_commit_chooses_secure_message_if_secure_git_mode_is_configured(
+    mocker,
+    mocked_run_git_command,
+):
+    mocker.patch.object(decorators, "SECURE_GIT_MODE", True)
+
+    @decorators.git_add_and_commit(
+        message="hello world", secure_git_mode_message="<redacted> world"
+    )
+    def secure(ctx):
+        return True
+
+    assert secure(ctx=None) is True
+
+    mocked_run_git_command.assert_has_calls(
+        [call("add ."), call("commit -m '<redacted> world'")]
+    )
+
+
+def test_git_add_and_commit_does_nothing_if_git_not_set_up(
+    start_with_no_store, mocked_run_git_command
+):
+    @decorators.git_add_and_commit(message="hello world")
+    def no_git(ctx):
+        return True
+
+    assert no_git(ctx=None) is True
+    mocked_run_git_command.assert_not_called()
+
+
 def test_require_store_does_not_raise_error_if_store_exists(store):
-    @require_store
+    @decorators.require_store
     def store_exists(ctx):
         return ctx.obj
 
@@ -107,7 +136,7 @@ def test_require_store_does_not_raise_error_if_store_exists(store):
 
 
 def test_require_store_raises_error_if_store_does_not_exist():
-    @require_store
+    @decorators.require_store
     def no_store(ctx):
         return ctx.obj
 
@@ -121,7 +150,7 @@ def test_save_store_changes_saves_current_store_state_in_store_file(store):
     store.podcasts.delete("other")
     ctx = fake_ctx(obj=store, params=None)
 
-    @save_store_changes
+    @decorators.save_store_changes
     def saved(ctx):
         pass
 
