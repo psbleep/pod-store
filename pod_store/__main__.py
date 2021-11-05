@@ -13,20 +13,15 @@ from .commands.commit_messages import (
 )
 from .commands.decorators import (
     catch_pod_store_errors,
-    git_add_and_commit,
     conditional_confirmation_prompt,
+    git_add_and_commit,
     require_store,
     save_store_changes,
 )
 from .commands.filtering import get_filter_from_command_arguments
 from .commands.helpers import abort_if_false, display_pod_store_error_from_exception
 from .commands.listing import get_lister_from_command_arguments
-from .commands.tagging import (
-    marker,
-    tagger,
-    unmarker,
-    untagger,
-)
+from .commands.tagging import marker, tagger, unmarker, untagger
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
 from .util import run_git_command

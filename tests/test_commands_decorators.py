@@ -7,8 +7,8 @@ import pytest
 
 from pod_store.commands.decorators import (
     catch_pod_store_errors,
-    git_add_and_commit,
     conditional_confirmation_prompt,
+    git_add_and_commit,
     require_store,
     save_store_changes,
 )
