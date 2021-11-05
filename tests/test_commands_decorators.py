@@ -69,29 +69,29 @@ def test_conditional_confirmation_prompt_param_matches_value_but_override_flag_i
     assert flagged(ctx) is True
 
 
-def test_conditional_confirmation_prompt_param_matches_override_not_set_prompt_confirmed(
+def test_conditional_confirmation_prompt_param_matches_no_override_prompt_confirmed(
     mocker,
 ):
     mocker.patch("click.prompt", return_value="y")
 
-    @conditional_confirmation_prompt(param="hello", value=True, override="flagged")
+    @conditional_confirmation_prompt(param="hello", value=True)
     def prompt_passed(ctx):
         return True
 
-    ctx = fake_ctx(obj=None, params={"hello": True, "flagged": False})
+    ctx = fake_ctx(obj=None, params={"hello": True})
     assert prompt_passed(ctx) is True
 
 
-def test_conditional_confirmation_prompt_param_matches_override_not_set_prompt_not_confirmed(
+def test_conditional_confirmation_prompt_param_no_override_prompt_not_confirmed(
     mocker,
 ):
     mocker.patch("click.prompt", return_value="n")
 
-    @conditional_confirmation_prompt(param="hello", value=True, override="flagged")
+    @conditional_confirmation_prompt(param="hello", value=True)
     def prompt_failed(ctx):
         return True
 
-    ctx = fake_ctx(obj=None, params={"hello": True, "flagged": False})
+    ctx = fake_ctx(obj=None, params={"hello": True})
     with pytest.raises(click.Abort):
         prompt_failed(ctx)
 
