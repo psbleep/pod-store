@@ -6,7 +6,7 @@ from typing import Any, Callable, Optional
 
 import click
 
-from .. import STORE_GIT_REPO
+from .. import SECURE_GIT_MODE, STORE_GIT_REPO
 from ..exc import ShellCommandError, StoreDoesNotExistError
 from ..util import run_git_command
 from .commit_messages import default_commit_message_builder
@@ -66,6 +66,7 @@ def conditional_confirmation_prompt(
 
 def git_add_and_commit(
     commit_message_builder: Callable = default_commit_message_builder,
+    secure_git_mode_message: str = "",
     **commit_message_builder_kwargs,
 ) -> Callable:
     """Decorator for checking in and commiting git changes made after running a command.
@@ -93,10 +94,14 @@ def git_add_and_commit(
             if not os.path.exists(STORE_GIT_REPO):
                 return resp
 
+            if SECURE_GIT_MODE:
+                commit_msg = secure_git_mode_message
+            else:
+                commit_msg = commit_message_builder(
+                    ctx_params=ctx.params, **commit_message_builder_kwargs
+                )
+
             run_git_command("add .")
-            commit_msg = commit_message_builder(
-                ctx_params=ctx.params, **commit_message_builder_kwargs
-            )
             try:
                 run_git_command(f"commit -m {commit_msg!r}")
             except ShellCommandError:
