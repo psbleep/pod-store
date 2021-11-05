@@ -7,6 +7,7 @@ import pytest
 
 from pod_store.commands.decorators import (
     catch_pod_store_errors,
+    conditional_confirmation_prompt,
     git_add_and_commit,
     require_store,
     save_store_changes,
@@ -48,6 +49,51 @@ def test_git_add_and_commit_adds_changes_and_builds_commit_message(mocker):
     mocked_run_git_command.assert_has_calls(
         [call("add ."), call("commit -m 'hello world'")]
     )
+
+
+def test_conditional_confirmation_prompt_param_does_not_match_value():
+    @conditional_confirmation_prompt(param="hello", value=False)
+    def no_match(ctx):
+        return True
+
+    ctx = fake_ctx(obj=None, params={"hello": True})
+    assert no_match(ctx) is True
+
+
+def test_conditional_confirmation_prompt_param_matches_value_but_override_flag_is_set():
+    @conditional_confirmation_prompt(param="hello", value=True, override="flagged")
+    def flagged(ctx):
+        return True
+
+    ctx = fake_ctx(obj=None, params={"hello": True, "flagged": True})
+    assert flagged(ctx) is True
+
+
+def test_conditional_confirmation_prompt_param_matches_no_override_prompt_confirmed(
+    mocker,
+):
+    mocker.patch("click.prompt", return_value="y")
+
+    @conditional_confirmation_prompt(param="hello", value=True)
+    def prompt_passed(ctx):
+        return True
+
+    ctx = fake_ctx(obj=None, params={"hello": True})
+    assert prompt_passed(ctx) is True
+
+
+def test_conditional_confirmation_prompt_param_no_override_prompt_not_confirmed(
+    mocker,
+):
+    mocker.patch("click.prompt", return_value="n")
+
+    @conditional_confirmation_prompt(param="hello", value=True)
+    def prompt_failed(ctx):
+        return True
+
+    ctx = fake_ctx(obj=None, params={"hello": True})
+    with pytest.raises(click.Abort):
+        prompt_failed(ctx)
 
 
 def test_require_store_does_not_raise_error_if_store_exists(store):

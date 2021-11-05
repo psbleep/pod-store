@@ -2,7 +2,7 @@
 
 import functools
 import os
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 import click
 
@@ -70,6 +70,42 @@ def git_add_and_commit(
         return git_add_and_commit_inner
 
     return git_add_and_commit_wrapper
+
+
+def conditional_confirmation_prompt(
+    param: str, value: Any, override: Optional[str] = None
+) -> Callable:
+    """Decorator for prompting the user to confirm the command if conditions are met.
+
+    The `param` argument is used to look up a parameter in the Click context. If the
+    param value matches the one provided in the `value` argument, a confirmation prompt
+    is provided to the user (unless the command param noted in the optional `override`
+    argument is found to be True).
+
+    For example:
+
+    @conditional_confirmation_prompt(param="hello", value="world", override="force")
+    ...
+
+    Would show a prompt if:
+
+        - the `hello` parameter had a value of 'world'
+        - the `force` parameter was not set to True
+
+    If the user does not confirm the action, the command is aborted.
+    """
+
+    def conditional_confirmation_prompt_wrapper(f: Callable) -> Callable:
+        @functools.wraps(f)
+        def conditional_confirmation_prompt_inner(ctx, *args, **kwargs) -> Any:
+            if ctx.params.get(param) == value and not ctx.params.get(override) is True:
+                if click.prompt("Confirm?", type=click.Choice(["y", "n"])) != "y":
+                    raise click.Abort()
+            return f(ctx, *args, **kwargs)
+
+        return conditional_confirmation_prompt_inner
+
+    return conditional_confirmation_prompt_wrapper
 
 
 def require_store(f: Callable) -> Callable:

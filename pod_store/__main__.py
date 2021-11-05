@@ -13,6 +13,7 @@ from .commands.commit_messages import (
 )
 from .commands.decorators import (
     catch_pod_store_errors,
+    conditional_confirmation_prompt,
     git_add_and_commit,
     require_store,
     save_store_changes,
@@ -348,11 +349,23 @@ def ls(
     help="(flag): Run this command in interactive mode to select which episodes to "
     "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
+@click.option(
+    "-f",
+    "--force",
+    is_flag=True,
+    help="Skip confirmation prompt for bulk mode actions.",
+)
+@conditional_confirmation_prompt(param="interactive", value=False, override="force")
 @catch_pod_store_errors
 @require_store
 @git_add_and_commit(commit_message_builder=tagger_commit_message_builder, tagger=marker)
 @save_store_changes
-def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
+def mark_as_new(
+    ctx: click.Context,
+    podcast: Optional[str],
+    interactive: bool,
+    force: Optional[bool],
+):
     """Add the `new` tag to a group of episodes.
 
     See the `tag-episodes` command help for usage options.
@@ -380,13 +393,25 @@ def mark_as_new(ctx: click.Context, podcast: Optional[str], interactive: bool):
     help="(flag): Run this command in interactive mode to select which episodes to "
     "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
+@click.option(
+    "-f",
+    "--force",
+    is_flag=True,
+    help="Skip confirmation prompt for bulk mode actions.",
+)
+@conditional_confirmation_prompt(param="interactive", value=False, override="force")
 @catch_pod_store_errors
 @require_store
 @git_add_and_commit(
     commit_message_builder=tagger_commit_message_builder, tagger=unmarker
 )
 @save_store_changes
-def mark_as_old(ctx: click.Context, podcast: Optional[str], interactive: bool):
+def mark_as_old(
+    ctx: click.Context,
+    podcast: Optional[str],
+    interactive: bool,
+    force: Optional[bool],
+):
     """Remove the `new` tag from a group of episodes. Alias for the `untag` command."""
     store = ctx.obj
     filter = get_filter_from_command_arguments(store=store, podcast_title=podcast)
@@ -538,12 +563,23 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     help="(flag): Run this command in interactive mode to select which episodes to "
     "tag, or bulk mode to tag all episodes in the group. Defaults to `--interactive`.",
 )
+@click.option(
+    "-f",
+    "--force",
+    is_flag=True,
+    help="Skip confirmation prompt for bulk mode actions.",
+)
+@conditional_confirmation_prompt(param="interactive", value=False, override="force")
 @catch_pod_store_errors
 @require_store
 @git_add_and_commit(commit_message_builder=tagger_commit_message_builder, tagger=tagger)
 @save_store_changes
 def tag_episodes(
-    ctx: click.Context, tag: str, podcast: Optional[str], interactive: bool
+    ctx: click.Context,
+    tag: str,
+    podcast: Optional[str],
+    interactive: bool,
+    force: Optional[bool],
 ):
     """Tag episodes in groups.
 
@@ -633,6 +669,13 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     "untag, or bulk mode to untag all episodes in the group. Defaults to "
     "`--interactive`.",
 )
+@click.option(
+    "-f",
+    "--force",
+    is_flag=True,
+    help="Skip confirmation prompt for bulk mode actions.",
+)
+@conditional_confirmation_prompt(param="interactive", value=False, override="force")
 @catch_pod_store_errors
 @require_store
 @git_add_and_commit(
@@ -640,7 +683,11 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
 )
 @save_store_changes
 def untag_episodes(
-    ctx: click.Context, tag: str, podcast: Optional[str], interactive: bool
+    ctx: click.Context,
+    tag: str,
+    podcast: Optional[str],
+    interactive: bool,
+    force: Optional[bool],
 ):
     """Untag episodes in groups.
 
