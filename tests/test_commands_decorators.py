@@ -19,6 +19,11 @@ from . import TEST_STORE_FILE_PATH
 fake_ctx = namedtuple("fake_ctx", ["obj", "params"])
 
 
+@pytest.fixture
+def mocked_run_git_command(mocker):
+    return mocker.patch("pod_store.commands.decorators.run_git_command")
+
+
 def test_catch_pod_store_errors_decorator_aborts_command_and_displays_error_message(
     mocked_command_helpers_click_secho,
 ):
@@ -79,21 +84,30 @@ def test_conditional_confirmation_prompt_param_no_override_prompt_not_confirmed(
         prompt_failed(ctx)
 
 
-def test_git_add_and_commit_adds_changes_and_builds_commit_message(mocker):
-    mocked_run_git_command = mocker.patch(
-        "pod_store.commands.decorators.run_git_command"
-    )
-
+def test_git_add_and_commit_adds_changes_and_builds_commit_message(
+    mocked_run_git_command,
+):
     @git_add_and_commit(message="hello world")
     def committed(ctx):
-        pass
+        return True
 
     ctx = fake_ctx(obj=None, params=None)
-    committed(ctx)
+    assert committed(ctx) is True
 
     mocked_run_git_command.assert_has_calls(
         [call("add ."), call("commit -m 'hello world'")]
     )
+
+
+def test_git_add_and_commit_does_nothing_if_git_not_set_up(
+    start_with_no_store, mocked_run_git_command
+):
+    @git_add_and_commit(message="hello world")
+    def no_git(ctx):
+        return True
+
+    assert no_git(ctx=None) is True
+    mocked_run_git_command.assert_not_called()
 
 
 def test_require_store_does_not_raise_error_if_store_exists(store):
