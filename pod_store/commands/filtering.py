@@ -135,6 +135,9 @@ class EpisodeFilter(Filter):
             if self._passes_filters(e, **self._episode_filters)
         ]
 
+    def __repr__(self) -> str:
+        return "<EpisodeFilter>"
+
 
 class PodcastFilter(Filter):
     """Filter a group of podcasts based on the provided criteria.
@@ -160,6 +163,9 @@ class PodcastFilter(Filter):
     @property
     def items(self) -> List[Podcast]:
         return self.podcasts
+
+    def __repr__(self):
+        return "<PodcastFilter>"
 
 
 def get_filter_from_command_arguments(

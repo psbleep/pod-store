@@ -296,13 +296,13 @@ def test_rm_aborts_if_not_confirmed(runner):
 def test_tag_a_podcast(runner):
     result = runner.invoke(cli, ["tag", "greetings", "foobar"])
     assert result.exit_code == 0
-    assert result.output == "Tagged as 'foobar': greetings.\n"
+    assert result.output == "Tagged as foobar: greetings.\n"
 
 
 def test_tag_a_pocast_episode(runner):
     result = runner.invoke(cli, ["tag", "greetings", "--episode", "aaa", "foobar"])
     assert result.exit_code == 0
-    assert result.output == "Tagged as 'foobar': greetings -> [0023] hello.\n"
+    assert result.output == "Tagged as foobar: greetings -> [0023] hello.\n"
 
 
 def test_tag_episodes_all_episodes_bulk_mode(runner):

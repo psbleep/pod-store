@@ -123,6 +123,9 @@ class Tagger(BaseTagger):
         for tag in self._tags:
             item.tag(tag)
 
+    def __repr__(self) -> str:
+        return "<Tagger>"
+
 
 class Untagger(BaseTagger):
     """Removes tags from store items."""
@@ -130,6 +133,9 @@ class Untagger(BaseTagger):
     def _perform_tagging(self, item: Union[Episode, Podcast]) -> None:
         for tag in self._tags:
             item.untag(tag)
+
+    def __repr__(self) -> str:
+        return "<Untagger>"
 
 
 def get_tagger_from_command_arguments(
@@ -145,15 +151,18 @@ def get_tagger_from_command_arguments(
     tags = [tag]
     filter = get_filter_from_command_arguments(
         store=store,
-        filter_untagged_items=is_untagger,
+        filter_untagged_items=not is_untagger,
         tags=tags,
         filter_episodes=tag_episodes,
         podcast_title=podcast_title,
         **filters,
     )
 
+    if tag_episodes is None:
+        tag_episodes = tag_episodes or podcast_title
+
     tagger_kwargs = _get_tagger_kwargs(
-        tag_episodes=tag_episodes or podcast_title,
+        tag_episodes=tag_episodes,
         **tagger_kwargs,
     )
 
@@ -175,6 +184,7 @@ def _get_tagger_kwargs(
     message_template = message_template or _get_message_template(
         tag_episodes=tag_episodes
     )
+
     help_message_template = (
         interactive_mode_help_message_template
         or _get_interactive_mode_help_message_template(tag_episodes=tag_episodes)

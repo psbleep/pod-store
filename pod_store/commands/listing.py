@@ -170,6 +170,9 @@ class EpisodeLister(Lister):
         )
         return f"{stripped_short_description_msg!r}"
 
+    def __repr__(self) -> str:
+        return "<EpisodeLister>"
+
 
 class PodcastLister(Lister):
     """List information about podcasts."""
@@ -221,6 +224,9 @@ class PodcastLister(Lister):
         return PODCAST_LISTING_TEMPLATE.format(
             title=podcast.title, episodes_msg=episodes_msg, tags_msg=tags_msg
         )
+
+    def __repr__(self) -> str:
+        return "<PodcastLister>"
 
 
 def get_lister_from_command_arguments(
