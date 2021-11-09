@@ -3,7 +3,7 @@ from typing import List, Optional
 
 DOWNLOAD_COMMIT_MESSAGE_TEMPLATE = "Downloaded new episodes{tags} for {podcast}."
 REFRESH_COMMIT_MESSAGE_TEMPLATE = "Refreshed {podcast}{tags}."
-TAGGER_COMMIT_MESSAGE_TEMPLATE = "{action} {target} -> {tag!r}{mode}."
+TAGGER_COMMIT_MESSAGE_TEMPLATE = "{action} {target} -> {tag}{mode}."
 
 
 def default_commit_message_builder(

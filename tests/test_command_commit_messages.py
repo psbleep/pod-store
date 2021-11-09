@@ -103,7 +103,7 @@ def test_tagger_commit_message_builder_for_single_podcast():
             ctx_params={"podcast": "greetings", "episode": None, "tag": "blessed"},
             action="chosen",
         )
-        == "Chosen podcast 'greetings' -> 'blessed'."
+        == "Chosen podcast 'greetings' -> blessed."
     )
 
 
@@ -113,7 +113,7 @@ def test_tagger_commit_message_builder_for_single_episode():
             ctx_params={"podcast": "greetings", "episode": "aaa", "tag": "blessed"},
             action="chosen",
         )
-        == "Chosen 'greetings', episode 'aaa' -> 'blessed'."
+        == "Chosen 'greetings', episode 'aaa' -> blessed."
     )
 
 
@@ -123,7 +123,7 @@ def test_tagger_commit_message_builder_for_podcast_episodes_all_podcasts():
             ctx_params={"podcast": None, "tag": "blessed"},
             action="chosen",
         )
-        == "Chosen all podcast episodes -> 'blessed'."
+        == "Chosen all podcast episodes -> blessed."
     )
 
 
@@ -132,7 +132,7 @@ def test_tagger_commit_message_builder_for_podcast_episodes_single_podcast():
         tagger_commit_message_builder(
             ctx_params={"podcast": "greetings", "tag": "blessed"}, action="chosen"
         )
-        == "Chosen 'greetings' podcast episodes -> 'blessed'."
+        == "Chosen 'greetings' podcast episodes -> blessed."
     )
 
 
@@ -142,7 +142,7 @@ def test_tagger_commit_message_builder_for_podcast_interactive_mode():
             ctx_params={"podcast": None, "tag": "blessed", "interactive": True},
             action="chosen",
         )
-        == "Chosen all podcast episodes -> 'blessed' in interactive mode."
+        == "Chosen all podcast episodes -> blessed in interactive mode."
     )
 
 
@@ -153,5 +153,5 @@ def test_tagger_commit_message_builder_accepts_tag_passed_in_to_decorator():
             action="chosen",
             tag="foo",
         )
-        == "Chosen podcast 'greetings' -> 'foo'."
+        == "Chosen podcast 'greetings' -> foo."
     )
