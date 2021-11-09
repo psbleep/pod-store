@@ -1,5 +1,5 @@
 """Filter groups of podcasts or episodes."""
-from abc import ABC
+from abc import ABC, abstractproperty
 from typing import Any, List, Optional, Union
 
 from ..episodes import Episode
@@ -37,6 +37,10 @@ class Filter(ABC):
         self._new_episodes = new_episodes
         self._podcast_title = podcast_title
         self._filters = filters
+
+    @abstractproperty
+    def items(self) -> List:
+        pass
 
     @property
     def podcasts(self) -> List[Podcast]:
@@ -99,6 +103,10 @@ class EpisodeFilter(Filter):
     """Filter a group of episodes based on the provided criteria."""
 
     @property
+    def items(self) -> List[Episode]:
+        return self._episodes
+
+    @property
     def _episode_filters(self) -> dict:
         """Builds the episode filters dict.
 
@@ -110,7 +118,7 @@ class EpisodeFilter(Filter):
         return filters
 
     @property
-    def episodes(self) -> List[Episode]:
+    def _episodes(self) -> List[Episode]:
         """List of episodes that meet the filter criteria."""
         episodes = []
         for pod in self.podcasts:
@@ -149,10 +157,14 @@ class PodcastFilter(Filter):
         """
         return {**self._filters, **super()._podcast_filters}
 
+    @property
+    def items(self) -> List[Podcast]:
+        return self.podcasts
+
 
 def get_filter_from_command_arguments(
     store: Store,
-    new_episodes: bool = False,
+    new_episodes: bool = None,
     filter_episodes: bool = False,
     podcast_title: Optional[str] = None,
     tags: Optional[List] = None,
@@ -160,7 +172,8 @@ def get_filter_from_command_arguments(
 ) -> Union[EpisodeFilter, PodcastFilter]:
     """Helper method for building a filter based on common CLI command arguments."""
     tags = tags or []
-    filter_episodes = filter_episodes or podcast_title
+    if filter_episodes is None:
+        filter_episodes = filter_episodes or podcast_title
 
     if filter_untagged_items:
         filters = {t: False for t in tags}

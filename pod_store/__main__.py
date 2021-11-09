@@ -175,7 +175,7 @@ def download(
         filter_untagged_items=not is_tagged,
     )
 
-    for ep in filter.episodes:
+    for ep in filter.items:
         click.echo(f"Downloading: {ep.download_path}.")
         try:
             with ep.download() as download:
@@ -494,11 +494,12 @@ def refresh(
     store = ctx.obj
     filter = get_filter_from_command_arguments(
         store=store,
+        filter_episodes=False,
         podcast_title=podcast,
         tags=tag,
         filter_untagged_items=not is_tagged,
     )
-    for podcast in filter.podcasts:
+    for podcast in filter.items:
         click.echo(f"Refreshing {podcast.title}")
         try:
             podcast.refresh()
