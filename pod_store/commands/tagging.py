@@ -217,8 +217,8 @@ class Untagger(BaseTagger):
 
 
 # These instances of the tagger classes are used to customize the language used in
-# displaying output to the user. The marker/unmarker objects also work with a default
-# tag.
+# displaying output to the user. Note that the marker/unmarker objects utilize a
+# default tag.
 marker = Tagger(action="mark", default_tag="new")
 tagger = Tagger(action="tag", performing_action="tagging", performed_action="tagged")
 
