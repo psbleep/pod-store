@@ -10,7 +10,6 @@ from typing import List, Optional
 
 from . import GPG_ID_FILE_PATH, PODCAST_DOWNLOADS_PATH
 from .exc import (
-    NoPodcastsFoundError,
     PodcastDoesNotExistError,
     PodcastExistsError,
     StoreExistsError,
@@ -22,7 +21,7 @@ from .store_file_handlers import (
     StoreFileHandler,
     UnencryptedStoreFileHandler,
 )
-from .util import meets_list_filter_criteria, run_git_command, run_shell_command
+from .util import run_git_command, run_shell_command
 
 
 class StorePodcasts:
@@ -82,26 +81,9 @@ class StorePodcasts:
         except KeyError:
             raise PodcastDoesNotExistError(title)
 
-    def list(self, allow_empty: bool = True, **filters) -> List[Podcast]:
-        """Return a list of podcasts, sorted by time created (oldest first).
-
-        When `allow_empty` is set to `False`, an exception will be raised if no podcasts
-        are found.
-
-        Optionally provide a list of keyword arguments to filter results by.
-
-            list(foo="bar")
-
-        will check for a `foo` attribute on the `pod_store.podcasts.Podcast` object and
-        check if the value matches "bar".
-        """
+    def list(self) -> List[Podcast]:
+        """Return a list of podcasts, sorted by time created (oldest first)."""
         podcasts = [p for p in self._podcasts.values()]
-        for key, value in filters.items():
-            podcasts = [
-                p for p in podcasts if meets_list_filter_criteria(p, key, value)
-            ]
-        if not podcasts and not allow_empty:
-            raise NoPodcastsFoundError()
         return sorted(podcasts, key=lambda p: p.created_at)
 
     def rename(self, old_title: str, new_title: str) -> None:

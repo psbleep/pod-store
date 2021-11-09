@@ -1,7 +1,6 @@
 import pytest
 
 from pod_store.exc import (
-    NoPodcastsFoundError,
     PodcastDoesNotExistError,
     PodcastExistsError,
 )
@@ -47,49 +46,6 @@ def test_store_podcasts_lists_podcasts_sorted_by_created_at(store_podcasts):
     assert pod1.title == "farewell"
     assert pod2.title == "other"
     assert pod3.title == "greetings"
-
-
-def test_store_podcasts_lists_podcasts_filtered_by_attribute(store_podcasts):
-    pod1, pod2 = store_podcasts.list(has_new_episodes=True)
-    assert pod1.title == "farewell"
-    assert pod2.title == "greetings"
-
-
-def test_store_podcasts_lists_podcasts_filtered_by_presence_of_tag(store_podcasts):
-    pod = store_podcasts.get("greetings")
-    pod.tags = ["zoobar"]
-
-    pods = store_podcasts.list(zoobar=True)
-    assert len(pods) == 1
-    assert pods[0].title == "greetings"
-
-
-def test_store_podcasts_lists_podcasts_filtered_by_absence_of_tag(store_podcasts):
-    pod = store_podcasts.get("greetings")
-    pod.tags = ["zoobar"]
-
-    pods = store_podcasts.list(zoobar=False)
-    assert len(pods) == 2
-
-
-def test_store_podcasts_list_raises_attribute_error_if_filter_is_not_attribute_or_tag(
-    store_podcasts,
-):
-    with pytest.raises(AttributeError):
-        store_podcasts.list(zozo="hello")
-
-
-def test_store_podcasts_list_no_podcasts_found_raises_error_when_empty_not_allowed(
-    store_podcasts,
-):
-    with pytest.raises(NoPodcastsFoundError):
-        store_podcasts.list(allow_empty=False, title="zzzzzzz")
-
-
-def test_store_podcasts_list_no_podcasts_found_returns_empty_list_when_empty_is_allowed(
-    store_podcasts,
-):
-    assert store_podcasts.list(allow_empty=True, title="zzzzzzzzz") == []
 
 
 def test_store_podcasts_rename(store_podcasts):
