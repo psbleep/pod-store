@@ -144,3 +144,14 @@ def test_tagger_commit_message_builder_for_podcast_interactive_mode():
         )
         == "Chosen all podcast episodes -> 'blessed' in interactive mode."
     )
+
+
+def test_tagger_commit_message_builder_accepts_tag_passed_in_to_decorator():
+    assert (
+        tagger_commit_message_builder(
+            ctx_params={"podcast": "greetings", "episode": None},
+            action="chosen",
+            tag="foo",
+        )
+        == "Chosen podcast 'greetings' -> 'foo'."
+    )
