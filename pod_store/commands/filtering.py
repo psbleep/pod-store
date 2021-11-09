@@ -155,20 +155,23 @@ def get_filter_from_command_arguments(
     new_episodes: bool = False,
     filter_episodes: bool = False,
     podcast_title: Optional[str] = None,
-    tags: Optional[List[str]] = None,
-    filter_untagged_items: bool = None,
+    tags: Optional[List] = None,
+    filter_untagged_items: bool = False,
 ) -> Union[EpisodeFilter, PodcastFilter]:
     """Helper method for building a filter based on common CLI command arguments."""
+    tags = tags or []
     filter_episodes = filter_episodes or podcast_title
+
+    if filter_untagged_items:
+        filters = {t: False for t in tags}
+    else:
+        filters = {t: True for t in tags}
+
     if filter_episodes:
         filter_cls = EpisodeFilter
     else:
         filter_cls = PodcastFilter
 
     return filter_cls(
-        store=store,
-        new_episodes=new_episodes,
-        podcast_title=podcast_title,
-        tags=tags,
-        filter_untagged_items=filter_untagged_items,
+        store=store, new_episodes=new_episodes, podcast_title=podcast_title, **filters
     )
