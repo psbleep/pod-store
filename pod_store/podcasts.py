@@ -12,7 +12,7 @@ import requests
 
 from . import PODCAST_DOWNLOADS_PATH, PODCAST_REFRESH_TIMEOUT, util
 from .episodes import Episode
-from .exc import EpisodeDoesNotExistError, NoEpisodesFoundError
+from .exc import EpisodeDoesNotExistError
 
 P = TypeVar("P", bound="Podcast")
 
@@ -80,29 +80,11 @@ class PodcastEpisodes:
             raise EpisodeDoesNotExistError(id)
         return episode
 
-    def list(self, allow_empty: bool = True, **filters) -> List[Episode]:
+    def list(self) -> List[Episode]:
         """Return a list of podcast episodes, sorted by time created
         (most recent first).
-
-        When `allow_empty` is set to `False`, an exception is raised if no episodes
-        are found.
-
-        Optionally provide a list of keyword arguments to filter results by.
-
-            list(foo="bar")
-
-        will check for a `foo` attribute on the `pod_store.episodes.Episode` object and
-        check if the value matches "bar".
         """
         episodes = self._episodes.values()
-
-        for key, value in filters.items():
-            episodes = [
-                e for e in episodes if util.meets_list_filter_criteria(e, key, value)
-            ]
-        if not episodes and not allow_empty:
-            raise NoEpisodesFoundError()
-
         return sorted(episodes, key=lambda e: e.created_at, reverse=True)
 
     def to_json(self) -> dict:
@@ -179,11 +161,15 @@ class Podcast:
     @property
     def has_new_episodes(self) -> bool:
         """Inidicates if the podcast has any new episodes."""
-        return bool(self.episodes.list(new=True))
+        for episode in self.episodes.list():
+            if episode.is_new:
+                return True
+        return False
 
     @property
     def number_of_new_episodes(self) -> int:
-        return len(self.episodes.list(new=True))
+        """Indicates the number of new episodes a podcast has."""
+        return len([e for e in self.episodes.list() if e.is_new])
 
     def refresh(self) -> None:
         """Refresh the episode data tracked in the pod store for this podcast.

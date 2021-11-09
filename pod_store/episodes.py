@@ -189,6 +189,14 @@ class Episode:
             f"{self.episode_number}-{cleaned_title}{file_type}",
         )
 
+    @property
+    def is_new(self) -> bool:
+        """Indicates whether an episode is marked as 'new' or not.
+
+        Looks for the presence of a 'new' tag assigned to the episode.
+        """
+        return "new" in self.tags
+
     def download(self) -> None:
         """Download the audio file of the episode to the file system."""
         return EpisodeDownloadManager(episode=self)
