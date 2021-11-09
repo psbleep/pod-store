@@ -17,6 +17,7 @@ from pod_store.exc import (
     ShellCommandError,
     StoreDoesNotExistError,
     StoreExistsError,
+    StoreIsNotEncrypted,
 )
 
 
@@ -51,6 +52,13 @@ exceptions_and_error_messages = [
         "Store has not been set up. See the `init` command for set up instructions.",
     ),
     (StoreExistsError("/path"), "Store already initialized: /path."),
+    (
+        StoreIsNotEncrypted("/path/to/gpg-id"),
+        "Store has not been set up with a GPG encryption key. "
+        "Please verify whether the store is encrypted. "
+        "If it is, place a text file containing the GPG key used to encrypt it at: "
+        "/path/to/gpg-id",
+    ),
 ]
 
 
