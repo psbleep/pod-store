@@ -21,7 +21,6 @@ from .commands.decorators import (
 from .commands.filtering import get_filter_from_command_arguments
 from .commands.helpers import abort_if_false, display_pod_store_error_from_exception
 from .commands.listing import get_lister_from_command_arguments
-from .commands.tagging import marker, tagger, unmarker, untagger
 from .commands._tagging import get_tagger_from_command_arguments
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
@@ -373,7 +372,8 @@ def ls(
 @git_add_and_commit(
     secure_git_mode_message="Tagged items.",
     commit_message_builder=tagger_commit_message_builder,
-    tagger=marker,
+    action="marked",
+    tag="new",
 )
 @save_store_changes
 def mark_as_new(
@@ -426,7 +426,8 @@ def mark_as_new(
 @git_add_and_commit(
     secure_git_mode_message="Tagged items.",
     commit_message_builder=tagger_commit_message_builder,
-    tagger=unmarker,
+    action="unmarked",
+    tag="new",
 )
 @save_store_changes
 def mark_as_old(
@@ -562,7 +563,6 @@ def rm(ctx: click.Context, title: str):
 @git_add_and_commit(
     secure_git_mode_message="Tagged items.",
     commit_message_builder=tagger_commit_message_builder,
-    tagger=tagger,
 )
 @save_store_changes
 def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
@@ -619,7 +619,6 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
 @git_add_and_commit(
     secure_git_mode_message="Tagged items.",
     commit_message_builder=tagger_commit_message_builder,
-    tagger=tagger,
 )
 @save_store_changes
 def tag_episodes(
@@ -685,7 +684,6 @@ def unencrypt_store(ctx: click.Context):
 @git_add_and_commit(
     secure_git_mode_message="Tagged items.",
     commit_message_builder=tagger_commit_message_builder,
-    tagger=untagger,
 )
 @save_store_changes
 def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
@@ -744,7 +742,6 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
 @git_add_and_commit(
     secure_git_mode_message="Tagged items.",
     commit_message_builder=tagger_commit_message_builder,
-    tagger=untagger,
 )
 @save_store_changes
 def untag_episodes(

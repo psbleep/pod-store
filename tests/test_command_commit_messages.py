@@ -97,51 +97,50 @@ def test_refresh_commit_message_builder_for_single_podcast():
     assert refresh_commit_message_builder(ctx_params) == "Refreshed 'foobar'."
 
 
-def test_tagger_commit_message_builder_for_single_podcast(tagger):
+def test_tagger_commit_message_builder_for_single_podcast():
     assert (
         tagger_commit_message_builder(
             ctx_params={"podcast": "greetings", "episode": None, "tag": "blessed"},
-            tagger=tagger,
+            action="chosen",
         )
         == "Chosen podcast 'greetings' -> 'blessed'."
     )
 
 
-def test_tagger_commit_message_builder_for_single_episode(tagger):
+def test_tagger_commit_message_builder_for_single_episode():
     assert (
         tagger_commit_message_builder(
             ctx_params={"podcast": "greetings", "episode": "aaa", "tag": "blessed"},
-            tagger=tagger,
+            action="chosen",
         )
         == "Chosen 'greetings', episode 'aaa' -> 'blessed'."
     )
 
 
-def test_tagger_commit_message_builder_for_podcast_episodes_all_podcasts(tagger):
+def test_tagger_commit_message_builder_for_podcast_episodes_all_podcasts():
     assert (
         tagger_commit_message_builder(
             ctx_params={"podcast": None, "tag": "blessed"},
-            tagger=tagger,
+            action="chosen",
         )
         == "Chosen all podcast episodes -> 'blessed'."
     )
 
 
-def test_tagger_commit_message_builder_for_podcast_episodes_single_podcast(tagger):
+def test_tagger_commit_message_builder_for_podcast_episodes_single_podcast():
     assert (
         tagger_commit_message_builder(
-            ctx_params={"podcast": "greetings", "tag": "blessed"},
-            tagger=tagger,
+            ctx_params={"podcast": "greetings", "tag": "blessed"}, action="chosen"
         )
         == "Chosen 'greetings' podcast episodes -> 'blessed'."
     )
 
 
-def test_tagger_commit_message_builder_for_podcast_interactive_mode(tagger):
+def test_tagger_commit_message_builder_for_podcast_interactive_mode():
     assert (
         tagger_commit_message_builder(
             ctx_params={"podcast": None, "tag": "blessed", "interactive": True},
-            tagger=tagger,
+            action="chosen",
         )
         == "Chosen all podcast episodes -> 'blessed' in interactive mode."
     )
