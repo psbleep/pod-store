@@ -255,6 +255,8 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
     pod-store tracks changes using `git` and encrypts data using `gpg`. Use the command
     flags to configure your git repo and gpg encryption.
     """
+    if git_url:
+        click.echo("Please note, this could take a minute or two...")
     git = git or git_url
     Store.init(
         store_path=STORE_PATH,

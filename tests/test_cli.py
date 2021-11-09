@@ -115,6 +115,7 @@ def test_init_with_git(start_with_no_store, runner):
 def test_init_with_git_url(start_with_no_store, runner):
     result = runner.invoke(cli, ["init", "-u", "https://git.foo.bar/pod-store.git"])
     assert result.exit_code == 0
+    assert "take a minute" in result.output
     assert result.output.endswith(
         "Git tracking enabled: https://git.foo.bar/pod-store.git\n"
     )
