@@ -346,13 +346,13 @@ def test_unencrypt_aborts_if_not_confirmed(runner):
 def test_untag_a_podcast(runner):
     result = runner.invoke(cli, ["untag", "greetings", "hello"])
     assert result.exit_code == 0
-    assert result.output == "Untagged as 'hello': greetings.\n"
+    assert result.output == "Untagged as hello: greetings.\n"
 
 
 def test_untag_single_pocast_episode(runner):
     result = runner.invoke(cli, ["untag", "greetings", "--episode", "aaa", "new"])
     assert result.exit_code == 0
-    assert result.output == "Untagged as 'new': greetings -> [0023] hello.\n"
+    assert result.output == "Untagged as new: greetings -> [0023] hello.\n"
 
 
 def test_untag_episodes_all_episodes_bulk_mode(runner):

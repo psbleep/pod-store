@@ -704,15 +704,25 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     PODCAST: title of podcast
     TAG: arbitrary text tag
     """
-
     store = ctx.obj
-
-    pod = store.podcasts.get(podcast)
     if episode:
-        ep = pod.episodes.get(episode)
-        click.echo(untagger.tag_episode(ep, tag=tag))
+        filters = {"id": episode}
     else:
-        click.echo(untagger.tag_podcast(pod, tag=tag))
+        filters = {}
+
+    tagger = get_tagger_from_command_arguments(
+        store=store,
+        tag=tag,
+        is_untagger=True,
+        podcast_title=podcast,
+        tag_episodes=bool(episode),
+        filters=filters,
+        action="untag",
+        performing_action="untagging",
+        performed_action="untagged",
+    )
+    for msg in tagger.tag_items():
+        click.echo(msg)
 
 
 @cli.command()
