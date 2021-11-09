@@ -768,10 +768,18 @@ def untag_episodes(
     TAG: tag to remove
     """
     store = ctx.obj
-    filter = get_filter_from_command_arguments(store=store, podcast_title=podcast)
-    for msg in untagger.tag_podcast_episodes(
-        filter.podcasts, tag=tag, interactive_mode=interactive
-    ):
+    tagger = get_tagger_from_command_arguments(
+        store=store,
+        podcast_title=podcast,
+        tag_episodes=True,
+        tag=tag,
+        is_untagger=True,
+        action="untag",
+        performing_action="untagging",
+        performed_action="untagged",
+    )
+
+    for msg in tagger.tag_items(interactive_mode=interactive):
         click.echo(msg)
 
 
