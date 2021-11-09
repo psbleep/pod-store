@@ -22,7 +22,7 @@ from .store_file_handlers import (
     StoreFileHandler,
     UnencryptedStoreFileHandler,
 )
-from .util import meets_list_filter_criteria, run_git_command
+from .util import meets_list_filter_criteria, run_git_command, run_shell_command
 
 
 class StorePodcasts:
@@ -160,6 +160,9 @@ class Store:
         Optionally set the GPG ID for store encryption and establish the store file
         as an encrypted file.
         """
+        if git_url:
+            return cls._setup_existing_repo(git_url, store_path, gpg_id=gpg_id)
+
         try:
             os.makedirs(store_path)
         except FileExistsError:
@@ -168,8 +171,6 @@ class Store:
 
         if setup_git:
             run_git_command("init")
-            if git_url:
-                run_git_command(f"remote add origin {git_url}")
             with open(os.path.join(store_path, ".gitignore"), "w") as f:
                 f.write(".gpg-id")
 
@@ -208,6 +209,15 @@ class Store:
         """Save data to the store json file."""
         podcast_data = self.podcasts.to_json()
         self._file_handler.write_data(podcast_data)
+
+    @staticmethod
+    def _setup_existing_repo(
+        git_url: str, store_path: str, gpg_id: Optional[str] = None
+    ) -> None:
+        run_shell_command(f"git clone {git_url} {store_path}")
+        if gpg_id:
+            with open(os.path.join(GPG_ID_FILE_PATH), "w") as f:
+                f.write(gpg_id)
 
     @staticmethod
     def _setup_encrypted_store(
