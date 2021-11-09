@@ -168,10 +168,12 @@ class Store:
 
         if setup_git:
             run_git_command("init")
+
             if git_url:
-                run_git_command(f"remote add origin {git_url}")
-            with open(os.path.join(store_path, ".gitignore"), "w") as f:
-                f.write(".gpg-id")
+                return cls._setup_existing_repo(git_url, gpg_id=gpg_id)
+            else:
+                with open(os.path.join(store_path, ".gitignore"), "w") as f:
+                    f.write(".gpg-id")
 
         if gpg_id:
             cls._setup_encrypted_store(gpg_id=gpg_id, store_file_path=store_file_path)
@@ -208,6 +210,13 @@ class Store:
         """Save data to the store json file."""
         podcast_data = self.podcasts.to_json()
         self._file_handler.write_data(podcast_data)
+
+    @staticmethod
+    def _setup_existing_repo(git_url: str, gpg_id: Optional[str] = None) -> None:
+        run_git_command(f"remote add origin {git_url}")
+        if gpg_id:
+            with open(os.path.join(GPG_ID_FILE_PATH), "w") as f:
+                f.write(gpg_id)
 
     @staticmethod
     def _setup_encrypted_store(

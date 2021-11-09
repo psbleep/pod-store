@@ -49,7 +49,7 @@ def test_init_store_setup_git_initializes_git_repo_and_sets_gitignore(
     mocked_run_git_command.assert_called_with("init")
 
 
-def test_init_store_setup_git_with_git_url_establishes_repo_remote_origin(
+def test_init_store_setup_git_with_git_url_adds_remote_origin_but_does_not_create_files(
     start_with_no_store, mocked_run_git_command
 ):
     Store.init(
@@ -64,6 +64,8 @@ def test_init_store_setup_git_with_git_url_establishes_repo_remote_origin(
             call("remote add origin https://git.foo.bar/pod-store.git"),
         ]
     )
+
+    assert not os.path.exists(TEST_STORE_FILE_PATH)
 
 
 def test_init_store_with_gpg_id_sets_gpg_id_file_and_creates_encrypted_store_file(
