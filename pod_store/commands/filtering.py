@@ -1,6 +1,6 @@
 """Filter groups of podcasts or episodes."""
 from abc import ABC
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 
 from ..episodes import Episode
 from ..exc import NoEpisodesFoundError, NoPodcastsFoundError
@@ -44,6 +44,18 @@ class Filter(ABC):
         self._filter_untagged_items = filter_untagged_items
 
     @property
+    def podcasts(self) -> List[Podcast]:
+        """List of podcasts that meet the filter criteria."""
+        podcasts = [
+            p
+            for p in self._store.podcasts.list()
+            if self._passes_filters(p, **self._podcast_filters)
+        ]
+        if not podcasts:
+            raise NoPodcastsFoundError()
+        return podcasts
+
+    @property
     def _tag_filters(self) -> dict:
         """Build a tag filters dict.
 
@@ -72,13 +84,35 @@ class Filter(ABC):
             filters["title"] = self._podcast_title
         return filters
 
-    @property
-    def podcasts(self) -> List[Podcast]:
-        """List of podcasts that meet the filter criteria."""
-        podcasts = self._store.podcasts.list(**self._podcast_filters)
-        if not podcasts:
-            raise NoPodcastsFoundError()
-        return podcasts
+    def _passes_filters(self, obj: Union[Episode, Podcast], **filters) -> bool:
+        """Checks whether a podcast/episode meets all the provided filter criteria."""
+        for key, value in filters.items():
+            if not self._check_filter_criteria(obj, key, value):
+                return False
+        return True
+
+    @staticmethod
+    def _check_filter_criteria(
+        obj: Union[Episode, Podcast], key: str, value: Any
+    ) -> bool:
+        """Determines if an episode or podcast meets a filter criteria.
+
+        Checks if the attribute `key` on the object `obj` matches the supplied `value`.
+
+        If no attribute is found on `obj` to match `key`, attempts to check for tags.
+
+           - if `value` is True: check for presence of a tag named `key`
+           - if `value` is False: check for absence of a tag named `key`
+        """
+        try:
+            return getattr(obj, key) == value
+        except AttributeError as err:
+            if value is True:
+                return key in obj.tags
+            elif value is False:
+                return key not in obj.tags
+            else:
+                raise err
 
 
 class EpisodeFilter(Filter):
@@ -107,7 +141,11 @@ class EpisodeFilter(Filter):
 
     def get_podcast_episodes(self, podcast: Podcast) -> List[Episode]:
         """List of episodes that meet the filter criteria for a particular podcast."""
-        return podcast.episodes.list(allow_empty=True, **self._episode_filters)
+        return [
+            e
+            for e in podcast.episodes.list()
+            if self._passes_filters(e, **self._episode_filters)
+        ]
 
 
 class PodcastFilter(Filter):
