@@ -19,11 +19,8 @@ class Filter(ABC):
     _podcast_title: str (optional)
         if provided, results will be restricted to podcasts with the title indicated,
         or to episodes that belong to the podcast with the title indicated.
-    _tags: list [str] (optional)
-        filter results by tags
-    _filter_untagged_items: bool (optional)
-        if filtering by tags, indicates that we should look for items WITHOUT the tag(s)
-        when this is not set, filtering by tag will return results WITH the tag(s).
+    _filters: dict (optional)
+        other filter criteria
 
     Since episodes are ultimately looked up from their podcasts, podcast filtering
     behavior is defined here in the base class (since it will be needed in all filters).
@@ -34,14 +31,12 @@ class Filter(ABC):
         store: Store,
         new_episodes: bool = False,
         podcast_title: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        filter_untagged_items: Optional[bool] = None,
+        **filters
     ) -> None:
         self._store = store
         self._new_episodes = new_episodes
         self._podcast_title = podcast_title
-        self._tags = tags
-        self._filter_untagged_items = filter_untagged_items
+        self._filters = filters
 
     @property
     def podcasts(self) -> List[Podcast]:
@@ -54,21 +49,6 @@ class Filter(ABC):
         if not podcasts:
             raise NoPodcastsFoundError()
         return podcasts
-
-    @property
-    def _tag_filters(self) -> dict:
-        """Build a tag filters dict.
-
-        Determines whether to search for presence or absence of tags using the
-        `_filter_untagged_items` attribute.
-        """
-        if self._tags:
-            if self._filter_untagged_items:
-                return {tag: False for tag in self._tags}
-            else:
-                return {tag: True for tag in self._tags}
-        else:
-            return {}
 
     @property
     def _podcast_filters(self) -> dict:
@@ -124,7 +104,7 @@ class EpisodeFilter(Filter):
 
         Adds filters based on the `_new_episodes` attribute whee appropriate.
         """
-        filters = self._tag_filters
+        filters = self._filters
         if self._new_episodes:
             filters["new"] = True
         return filters
@@ -167,7 +147,7 @@ class PodcastFilter(Filter):
 
         Uses the podcast filters from the base class, and adds in the tag filters.
         """
-        return {**self._tag_filters, **super()._podcast_filters}
+        return {**self._filters, **super()._podcast_filters}
 
 
 def get_filter_from_command_arguments(
