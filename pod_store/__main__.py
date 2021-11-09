@@ -587,9 +587,6 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
         podcast_title=podcast,
         tag_episodes=bool(episode),
         filters=filters,
-        action="tag",
-        performing_action="tagging",
-        performed_action="tagged",
     )
     for msg in tagger.tag_items():
         click.echo(msg)
@@ -642,9 +639,6 @@ def tag_episodes(
         podcast_title=podcast,
         tag_episodes=True,
         tag=tag,
-        action="tag",
-        performing_action="tagging",
-        performed_action="tagged",
     )
 
     for msg in tagger.tag_items(interactive_mode=interactive):
@@ -717,9 +711,6 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
         podcast_title=podcast,
         tag_episodes=bool(episode),
         filters=filters,
-        action="untag",
-        performing_action="untagging",
-        performed_action="untagged",
     )
     for msg in tagger.tag_items():
         click.echo(msg)
@@ -774,9 +765,6 @@ def untag_episodes(
         tag_episodes=True,
         tag=tag,
         is_untagger=True,
-        action="untag",
-        performing_action="untagging",
-        performed_action="untagged",
     )
 
     for msg in tagger.tag_items(interactive_mode=interactive):

@@ -162,6 +162,7 @@ def get_tagger_from_command_arguments(
         tag_episodes = tag_episodes or podcast_title
 
     tagger_kwargs = _get_tagger_kwargs(
+        is_untagger=is_untagger,
         tag_episodes=tag_episodes,
         **tagger_kwargs,
     )
@@ -173,14 +174,17 @@ def get_tagger_from_command_arguments(
 
 
 def _get_tagger_kwargs(
+    is_untagger: bool,
     tag_episodes: bool,
-    action: str,
-    message_template: str = None,
+    action: str = None,
     performing_action: str = None,
     performed_action: str = None,
+    message_template: str = None,
     interactive_mode_help_message_template: Optional[str] = None,
     interactive_mode_prompt_message_template: Optional[str] = None,
 ) -> dict:
+    if not action:
+        action, performing_action, performed_action = _get_actions(is_untagger)
     message_template = message_template or _get_message_template(
         tag_episodes=tag_episodes
     )
@@ -202,6 +206,13 @@ def _get_tagger_kwargs(
         "interactive_mode_help_message_template": help_message_template,
         "interactive_mode_prompt_message_template": prompt_message_template,
     }
+
+
+def _get_actions(is_untagger: bool) -> str:
+    if is_untagger:
+        return "untag", "untagging", "untagged"
+    else:
+        return "tag", "tagging", "tagged"
 
 
 def _get_message_template(tag_episodes: bool) -> str:
