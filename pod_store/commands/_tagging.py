@@ -3,33 +3,34 @@ from abc import ABC, abstractmethod
 from typing import Any, List, Optional, Tuple, Union
 
 import click
-from .filtering import Filter
+from .filtering import Filter, get_filter_from_command_arguments
 
 from ..episodes import Episode
 from ..podcasts import Podcast
+from ..store import Store
 
-INTERACTIVE_MODE_HELP_MESSAGE_TEMPLATE = """{capitalized_performing_action} in interactive mode. Options are:
+TAG_EPISODES_INTERACTIVE_MODE_HELP_MESSAGE_TEMPLATE = """{tagger.capitalized_performing_action} in interactive mode. Options are:
 
-    y = yes ({action} this episode as {tag!r})
-    n = no (do not {action} this episode as {tag!r})
-    b = bulk ({action} this and all following episodes as {tag!r})
-    q = quit (stop {performing_action} episodes and quit)
+    y = yes ({tagger.action} this episode as {tagger.tag_listing}
+    n = no (do not {tagger.action} this episode as {tagger.tag_listing}
+    b = bulk ({tagger.action} this and all following episodes as {tagger.tag_listing}
+    q = quit (stop {tagger.performing_action} episodes and quit)
 """
 
 
-INTERACTIVE_MODE_PROMPT_MESSAGE_TEMPLATE = (
-    "{episode.podcast.title} -> [{episode.episode_number}] {episode.title}\n"
-    "{episode.short_description}\n\n"
-    "{capitalized_action} as {tag!r}?"
+TAG_EPISODES_INTERACTIVE_MODE_PROMPT_MESSAGE_TEMPLATE = (
+    "{item.podcast.title} -> [{item.episode_number}] {item.title}\n"
+    "{item.short_description}\n\n"
+    "{tagger.capitalized_action} as {tagger.tag_listing}?"
 )
 
 TAGGED_EPISODE_MESSAGE_TEMPLATE = (
-    "{capitalized_performed_action} as {tag!r}: "
-    "{episode.podcast.title} -> [{episode.episode_number}] {episode.title}."
+    "{tagger.capitalized_performed_action} as {tagger.tag_listing}: "
+    "{item.podcast.title} -> [{item.episode_number}] {item.title}."
 )
 
 TAGGED_PODCAST_MESSAGE_TEMPLATE = (
-    "{capitalized_performed_action} as {tag!r}: {podcast.title}."
+    "{tagger.capitalized_performed_action} as {tagger.tag_listing}: {item.title}."
 )
 
 
@@ -129,3 +130,82 @@ class Untagger(BaseTagger):
     def _perform_tagging(self, item: Union[Episode, Podcast]) -> None:
         for tag in self._tags:
             item.untag(tag)
+
+
+def get_tagger_from_command_arguments(
+    store: Store,
+    tag: str,
+    tag_episodes: bool = False,
+    is_untagger: bool = False,
+    podcast_title: Optional[str] = None,
+    filters: Optional[dict] = None,
+    **tagger_kwargs,
+) -> Tagger:
+    filters = filters or {}
+    tags = [tag]
+    filter = get_filter_from_command_arguments(
+        store=store,
+        filter_untagged_items=is_untagger,
+        tags=tags,
+        filter_episodes=tag_episodes,
+        podcast_title=podcast_title,
+        **filters,
+    )
+
+    tagger_kwargs = _get_tagger_kwargs(
+        tag_episodes=tag_episodes or podcast_title,
+        **tagger_kwargs,
+    )
+
+    if is_untagger:
+        return Untagger(filter=filter, tags=tags, **tagger_kwargs)
+    else:
+        return Tagger(filter=filter, tags=tags, **tagger_kwargs)
+
+
+def _get_tagger_kwargs(
+    tag_episodes: bool,
+    action: str,
+    message_template: str = None,
+    performing_action: str = None,
+    performed_action: str = None,
+    interactive_mode_help_message_template: Optional[str] = None,
+    interactive_mode_prompt_message_template: Optional[str] = None,
+) -> dict:
+    message_template = message_template or _get_message_template(
+        tag_episodes=tag_episodes
+    )
+    help_message_template = (
+        interactive_mode_help_message_template
+        or _get_interactive_mode_help_message_template(tag_episodes=tag_episodes)
+    )
+    prompt_message_template = (
+        interactive_mode_prompt_message_template
+        or _get_interactive_mode_prompt_message_template(tag_episodes=tag_episodes)
+    )
+
+    return {
+        "action": action,
+        "performing_action": performing_action,
+        "performed_action": performed_action,
+        "message_template": message_template,
+        "interactive_mode_help_message_template": help_message_template,
+        "interactive_mode_prompt_message_template": prompt_message_template,
+    }
+
+
+def _get_message_template(tag_episodes: bool) -> str:
+    if tag_episodes:
+        return TAGGED_EPISODE_MESSAGE_TEMPLATE
+    else:
+        return TAGGED_PODCAST_MESSAGE_TEMPLATE
+
+
+def _get_interactive_mode_help_message_template(tag_episodes: bool) -> str:
+    if tag_episodes:
+        return TAG_EPISODES_INTERACTIVE_MODE_HELP_MESSAGE_TEMPLATE
+
+
+def _get_interactive_mode_prompt_message_template(tag_episodes: bool) -> str:
+    if tag_episodes:
+        return TAG_EPISODES_INTERACTIVE_MODE_PROMPT_MESSAGE_TEMPLATE

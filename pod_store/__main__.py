@@ -22,6 +22,7 @@ from .commands.filtering import get_filter_from_command_arguments
 from .commands.helpers import abort_if_false, display_pod_store_error_from_exception
 from .commands.listing import get_lister_from_command_arguments
 from .commands.tagging import marker, tagger, unmarker, untagger
+from .commands._tagging import get_tagger_from_command_arguments
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
 from .util import run_git_command
@@ -386,11 +387,16 @@ def mark_as_new(
     See the `tag-episodes` command help for usage options.
     """
     store = ctx.obj
-    filter = get_filter_from_command_arguments(store=store, podcast_title=podcast)
+    tagger = get_tagger_from_command_arguments(
+        store=store,
+        podcast_title=podcast,
+        tag_episodes=True,
+        is_untagger=True,
+        tag="new",
+        action="mark",
+    )
 
-    for msg in marker.tag_podcast_episodes(
-        filter.podcasts, interactive_mode=interactive
-    ):
+    for msg in tagger.tag_items(interactive_mode=interactive):
         click.echo(msg)
 
 

@@ -205,15 +205,15 @@ def test_ls_podcast_episodes(runner):
 def test_mark_as_new_all_episodes_bulk_mode(runner):
     result = runner.invoke(cli, ["mark-as-new", "--force", "--bulk"])
     assert result.exit_code == 0
-    assert "Marked as 'new': farewell" in result.output
-    assert "Marked as 'new': greetings" in result.output
+    assert "Marked as new: farewell" in result.output
+    assert "Marked as new: greetings" in result.output
 
 
 def test_mark_as_new_for_single_podcast(runner):
     result = runner.invoke(cli, ["mark-as-new", "--force", "--bulk", "-p", "farewell"])
     assert result.exit_code == 0
-    assert "Marked as 'new': farewell" in result.output
-    assert "Marked as 'new': greetings" not in result.output
+    assert "Marked as new: farewell" in result.output
+    assert "Marked as new: greetings" not in result.output
 
 
 def test_mark_as_new_interactive_mode(runner):
@@ -221,7 +221,7 @@ def test_mark_as_new_interactive_mode(runner):
         cli, ["mark-as-new", "-p", "farewell", "--interactive"], input="y\nn\n"
     )
     assert result.exit_code == 0
-    assert "Marked as 'new': farewell" in result.output
+    assert "Marked as new: farewell" in result.output
 
 
 def test_mark_as_old_all_episodes_bulk_mode(runner):

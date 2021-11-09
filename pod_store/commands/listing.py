@@ -227,7 +227,7 @@ def get_lister_from_command_arguments(
     list_untagged_items: bool = False,
     list_episodes: bool = False,
     podcast_title: Optional[str] = None,
-    **kwargs,
+    **filters,
 ):
     """Helper method for building a lister based on common CLI arguments.
 
@@ -237,13 +237,11 @@ def get_lister_from_command_arguments(
         filter_untagged_items=list_untagged_items,
         filter_episodes=list_episodes,
         podcast_title=podcast_title,
-        **kwargs,
+        **filters,
     )
 
     list_episodes = list_episodes or podcast_title
     if list_episodes:
-        lister_cls = EpisodeLister
+        return EpisodeLister(filter=filter)
     else:
-        lister_cls = PodcastLister
-
-    return lister_cls(filter=filter)
+        return PodcastLister(filter=filter)

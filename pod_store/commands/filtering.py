@@ -31,7 +31,7 @@ class Filter(ABC):
         store: Store,
         new_episodes: bool = False,
         podcast_title: Optional[str] = None,
-        **filters
+        **filters,
     ) -> None:
         self._store = store
         self._new_episodes = new_episodes
@@ -169,6 +169,7 @@ def get_filter_from_command_arguments(
     podcast_title: Optional[str] = None,
     tags: Optional[List] = None,
     filter_untagged_items: bool = False,
+    **filters,
 ) -> Union[EpisodeFilter, PodcastFilter]:
     """Helper method for building a filter based on common CLI command arguments."""
     tags = tags or []
@@ -176,9 +177,9 @@ def get_filter_from_command_arguments(
         filter_episodes = filter_episodes or podcast_title
 
     if filter_untagged_items:
-        filters = {t: False for t in tags}
+        filters = {**{t: False for t in tags}, **filters}
     else:
-        filters = {t: True for t in tags}
+        filters = {**{t: True for t in tags}, **filters}
 
     if filter_episodes:
         filter_cls = EpisodeFilter
