@@ -85,7 +85,7 @@ class EpisodeFilter(Filter):
     """Filter a group of episodes based on the provided criteria."""
 
     @property
-    def _episode_filters(self):
+    def _episode_filters(self) -> dict:
         """Builds the episode filters dict.
 
         Adds filters based on the `_new_episodes` attribute whee appropriate.
@@ -124,7 +124,7 @@ class PodcastFilter(Filter):
             self._new_episodes = False
 
     @property
-    def _podcast_filters(self):
+    def _podcast_filters(self) -> dict:
         """Builds the podcast filters dict.
 
         Uses the podcast filters from the base class, and adds in the tag filters.
