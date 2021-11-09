@@ -1,238 +1,137 @@
 import click
 import pytest
 
+from pod_store.commands.filtering import EpisodeFilter, PodcastFilter
+
 from pod_store.commands.tagging import Tagger, Untagger
-from pod_store.podcasts import Podcast
-
-TEST_INTERACTIVE_MODE_TAGGER_HELP_MESSAGE = """Choosing in interactive mode. Options are:
-
-    y = yes (choose this episode as 'blessed')
-    n = no (do not choose this episode as 'blessed')
-    b = bulk (choose this and all following episodes as 'blessed')
-    q = quit (stop choosing episodes and quit)
-"""
 
 
-@pytest.fixture
-def podcasts(now, yesterday, podcast, other_podcast_episode_data):
-    other_podcast = Podcast(
-        title="farewell",
-        feed="http://goodbye.world/rss",
-        episode_data=other_podcast_episode_data,
-        created_at=yesterday,
-        updated_at=now,
-    )
-    return [podcast, other_podcast]
+MESSAGE_TEMPLATE = (
+    "{tagger.capitalized_performing_action} the following tag(s) for {item.title}: "
+    "{tagger.tag_listing}."
+)
+
+HELP_MESSAGE_TEMPLATE = "{tagger.capitalized_action} the podcasts."
+
+PROMPT_MESSAGE_TEMPLATE = (
+    "{tagger.capitalized_action} {item.title} with tag(s) {tagger.tag_listing}?"
+)
 
 
 @pytest.fixture
-def tagger_with_default_tag():
+def tagger(store):
+    filter = PodcastFilter(store=store, new_episodes=True)
     return Tagger(
-        action="default",
-        performing_action="defaulting",
-        performed_action="defaulted",
-        default_tag="generic",
+        filter=filter,
+        tags=["foo"],
+        action="choose",
+        performing_action="choosing",
+        performed_action="chosen",
+        message_template=MESSAGE_TEMPLATE,
+        interactive_mode_help_message_template=HELP_MESSAGE_TEMPLATE,
+        interactive_mode_prompt_message_template=PROMPT_MESSAGE_TEMPLATE,
     )
 
 
-@pytest.fixture
-def untagger():
-    return Untagger(
+def test_tagger_applies_tags_to_filter_items_and_returns_formatted_messages(
+    store, tagger
+):
+    assert list(tagger.tag_items()) == [
+        "Choosing the following tag(s) for farewell: foo.",
+        "Choosing the following tag(s) for greetings: foo.",
+    ]
+
+    assert "foo" in store.podcasts.get("farewell").tags
+    assert "foo" in store.podcasts.get("greetings").tags
+
+
+def test_untagger_removes_tags_from_filter_items_and_returns_formatted_messages(store):
+    filter = EpisodeFilter(store=store, foo=True)
+    tagger = Untagger(
+        filter=filter,
+        tags=["foo"],
         action="unchoose",
         performing_action="unchoosing",
         performed_action="unchosen",
+        message_template=MESSAGE_TEMPLATE,
     )
-
-
-def test_tagger_tag_episode(episode, tagger):
-    assert (
-        tagger.tag_episode(episode, "blessed")
-        == "Chosen as 'blessed': greetings -> [0023] hello."
-    )
-    assert "blessed" in episode.tags
-
-
-def test_tagger_with_default_tag_tag_episode_applies_default_tag(
-    episode, tagger_with_default_tag
-):
-    assert (
-        tagger_with_default_tag.tag_episode(episode)
-        == "Defaulted as 'generic': greetings -> [0023] hello."
-    )
-    assert "generic" in episode.tags
-
-
-def test_untagger_tag_episode_removes_tag(episode, untagger):
-    assert (
-        untagger.tag_episode(episode, tag="new")
-        == "Unchosen as 'new': greetings -> [0023] hello."
-    )
-    assert "new" not in episode.tags
-
-
-def test_tagger_tag_podcast(podcast, tagger):
-    assert tagger.tag_podcast(podcast, "blessed") == "Chosen as 'blessed': greetings."
-    assert "blessed" in podcast.tags
-
-
-def test_tagger_with_default_tag_tag_podcast_applies_default_tag(
-    podcast, tagger_with_default_tag
-):
-    assert (
-        tagger_with_default_tag.tag_podcast(podcast)
-        == "Defaulted as 'generic': greetings."
-    )
-    assert "generic" in podcast.tags
-
-
-def test_untagger_tag_podcast_removes_tag(podcast, untagger):
-    assert (
-        untagger.tag_podcast(podcast, "greetings")
-        == "Unchosen as 'greetings': greetings."
-    )
-    assert "greetings" not in podcast.tags
-
-
-def test_tagger_tag_podcast_episodes_bulk_mode_tags_all_podcast_episodes(
-    podcasts, tagger
-):
-    pod1, pod2 = podcasts
-
-    assert list(tagger.tag_podcast_episodes(podcasts, tag="blessed")) == [
-        "Chosen as 'blessed': greetings -> [0023] hello.",
-        "Chosen as 'blessed': greetings -> [0011] goodbye.",
-        "Chosen as 'blessed': farewell -> [0001] gone.",
-        "Chosen as 'blessed': farewell -> [0002] not forgotten.",
+    assert list(tagger.tag_items()) == [
+        "Unchoosing the following tag(s) for not forgotten: foo.",
+        "Unchoosing the following tag(s) for goodbye: foo.",
     ]
-    assert not pod1.episodes.list(blessed=False)
-    assert not pod2.episodes.list(blessed=False)
 
 
-def test_tagger_tag_podcast_episodes_interactive_mode_tags_episode_when_prompted(
-    mocker, podcasts, tagger
-):
+def test_tagger_interactive_mode_tags_items_when_prompted(mocker, store, tagger):
     mocked_click_prompt = mocker.patch(
         "pod_store.commands.tagging.click.prompt", return_value="y"
     )
 
-    pod1, pod2 = podcasts
-
-    assert list(
-        tagger.tag_podcast_episodes(podcasts, tag="blessed", interactive_mode=True)
-    ) == [
-        TEST_INTERACTIVE_MODE_TAGGER_HELP_MESSAGE,
-        "Chosen as 'blessed': greetings -> [0023] hello.\n",
-        "Chosen as 'blessed': greetings -> [0011] goodbye.\n",
-        "Chosen as 'blessed': farewell -> [0001] gone.\n",
-        "Chosen as 'blessed': farewell -> [0002] not forgotten.\n",
+    assert list(tagger.tag_items(interactive_mode=True)) == [
+        "Choose the podcasts.",
+        "Choosing the following tag(s) for farewell: foo.",
+        "Choosing the following tag(s) for greetings: foo.",
     ]
 
     # verify the prompt is called by checking the last call
-    mocked_click_prompt.assert_called_with(
-        "farewell -> [0002] not forgotten\nnever forgotten\n\nChoose as 'blessed'?"
-    )
+    mocked_click_prompt.assert_called_with("Choose greetings with tag(s) foo?")
 
-    assert not pod1.episodes.list(blessed=False)
-    assert not pod2.episodes.list(blessed=False)
+    assert "foo" in store.podcasts.get("farewell").tags
+    assert "foo" in store.podcasts.get("greetings").tags
 
 
-def test_tagger_tag_podcast_episodes_interactive_mode_does_not_tag_episodes_if_prompted(
-    mocker, podcasts, tagger
+def test_tagger_interactive_mode_does_not_tag_items_when_not_prompted(
+    mocker, store, tagger
 ):
     mocked_click_prompt = mocker.patch(
         "pod_store.commands.tagging.click.prompt", return_value="n"
     )
 
-    pod1, pod2 = podcasts
-
-    assert list(
-        tagger.tag_podcast_episodes(podcasts, tag="blessed", interactive_mode=True)
-    ) == [
-        TEST_INTERACTIVE_MODE_TAGGER_HELP_MESSAGE,
-        "",
-        "",
+    assert list(tagger.tag_items(interactive_mode=True)) == [
+        "Choose the podcasts.",
         "",
         "",
     ]
 
     # verify the prompt is called by checking the last call
-    mocked_click_prompt.assert_called_with(
-        "farewell -> [0002] not forgotten\nnever forgotten\n\nChoose as 'blessed'?"
+    mocked_click_prompt.assert_called_with("Choose greetings with tag(s) foo?")
+
+    assert "foo" not in store.podcasts.get("farewell").tags
+    assert "foo" not in store.podcasts.get("greetings").tags
+
+
+def test_tagger_interactive_mode_quits_when_prompted(mocker, store, tagger):
+    mocked_click_prompt = mocker.patch(
+        "pod_store.commands.tagging.click.prompt", return_value="q"
     )
 
-    assert not pod1.episodes.list(blessed=True)
-    assert not pod2.episodes.list(blessed=True)
+    with pytest.raises(click.Abort):
+        assert list(tagger.tag_items(interactive_mode=True)) == [
+            "Choose the podcasts.",
+        ]
+
+    # verify the prompt is called by checking the last call
+    mocked_click_prompt.assert_called_with("Choose farewell with tag(s) foo?")
+
+    assert "foo" not in store.podcasts.get("farewell").tags
+    assert "foo" not in store.podcasts.get("greetings").tags
 
 
-def test_tagger_tag_podcast_episodes_interactive_mode_switches_to_bulk_mode_if_prompted(
-    mocker, podcasts, tagger
+def test_tagger_interactive_mode_switches_to_bulk_mode_when_prompted(
+    mocker, store, tagger
 ):
     mocked_click_prompt = mocker.patch(
         "pod_store.commands.tagging.click.prompt", return_value="b"
     )
 
-    pod1, pod2 = podcasts
-
-    assert list(
-        tagger.tag_podcast_episodes(podcasts, tag="blessed", interactive_mode=True)
-    ) == [
-        TEST_INTERACTIVE_MODE_TAGGER_HELP_MESSAGE,
-        "Switching to 'bulk' mode.\nChosen as 'blessed': greetings -> [0023] hello.",
-        "Chosen as 'blessed': greetings -> [0011] goodbye.",
-        "Chosen as 'blessed': farewell -> [0001] gone.",
-        "Chosen as 'blessed': farewell -> [0002] not forgotten.",
+    assert list(tagger.tag_items(interactive_mode=True)) == [
+        "Choose the podcasts.",
+        "Switching to 'bulk' mode.\n"
+        "Choosing the following tag(s) for farewell: foo.",
+        "Choosing the following tag(s) for greetings: foo.",
     ]
 
-    assert not pod1.episodes.list(blessed=False)
-    assert not pod2.episodes.list(blessed=False)
+    # verify the prompt is called by checking the last call
+    mocked_click_prompt.assert_called_with("Choose farewell with tag(s) foo?")
 
-    # verify the prompt does not continue to be called once the switch to bulk mode
-    # is made
-    mocked_click_prompt.assert_called_once()
-
-
-def test_tagger_tag_podcast_episodes_interactive_mode_quits_if_prompted(
-    mocker, podcasts, tagger
-):
-    mocked_click_prompt = mocker.patch(
-        "pod_store.commands.tagging.click.prompt", return_value="q"
-    )
-
-    pod1, pod2 = podcasts
-
-    with pytest.raises(click.Abort):
-        list(
-            tagger.tag_podcast_episodes(podcasts, tag="blessed", interactive_mode=True)
-        )
-
-    # verify the prompt is not called again after the user quits
-    mocked_click_prompt.assert_called_once()
-
-    assert not pod1.episodes.list(blessed=True)
-    assert not pod2.episodes.list(blessed=True)
-
-
-def test_untagger_tag_podcast_episodes_untags_episodes(podcasts, untagger):
-    pod1, pod2 = podcasts
-
-    assert list(untagger.tag_podcast_episodes(podcasts, tag="new")) == [
-        "Unchosen as 'new': greetings -> [0023] hello.",
-        "Unchosen as 'new': farewell -> [0001] gone.",
-    ]
-    assert not pod1.episodes.list(new=True)
-    assert not pod2.episodes.list(new=True)
-
-
-def test_tagger_with_default_tag_tag_podcast_episodes_applies_default_tag(
-    podcasts, tagger_with_default_tag
-):
-    pod1, pod2 = podcasts
-
-    assert list(tagger_with_default_tag.tag_podcast_episodes(podcasts)) == [
-        "Defaulted as 'generic': greetings -> [0023] hello.",
-        "Defaulted as 'generic': greetings -> [0011] goodbye.",
-        "Defaulted as 'generic': farewell -> [0001] gone.",
-        "Defaulted as 'generic': farewell -> [0002] not forgotten.",
-    ]
-    assert not pod1.episodes.list(generic=False)
-    assert not pod2.episodes.list(generic=False)
+    assert "foo" in store.podcasts.get("farewell").tags
+    assert "foo" in store.podcasts.get("greetings").tags
