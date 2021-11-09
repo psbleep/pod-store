@@ -437,10 +437,16 @@ def mark_as_old(
 ):
     """Remove the `new` tag from a group of episodes. Alias for the `untag` command."""
     store = ctx.obj
-    filter = get_filter_from_command_arguments(store=store, podcast_title=podcast)
-    for msg in unmarker.tag_podcast_episodes(
-        filter.podcasts, interactive_mode=interactive
-    ):
+    tagger = get_tagger_from_command_arguments(
+        store=store,
+        podcast_title=podcast,
+        tag_episodes=True,
+        is_untagger=False,
+        tag="new",
+        action="unmark",
+    )
+
+    for msg in tagger.tag_items(interactive_mode=interactive):
         click.echo(msg)
 
 

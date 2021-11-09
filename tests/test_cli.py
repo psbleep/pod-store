@@ -227,15 +227,15 @@ def test_mark_as_new_interactive_mode(runner):
 def test_mark_as_old_all_episodes_bulk_mode(runner):
     result = runner.invoke(cli, ["mark-as-old", "--force", "--bulk"])
     assert result.exit_code == 0
-    assert "Unmarked as 'new': farewell" in result.output
-    assert "Unmarked as 'new': greetings" in result.output
+    assert "Unmarked as new: farewell" in result.output
+    assert "Unmarked as new: greetings" in result.output
 
 
 def test_mark_as_old_for_single_podcast(runner):
     result = runner.invoke(cli, ["mark-as-old", "--force", "--bulk", "-p", "farewell"])
     assert result.exit_code == 0
-    assert "Unmarked as 'new': farewell" in result.output
-    assert "Unmarked as 'new': greetings" not in result.output
+    assert "Unmarked as new: farewell" in result.output
+    assert "Unmarked as new: greetings" not in result.output
 
 
 def test_mark_as_old_interactive_mode(runner):
@@ -243,7 +243,7 @@ def test_mark_as_old_interactive_mode(runner):
         cli, ["mark-as-old", "-p", "farewell", "--interactive"], input="y\nn\n"
     )
     assert result.exit_code == 0
-    assert "Unmarked as 'new': farewell" in result.output
+    assert "Unmarked as new: farewell" in result.output
 
 
 def test_mv(runner):
