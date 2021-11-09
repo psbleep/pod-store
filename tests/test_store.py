@@ -1,6 +1,5 @@
 import json
 import os
-from unittest.mock import call
 
 import pytest
 
@@ -49,23 +48,40 @@ def test_init_store_setup_git_initializes_git_repo_and_sets_gitignore(
     mocked_run_git_command.assert_called_with("init")
 
 
-def test_init_store_setup_git_with_git_url_adds_remote_origin_but_does_not_create_files(
-    start_with_no_store, mocked_run_git_command
+def test_init_store_setup_git_with_git_url_clones_remote_repo(
+    start_with_no_store, mocker
 ):
+    mocked_run_shell_command = mocker.patch("pod_store.store.run_shell_command")
     Store.init(
         setup_git=True,
         git_url="https://git.foo.bar/pod-store.git",
         store_path=TEST_STORE_PATH,
         store_file_path=TEST_STORE_FILE_PATH,
     )
-    mocked_run_git_command.assert_has_calls(
-        [
-            call("init"),
-            call("remote add origin https://git.foo.bar/pod-store.git"),
-        ]
+    mocked_run_shell_command.assert_called_with(
+        f"git clone https://git.foo.bar/pod-store.git {TEST_STORE_PATH}"
     )
 
-    assert not os.path.exists(TEST_STORE_FILE_PATH)
+
+def test_init_store_setup_git_with_git_url_and_gpg_id_creates_gpg_id_file(
+    start_with_no_store, mocker
+):
+    mocked_run_shell_command = mocker.patch(
+        "pod_store.store.run_shell_command",
+        side_effect=lambda _: os.makedirs(TEST_STORE_PATH),
+    )
+    Store.init(
+        setup_git=True,
+        git_url="https://git.foo.bar/pod-store.git",
+        store_path=TEST_STORE_PATH,
+        store_file_path=TEST_STORE_FILE_PATH,
+        gpg_id="foo@bar.com",
+    )
+    mocked_run_shell_command.assert_called_with(
+        f"git clone https://git.foo.bar/pod-store.git {TEST_STORE_PATH}",
+    )
+    with open(TEST_GPG_ID_FILE_PATH) as f:
+        assert f.read() == "foo@bar.com"
 
 
 def test_init_store_with_gpg_id_sets_gpg_id_file_and_creates_encrypted_store_file(
