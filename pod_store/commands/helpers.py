@@ -25,7 +25,10 @@ POD_STORE_EXCEPTIONS_AND_ERROR_MESSAGE_TEMPLATES = {
     PodcastExistsError: "Podcast with title already exists: {}.",
     ShellCommandError: "Error running shell command: {}.",
     StoreDoesNotExistError: (
-        "Store has not been set up. See the `init` command for set up instructions."
+        "Store has not been set up. "
+        "See the `init` command for set up instructions. "
+        "If the store was created to track against an existing `git` repo, pull from "
+        "that repo to initialize the store data."
     ),
     StoreExistsError: "Store already initialized: {}.",
     StoreIsNotEncrypted: (
