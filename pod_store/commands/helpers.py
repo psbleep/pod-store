@@ -13,6 +13,7 @@ from ..exc import (
     ShellCommandError,
     StoreDoesNotExistError,
     StoreExistsError,
+    StoreIsNotEncrypted,
 )
 
 POD_STORE_EXCEPTIONS_AND_ERROR_MESSAGE_TEMPLATES = {
@@ -27,6 +28,11 @@ POD_STORE_EXCEPTIONS_AND_ERROR_MESSAGE_TEMPLATES = {
         "Store has not been set up. See the `init` command for set up instructions."
     ),
     StoreExistsError: "Store already initialized: {}.",
+    StoreIsNotEncrypted: (
+        "Store has not been set up with a GPG encryption key. "
+        "Please verify whether the store is encrypted. "
+        "If it is, place a text file containing the GPG key used to encrypt it at: {}"
+    ),
 }
 
 
