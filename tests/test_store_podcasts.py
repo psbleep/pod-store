@@ -1,9 +1,6 @@
 import pytest
 
-from pod_store.exc import (
-    PodcastDoesNotExistError,
-    PodcastExistsError,
-)
+from pod_store.exc import PodcastDoesNotExistError, PodcastExistsError
 from pod_store.store import StorePodcasts
 
 

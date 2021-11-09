@@ -3,11 +3,11 @@ from abc import ABC, abstractmethod
 from typing import Any, List, Optional, Tuple, Union
 
 import click
-from .filtering import Filter, get_filter_from_command_arguments
 
 from ..episodes import Episode
 from ..podcasts import Podcast
 from ..store import Store
+from .filtering import Filter, get_filter_from_command_arguments
 
 TAG_EPISODES_INTERACTIVE_MODE_HELP_MESSAGE_TEMPLATE = """{tagger.capitalized_performing_action} in interactive mode. Options are:
 

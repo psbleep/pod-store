@@ -2,9 +2,7 @@ import click
 import pytest
 
 from pod_store.commands.filtering import EpisodeFilter, PodcastFilter
-
 from pod_store.commands.tagging import Tagger, Untagger
-
 
 MESSAGE_TEMPLATE = (
     "{tagger.capitalized_performing_action} the following tag(s) for {item.title}: "
