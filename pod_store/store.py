@@ -14,6 +14,7 @@ from .exc import (
     PodcastDoesNotExistError,
     PodcastExistsError,
     StoreExistsError,
+    StoreIsNotEncrypted,
 )
 from .podcasts import Podcast
 from .store_file_handlers import (
@@ -194,6 +195,8 @@ class Store:
         Unsets the GPG ID for the store and writes the existing encrypted store data
         as plaintext json.
         """
+        if not os.path.exists(GPG_ID_FILE_PATH):
+            raise StoreIsNotEncrypted(GPG_ID_FILE_PATH)
         store_file_path = self._file_handler.store_file_path
         store_data = self._file_handler.read_data()
         UnencryptedStoreFileHandler.create_store_file(

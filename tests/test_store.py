@@ -4,7 +4,7 @@ from unittest.mock import call
 
 import pytest
 
-from pod_store.exc import StoreExistsError
+from pod_store.exc import StoreExistsError, StoreIsNotEncrypted
 from pod_store.store import Store
 from pod_store.store_file_handlers import EncryptedStoreFileHandler
 
@@ -127,6 +127,11 @@ def test_unencrypt_reads_existing_store_data_and_writes_unencrypted_store_file(
 
     with open(TEST_STORE_FILE_PATH) as f:
         assert json.load(f) == store_data
+
+
+def test_unencrypt_store_raises_error_if_store_is_not_encrypted(store):
+    with pytest.raises(StoreIsNotEncrypted):
+        store.unencrypt()
 
 
 def test_save_writes_data_to_file(store_data, store):

@@ -42,3 +42,7 @@ class StoreDoesNotExistError(Exception):
 
 class StoreExistsError(Exception):
     pass
+
+
+class StoreIsNotEncrypted(Exception):
+    pass
