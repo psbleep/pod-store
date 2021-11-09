@@ -91,9 +91,11 @@ def refresh_commit_message_builder(ctx_params: dict) -> str:
 def tagger_commit_message_builder(
     ctx_params: dict, action: str = "tagged", tag: Optional[str] = None
 ) -> str:
-    """Builds a `git` commit message from the data encoded in a tagger object.
+    """Builds a `git` commit message for a tagging command.
 
-    See the pod_store.commands.tagging module for more information.
+    Will determine the tag from the Click context, or a tag passed into the
+    pod_store.commands.decorators.git_add_and_commit decorator as a keyword
+    argument.
     """
     action = action.capitalize()
     target = _get_commit_message_target(ctx_params)
