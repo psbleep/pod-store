@@ -255,9 +255,11 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
     pod-store tracks changes using `git` and encrypts data using `gpg`. Use the command
     flags to configure your git repo and gpg encryption.
     """
+    git = git or git_url
+
     if git_url:
         click.echo("Please note, this could take a minute or two...")
-    git = git or git_url
+
     Store.init(
         store_path=STORE_PATH,
         store_file_path=STORE_FILE_PATH,
@@ -265,6 +267,7 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
         git_url=git_url,
         gpg_id=gpg_id,
     )
+
     click.echo(f"Store created: {STORE_PATH}")
     click.echo(f"Podcast episodes will be downloaded to {PODCAST_DOWNLOADS_PATH}")
 
