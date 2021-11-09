@@ -308,8 +308,8 @@ def test_tag_a_pocast_episode(runner):
 def test_tag_episodes_all_episodes_bulk_mode(runner):
     result = runner.invoke(cli, ["tag-episodes", "foo", "--force", "--bulk"])
     assert result.exit_code == 0
-    assert "Tagged as 'foo': farewell" in result.output
-    assert "Tagged as 'foo': greetings" in result.output
+    assert "Tagged as foo: farewell" in result.output
+    assert "Tagged as foo: greetings" in result.output
 
 
 def test_tag_episodes_for_single_podcast(runner):
@@ -317,8 +317,8 @@ def test_tag_episodes_for_single_podcast(runner):
         cli, ["tag-episodes", "zozo", "--force", "--bulk", "-p", "greetings"]
     )
     assert result.exit_code == 0
-    assert "Tagged as 'zozo': farewell" not in result.output
-    assert "Tagged as 'zozo': greetings" in result.output
+    assert "Tagged as zozo: farewell" not in result.output
+    assert "Tagged as zozo: greetings" in result.output
 
 
 def test_tag_episodes_interactive_mode(runner):
@@ -326,8 +326,8 @@ def test_tag_episodes_interactive_mode(runner):
         cli, ["tag-episodes", "foo", "--interactive"], input="n\ny\n"
     )
     assert result.exit_code == 0
-    assert "Tagged as 'foo': farewell" not in result.output
-    assert "Tagged as 'foo': greetings" in result.output
+    assert "Tagged as foo: farewell" not in result.output
+    assert "Tagged as foo: greetings" in result.output
 
 
 def test_unencrypt_store(runner):
