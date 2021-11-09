@@ -49,10 +49,7 @@ exceptions_and_error_messages = [
     (ShellCommandError("xyz"), "Error running shell command: xyz."),
     (
         StoreDoesNotExistError(),
-        "Store has not been set up. "
-        "See the `init` command for set up instructions. "
-        "If the store was created to track against an existing `git` repo, pull from "
-        "that repo to initialize the store data.",
+        "Store has not been set up. See the `init` command for set up instructions.",
     ),
     (StoreExistsError("/path"), "Store already initialized: /path."),
     (
