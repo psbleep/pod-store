@@ -52,6 +52,16 @@ def test_episode_download_path_is_correct_path_for_filetype_without_invalid_char
     )
 
 
+def test_episode_is_new(episode):
+    episode.tags = ["new"]
+    assert episode.is_new is True
+
+
+def test_episode_is_not_new(episode):
+    episode.tags = []
+    assert episode.is_new is False
+
+
 def test_episode_download(now, audio_file_content, episode):
     with episode.download() as download:
         list(download)

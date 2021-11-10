@@ -30,6 +30,10 @@ def test_podcast_does_not_have_new_episodes(now, podcast):
     assert podcast.has_new_episodes is False
 
 
+def test_podcast_number_of_new_episodes(podcast):
+    assert podcast.number_of_new_episodes == 1
+
+
 def test_podcast_refresh(mocked_feedparser_parse, now, podcast):
     now_parsed = (
         now.year,

@@ -205,15 +205,15 @@ def test_ls_podcast_episodes(runner):
 def test_mark_as_new_all_episodes_bulk_mode(runner):
     result = runner.invoke(cli, ["mark-as-new", "--force", "--bulk"])
     assert result.exit_code == 0
-    assert "Marked as 'new': farewell" in result.output
-    assert "Marked as 'new': greetings" in result.output
+    assert "Marked as new: farewell" in result.output
+    assert "Marked as new: greetings" in result.output
 
 
 def test_mark_as_new_for_single_podcast(runner):
     result = runner.invoke(cli, ["mark-as-new", "--force", "--bulk", "-p", "farewell"])
     assert result.exit_code == 0
-    assert "Marked as 'new': farewell" in result.output
-    assert "Marked as 'new': greetings" not in result.output
+    assert "Marked as new: farewell" in result.output
+    assert "Marked as new: greetings" not in result.output
 
 
 def test_mark_as_new_interactive_mode(runner):
@@ -221,21 +221,21 @@ def test_mark_as_new_interactive_mode(runner):
         cli, ["mark-as-new", "-p", "farewell", "--interactive"], input="y\nn\n"
     )
     assert result.exit_code == 0
-    assert "Marked as 'new': farewell" in result.output
+    assert "Marked as new: farewell" in result.output
 
 
 def test_mark_as_old_all_episodes_bulk_mode(runner):
     result = runner.invoke(cli, ["mark-as-old", "--force", "--bulk"])
     assert result.exit_code == 0
-    assert "Unmarked as 'new': farewell" in result.output
-    assert "Unmarked as 'new': greetings" in result.output
+    assert "Unmarked as new: farewell" in result.output
+    assert "Unmarked as new: greetings" in result.output
 
 
 def test_mark_as_old_for_single_podcast(runner):
     result = runner.invoke(cli, ["mark-as-old", "--force", "--bulk", "-p", "farewell"])
     assert result.exit_code == 0
-    assert "Unmarked as 'new': farewell" in result.output
-    assert "Unmarked as 'new': greetings" not in result.output
+    assert "Unmarked as new: farewell" in result.output
+    assert "Unmarked as new: greetings" not in result.output
 
 
 def test_mark_as_old_interactive_mode(runner):
@@ -243,7 +243,7 @@ def test_mark_as_old_interactive_mode(runner):
         cli, ["mark-as-old", "-p", "farewell", "--interactive"], input="y\nn\n"
     )
     assert result.exit_code == 0
-    assert "Unmarked as 'new': farewell" in result.output
+    assert "Unmarked as new: farewell" in result.output
 
 
 def test_mv(runner):
@@ -296,20 +296,20 @@ def test_rm_aborts_if_not_confirmed(runner):
 def test_tag_a_podcast(runner):
     result = runner.invoke(cli, ["tag", "greetings", "foobar"])
     assert result.exit_code == 0
-    assert result.output == "Tagged as 'foobar': greetings.\n"
+    assert result.output == "Tagged as foobar: greetings.\n"
 
 
 def test_tag_a_pocast_episode(runner):
     result = runner.invoke(cli, ["tag", "greetings", "--episode", "aaa", "foobar"])
     assert result.exit_code == 0
-    assert result.output == "Tagged as 'foobar': greetings -> [0023] hello.\n"
+    assert result.output == "Tagged as foobar: greetings -> [0023] hello.\n"
 
 
 def test_tag_episodes_all_episodes_bulk_mode(runner):
     result = runner.invoke(cli, ["tag-episodes", "foo", "--force", "--bulk"])
     assert result.exit_code == 0
-    assert "Tagged as 'foo': farewell" in result.output
-    assert "Tagged as 'foo': greetings" in result.output
+    assert "Tagged as foo: farewell" in result.output
+    assert "Tagged as foo: greetings" in result.output
 
 
 def test_tag_episodes_for_single_podcast(runner):
@@ -317,8 +317,8 @@ def test_tag_episodes_for_single_podcast(runner):
         cli, ["tag-episodes", "zozo", "--force", "--bulk", "-p", "greetings"]
     )
     assert result.exit_code == 0
-    assert "Tagged as 'zozo': farewell" not in result.output
-    assert "Tagged as 'zozo': greetings" in result.output
+    assert "Tagged as zozo: farewell" not in result.output
+    assert "Tagged as zozo: greetings" in result.output
 
 
 def test_tag_episodes_interactive_mode(runner):
@@ -326,8 +326,8 @@ def test_tag_episodes_interactive_mode(runner):
         cli, ["tag-episodes", "foo", "--interactive"], input="n\ny\n"
     )
     assert result.exit_code == 0
-    assert "Tagged as 'foo': farewell" not in result.output
-    assert "Tagged as 'foo': greetings" in result.output
+    assert "Tagged as foo: farewell" not in result.output
+    assert "Tagged as foo: greetings" in result.output
 
 
 def test_unencrypt_store(runner):
@@ -346,20 +346,20 @@ def test_unencrypt_aborts_if_not_confirmed(runner):
 def test_untag_a_podcast(runner):
     result = runner.invoke(cli, ["untag", "greetings", "hello"])
     assert result.exit_code == 0
-    assert result.output == "Untagged as 'hello': greetings.\n"
+    assert result.output == "Untagged as hello: greetings.\n"
 
 
 def test_untag_single_pocast_episode(runner):
     result = runner.invoke(cli, ["untag", "greetings", "--episode", "aaa", "new"])
     assert result.exit_code == 0
-    assert result.output == "Untagged as 'new': greetings -> [0023] hello.\n"
+    assert result.output == "Untagged as new: greetings -> [0023] hello.\n"
 
 
 def test_untag_episodes_all_episodes_bulk_mode(runner):
     result = runner.invoke(cli, ["untag-episodes", "foo", "--force", "--bulk"])
     assert result.exit_code == 0
-    assert "Untagged as 'foo': farewell" in result.output
-    assert "Untagged as 'foo': greetings" in result.output
+    assert "Untagged as foo: farewell" in result.output
+    assert "Untagged as foo: greetings" in result.output
 
 
 def test_untag_episodes_for_single_podcast(runner):
@@ -367,8 +367,8 @@ def test_untag_episodes_for_single_podcast(runner):
         cli, ["untag-episodes", "foo", "--force", "--bulk", "-p", "greetings"]
     )
     assert result.exit_code == 0
-    assert "Untagged as 'foo': farewell" not in result.output
-    assert "Untagged as 'foo': greetings" in result.output
+    assert "Untagged as foo: farewell" not in result.output
+    assert "Untagged as foo: greetings" in result.output
 
 
 def test_untag_episodes_interactive_mode(runner):
@@ -376,5 +376,5 @@ def test_untag_episodes_interactive_mode(runner):
         cli, ["untag-episodes", "foo", "--interactive"], input="n\ny\nn\n"
     )
     assert result.exit_code == 0
-    assert "Untagged as 'foo': farewell" not in result.output
-    assert "Untagged as 'foo': greetings" in result.output
+    assert "Untagged as foo: farewell" not in result.output
+    assert "Untagged as foo: greetings" in result.output

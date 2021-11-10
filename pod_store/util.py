@@ -2,35 +2,10 @@
 
 import subprocess
 from datetime import datetime
-from typing import Any, Optional, TypeVar, Union
+from typing import Optional
 
 from . import STORE_PATH
 from .exc import ShellCommandError
-
-E = TypeVar("Episode")
-P = TypeVar("Podcast")
-
-
-def meets_list_filter_criteria(obj: Union[E, P], key: str, value: Any) -> bool:
-    """Used to filter a list of podcasts or episodes in
-    `pod_store.podcasts.PodcastEpisodes.list` or `pod_store.store.StorePodcasts.list`.
-
-    Checks if the attribute `key` on the object `obj` matches the supplied `value`.
-
-    If no attribute is found on `obj` to match `key`, attempts to check for tags.
-
-       - if `value` is True: check for presence of a tag named `key`
-       - if `value` is False: check for absence of a tag named `key`
-    """
-    try:
-        return getattr(obj, key) == value
-    except AttributeError as err:
-        if value is True:
-            return key in obj.tags
-        elif value is False:
-            return key not in obj.tags
-        else:
-            raise err
 
 
 def parse_datetime_from_json(dt: datetime) -> Optional[datetime]:

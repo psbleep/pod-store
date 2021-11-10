@@ -1,6 +1,6 @@
 """Filter groups of podcasts or episodes."""
-from abc import ABC
-from typing import List, Optional, Union
+from abc import ABC, abstractproperty
+from typing import Any, List, Optional, Union
 
 from ..episodes import Episode
 from ..exc import NoEpisodesFoundError, NoPodcastsFoundError
@@ -19,11 +19,8 @@ class Filter(ABC):
     _podcast_title: str (optional)
         if provided, results will be restricted to podcasts with the title indicated,
         or to episodes that belong to the podcast with the title indicated.
-    _tags: list [str] (optional)
-        filter results by tags
-    _filter_untagged_items: bool (optional)
-        if filtering by tags, indicates that we should look for items WITHOUT the tag(s)
-        when this is not set, filtering by tag will return results WITH the tag(s).
+    _filters: dict (optional)
+        other filter criteria
 
     Since episodes are ultimately looked up from their podcasts, podcast filtering
     behavior is defined here in the base class (since it will be needed in all filters).
@@ -34,29 +31,28 @@ class Filter(ABC):
         store: Store,
         new_episodes: bool = False,
         podcast_title: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        filter_untagged_items: Optional[bool] = None,
+        **filters,
     ) -> None:
         self._store = store
         self._new_episodes = new_episodes
         self._podcast_title = podcast_title
-        self._tags = tags
-        self._filter_untagged_items = filter_untagged_items
+        self._filters = filters
+
+    @abstractproperty
+    def items(self) -> List:
+        pass
 
     @property
-    def _tag_filters(self) -> dict:
-        """Build a tag filters dict.
-
-        Determines whether to search for presence or absence of tags using the
-        `_filter_untagged_items` attribute.
-        """
-        if self._tags:
-            if self._filter_untagged_items:
-                return {tag: False for tag in self._tags}
-            else:
-                return {tag: True for tag in self._tags}
-        else:
-            return {}
+    def podcasts(self) -> List[Podcast]:
+        """List of podcasts that meet the filter criteria."""
+        podcasts = [
+            p
+            for p in self._store.podcasts.list()
+            if self._passes_filters(p, **self._podcast_filters)
+        ]
+        if not podcasts:
+            raise NoPodcastsFoundError()
+        return podcasts
 
     @property
     def _podcast_filters(self) -> dict:
@@ -72,31 +68,57 @@ class Filter(ABC):
             filters["title"] = self._podcast_title
         return filters
 
-    @property
-    def podcasts(self) -> List[Podcast]:
-        """List of podcasts that meet the filter criteria."""
-        podcasts = self._store.podcasts.list(**self._podcast_filters)
-        if not podcasts:
-            raise NoPodcastsFoundError()
-        return podcasts
+    def _passes_filters(self, obj: Union[Episode, Podcast], **filters) -> bool:
+        """Checks whether a podcast/episode meets all the provided filter criteria."""
+        for key, value in filters.items():
+            if not self._check_filter_criteria(obj, key, value):
+                return False
+        return True
+
+    @staticmethod
+    def _check_filter_criteria(
+        obj: Union[Episode, Podcast], key: str, value: Any
+    ) -> bool:
+        """Determines if an episode or podcast meets a filter criteria.
+
+        Checks if the attribute `key` on the object `obj` matches the supplied `value`.
+
+        If no attribute is found on `obj` to match `key`, attempts to check for tags.
+
+           - if `value` is True: check for presence of a tag named `key`
+           - if `value` is False: check for absence of a tag named `key`
+        """
+        try:
+            return getattr(obj, key) == value
+        except AttributeError as err:
+            if value is True:
+                return key in obj.tags
+            elif value is False:
+                return key not in obj.tags
+            else:
+                raise err
 
 
 class EpisodeFilter(Filter):
     """Filter a group of episodes based on the provided criteria."""
 
     @property
-    def _episode_filters(self):
+    def items(self) -> List[Episode]:
+        return self._episodes
+
+    @property
+    def _episode_filters(self) -> dict:
         """Builds the episode filters dict.
 
         Adds filters based on the `_new_episodes` attribute whee appropriate.
         """
-        filters = self._tag_filters
+        filters = self._filters
         if self._new_episodes:
             filters["new"] = True
         return filters
 
     @property
-    def episodes(self) -> List[Episode]:
+    def _episodes(self) -> List[Episode]:
         """List of episodes that meet the filter criteria."""
         episodes = []
         for pod in self.podcasts:
@@ -107,7 +129,14 @@ class EpisodeFilter(Filter):
 
     def get_podcast_episodes(self, podcast: Podcast) -> List[Episode]:
         """List of episodes that meet the filter criteria for a particular podcast."""
-        return podcast.episodes.list(allow_empty=True, **self._episode_filters)
+        return [
+            e
+            for e in podcast.episodes.list()
+            if self._passes_filters(e, **self._episode_filters)
+        ]
+
+    def __repr__(self) -> str:
+        return "<EpisodeFilter>"
 
 
 class PodcastFilter(Filter):
@@ -124,33 +153,45 @@ class PodcastFilter(Filter):
             self._new_episodes = False
 
     @property
-    def _podcast_filters(self):
+    def _podcast_filters(self) -> dict:
         """Builds the podcast filters dict.
 
         Uses the podcast filters from the base class, and adds in the tag filters.
         """
-        return {**self._tag_filters, **super()._podcast_filters}
+        return {**self._filters, **super()._podcast_filters}
+
+    @property
+    def items(self) -> List[Podcast]:
+        return self.podcasts
+
+    def __repr__(self):
+        return "<PodcastFilter>"
 
 
 def get_filter_from_command_arguments(
     store: Store,
-    new_episodes: bool = False,
+    new_episodes: bool = None,
     filter_episodes: bool = False,
     podcast_title: Optional[str] = None,
-    tags: Optional[List[str]] = None,
-    filter_untagged_items: bool = None,
+    tags: Optional[List] = None,
+    filter_untagged_items: bool = False,
+    **filters,
 ) -> Union[EpisodeFilter, PodcastFilter]:
     """Helper method for building a filter based on common CLI command arguments."""
-    filter_episodes = filter_episodes or podcast_title
+    tags = tags or []
+    if filter_episodes is None:
+        filter_episodes = filter_episodes or podcast_title
+
+    if filter_untagged_items:
+        filters = {**{t: False for t in tags}, **filters}
+    else:
+        filters = {**{t: True for t in tags}, **filters}
+
     if filter_episodes:
         filter_cls = EpisodeFilter
     else:
         filter_cls = PodcastFilter
 
     return filter_cls(
-        store=store,
-        new_episodes=new_episodes,
-        podcast_title=podcast_title,
-        tags=tags,
-        filter_untagged_items=filter_untagged_items,
+        store=store, new_episodes=new_episodes, podcast_title=podcast_title, **filters
     )
