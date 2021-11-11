@@ -167,8 +167,8 @@ def download(
 ):
     """Download podcast episodes."""
     store = ctx.obj
-    tagged = tagged or []
-    untagged = untagged or []
+    tagged = list(tagged or [])
+    untagged = list(untagged or [])
 
     filter = get_filter_from_command_arguments(
         store=store,
@@ -340,8 +340,8 @@ def ls(
     the provided flags and command options.
     """
     store = ctx.obj
-    tagged = tagged or []
-    untagged = untagged or []
+    tagged = list(tagged or [])
+    untagged = list(untagged or [])
 
     lister = get_lister_from_command_arguments(
         store=store,
@@ -512,8 +512,11 @@ def refresh(
 ):
     """Refresh podcast episode data from the RSS feed."""
     store = ctx.obj
-    tagged = tagged or []
-    untagged = untagged or []
+    tagged = list(tagged or [])
+    untagged = list(untagged or [])
+
+    if not podcast:
+        untagged.append("inactive")
 
     filter = get_filter_from_command_arguments(
         store=store,
