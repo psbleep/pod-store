@@ -391,17 +391,13 @@ def mark_as_new(
     interactive: bool,
     force: Optional[bool],
 ):
-    """Add the `new` tag to a group of episodes.
-
-    See the `tag-episodes` command help for usage options.
-    """
+    """Add the `new` tag to a group of episodes."""
     store = ctx.obj
     tagger = get_tagger_from_command_arguments(
         store=store,
-        podcast_title=podcast,
+        tags=["new"],
         tag_episodes=True,
-        is_untagger=True,
-        tag="new",
+        podcast_title=podcast,
         action="mark",
     )
 
@@ -445,14 +441,14 @@ def mark_as_old(
     interactive: bool,
     force: Optional[bool],
 ):
-    """Remove the `new` tag from a group of episodes. Alias for the `untag` command."""
+    """Remove the `new` tag from a group of episodes."""
     store = ctx.obj
     tagger = get_tagger_from_command_arguments(
         store=store,
-        podcast_title=podcast,
+        tags=["new"],
         tag_episodes=True,
-        is_untagger=False,
-        tag="new",
+        podcast_title=podcast,
+        is_untagger=True,
         action="unmark",
     )
 
