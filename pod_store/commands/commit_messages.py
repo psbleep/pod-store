@@ -1,4 +1,7 @@
-"""Helpers for building git commit messages."""
+"""Helpers for building `git` commit messages after a command is run.
+
+See the `pod_store.commands.decorators.git_add_and_commit` decorator for more info.
+"""
 from typing import List, Optional
 
 DOWNLOAD_COMMIT_MESSAGE_TEMPLATE = "Downloaded new episodes{tags} for {podcast}."
@@ -98,15 +101,15 @@ def tagger_commit_message_builder(
     argument.
     """
     action = action.capitalize()
-    target = _get_commit_message_target(ctx_params)
+    target = _get_tagger_commit_message_target(ctx_params)
     tag = ctx_params.get("tag") or tag
-    mode = _get_commit_message_mode(ctx_params)
+    mode = _get_tagger_commit_message_mode(ctx_params)
     return TAGGER_COMMIT_MESSAGE_TEMPLATE.format(
         action=action, target=target, tag=tag, mode=mode
     )
 
 
-def _get_commit_message_target(ctx_params: dict) -> str:
+def _get_tagger_commit_message_target(ctx_params: dict) -> str:
     if "podcast" in ctx_params and "episode" not in ctx_params:
         podcast = ctx_params.get("podcast")
         if podcast:
@@ -122,7 +125,7 @@ def _get_commit_message_target(ctx_params: dict) -> str:
             return f"podcast {podcast!r}"
 
 
-def _get_commit_message_mode(ctx_params: dict) -> str:
+def _get_tagger_commit_message_mode(ctx_params: dict) -> str:
     if ctx_params.get("interactive"):
         return " in interactive mode"
     else:

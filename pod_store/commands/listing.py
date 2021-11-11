@@ -235,9 +235,10 @@ def get_lister_from_command_arguments(
     podcast_title: Optional[str] = None,
     **filters,
 ):
-    """Helper method for building a lister based on common CLI arguments.
+    """Factory for building an appropriate `Lister` object from the CLI options passed
+    in to a command.
 
-    Builds the filter that will be used by the lister first.
+    Builds a filter that the lister will use.
     """
     filter = get_filter_from_command_arguments(
         filter_untagged_items=list_untagged_items,
