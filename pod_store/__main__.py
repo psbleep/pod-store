@@ -141,14 +141,15 @@ def add(ctx: click.Context, title: str, feed: str):
     help="(podcast title): Download only episodes for the specified podcast.",
 )
 @click.option(
-    "--is-tagged/--not-tagged",
-    default=True,
-    help="(flag): Search for episodes with or without the supplied tags. "
-    "Defaults to `is-tagged`. Has no effect if no tags are indicated.",
+    "--tagged",
+    "-t",
+    multiple=True,
+    default=[],
+    help="Supply tags to search for episodes with. Multiple tags can be provided.",
 )
 @click.option(
-    "--tag",
-    "-t",
+    "--untagged",
+    "-u",
     multiple=True,
     default=[],
     help="Supply tags to search for episodes with. Multiple tags can be provided.",
@@ -161,7 +162,10 @@ def add(ctx: click.Context, title: str, feed: str):
 )
 @save_store_changes
 def download(
-    ctx: click.Context, podcast: Optional[str], is_tagged: bool, tag: List[str]
+    ctx: click.Context,
+    podcast: Optional[str],
+    tagged: List[str],
+    untagged: List[str],
 ):
     """Download podcast episodes."""
     store = ctx.obj
@@ -169,10 +173,10 @@ def download(
     filter = get_filter_from_command_arguments(
         store=store,
         new_episodes=True,
-        filter_episodes=True,
+        filter_for_episodes=True,
         podcast_title=podcast,
-        tags=tag,
-        filter_untagged_items=not is_tagged,
+        tagged=tagged,
+        untagged=untagged,
     )
 
     for ep in filter.items:
@@ -302,14 +306,15 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
     help="(podcast title): List only episodes for the specified podcast.",
 )
 @click.option(
-    "--list-tagged/--not-tagged",
-    default=True,
-    help="(flag): Search for episodes with or without the supplied tags. "
-    "Defaults to `--list-tagged`. Has no effect if no tags are indicated.",
+    "--tagged",
+    "-t",
+    multiple=True,
+    default=[],
+    help="Supply tags to search for episodes with. Multiple tags can be provided.",
 )
 @click.option(
-    "--tag",
-    "-t",
+    "--untagged",
+    "-u",
     multiple=True,
     default=[],
     help="Supply tags to search for episodes with. Multiple tags can be provided.",
@@ -327,8 +332,8 @@ def ls(
     new: bool,
     episodes: bool,
     podcast: Optional[str],
-    list_tagged: bool,
-    tag: List[str],
+    tagged: Optional[List[str]],
+    untagged: Optional[List[str]],
     verbose: bool,
 ):
     """List data from the store.
@@ -342,8 +347,8 @@ def ls(
         new_episodes=new,
         list_episodes=episodes,
         podcast_title=podcast,
-        list_untagged_items=not list_tagged,
-        tags=tag,
+        tagged=tagged,
+        untagged=untagged,
     )
     for msg in lister.list(verbose=verbose):
         click.echo(msg)
@@ -484,14 +489,15 @@ def mv(ctx: click.Context, old: str, new: str):
     help="(podcast title): Refresh only the specified podcast.",
 )
 @click.option(
-    "--is-tagged/--not-tagged",
-    default=True,
-    help="(flag): Search for podcasts with or without the tags supplied. "
-    "Defaults to `--is-tagged`. Has no effect if no tags are indicated.",
+    "--tagged",
+    "-t",
+    multiple=True,
+    default=[],
+    help="Filter podcasts by tag. Multiple tags can be provided.",
 )
 @click.option(
-    "--tag",
-    "-t",
+    "--untagged",
+    "-u",
     multiple=True,
     default=[],
     help="Filter podcasts by tag. Multiple tags can be provided.",
@@ -504,16 +510,19 @@ def mv(ctx: click.Context, old: str, new: str):
 )
 @save_store_changes
 def refresh(
-    ctx: click.Context, podcast: Optional[str], is_tagged: bool, tag: List[str]
+    ctx: click.Context,
+    podcast: Optional[str],
+    tagged: Optional[List[str]],
+    untagged: Optional[List[str]],
 ):
     """Refresh podcast episode data from the RSS feed."""
     store = ctx.obj
     filter = get_filter_from_command_arguments(
         store=store,
-        filter_episodes=False,
+        filter_for_episodes=False,
         podcast_title=podcast,
-        tags=tag,
-        filter_untagged_items=not is_tagged,
+        tagged=tagged,
+        untagged=untagged,
     )
     for podcast in filter.items:
         click.echo(f"Refreshing {podcast.title}")

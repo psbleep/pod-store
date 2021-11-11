@@ -59,7 +59,7 @@ def test_download_new_episodes_with_tag(runner):
 
 
 def test_download_new_episodes_without_tag(runner):
-    result = runner.invoke(cli, ["download", "--not-tagged", "-t", "bar"])
+    result = runner.invoke(cli, ["download", "-u", "bar"])
     assert result.exit_code == 0
     assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n\n"
 
@@ -154,7 +154,7 @@ def test_ls_podcasts_with_tag(runner):
 
 
 def test_ls_podcasts_without_tag(runner):
-    result = runner.invoke(cli, ["ls", "--all", "--not-tagged", "-t", "hello"])
+    result = runner.invoke(cli, ["ls", "--all", "-u", "hello"])
     assert result.exit_code == 0
     assert "farewell" in result.output
     assert "greetings" not in result.output
@@ -187,9 +187,7 @@ def test_ls_episodes_with_tag(runner):
 
 
 def test_ls_without_tag(runner):
-    result = runner.invoke(
-        cli, ["ls", "--episodes", "--all", "--not-tagged", "-t", "foo"]
-    )
+    result = runner.invoke(cli, ["ls", "--episodes", "--all", "-u", "foo"])
     assert result.exit_code == 0
     assert "0001" in result.output
     assert "0002" not in result.output
@@ -272,7 +270,7 @@ def test_refresh_podcasts_with_tag(runner):
 
 
 def test_refresh_podcasts_without_tag(runner):
-    result = runner.invoke(cli, ["refresh", "--not-tagged", "-t", "hello"])
+    result = runner.invoke(cli, ["refresh", "-u", "hello"])
     assert result.exit_code == 0
     assert result.output == "Refreshing farewell\nRefreshing other\n"
 
