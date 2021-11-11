@@ -72,6 +72,18 @@ Refresh episode data for all podcasts from their RSS feeds, or just a specific p
     pod refresh
     pod refresh -p podcast-name
 
+Sometimes you may want to save data about a podcast in the store, but not continue refreshing the podcast from the RSS feed:
+
+    pod set-inactive podcast-name
+
+Using `pod refresh` and specifying the podcast by title will force an RSS feed refresh:
+
+    pod refresh -p inactive-podcast-name
+
+To reactivate a podcast and resume updating it from RSS feed data regularly:
+
+    pod set-active podcast-name
+
 Download all new episodes, or new episodes for just a specific podcast:
 
     pod download
