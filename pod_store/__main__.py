@@ -144,15 +144,13 @@ def add(ctx: click.Context, title: str, feed: str):
     "--tagged",
     "-t",
     multiple=True,
-    default=[],
-    help="Supply tags to search for episodes with. Multiple tags can be provided.",
+    help="Download episodes that have been tagged. Multiple tags can be provided.",
 )
 @click.option(
     "--untagged",
     "-u",
     multiple=True,
-    default=[],
-    help="Supply tags to search for episodes with. Multiple tags can be provided.",
+    help="Download episodes that have NOT been tagged. Multiple tags can be provided.",
 )
 @catch_pod_store_errors
 @require_store
@@ -164,11 +162,13 @@ def add(ctx: click.Context, title: str, feed: str):
 def download(
     ctx: click.Context,
     podcast: Optional[str],
-    tagged: List[str],
-    untagged: List[str],
+    tagged: Optional[List[str]],
+    untagged: Optional[List[str]],
 ):
     """Download podcast episodes."""
     store = ctx.obj
+    tagged = tagged or []
+    untagged = untagged or []
 
     filter = get_filter_from_command_arguments(
         store=store,
@@ -309,15 +309,13 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
     "--tagged",
     "-t",
     multiple=True,
-    default=[],
-    help="Supply tags to search for episodes with. Multiple tags can be provided.",
+    help="Filter results by tag. Multiple tags can be provided.",
 )
 @click.option(
     "--untagged",
     "-u",
     multiple=True,
-    default=[],
-    help="Supply tags to search for episodes with. Multiple tags can be provided.",
+    help="Filter results by asence of tag. Multiple tags can be provided.",
 )
 @click.option(
     "--verbose/--not-verbose",
@@ -342,6 +340,9 @@ def ls(
     the provided flags and command options.
     """
     store = ctx.obj
+    tagged = tagged or []
+    untagged = untagged or []
+
     lister = get_lister_from_command_arguments(
         store=store,
         new_episodes=new,
@@ -492,15 +493,13 @@ def mv(ctx: click.Context, old: str, new: str):
     "--tagged",
     "-t",
     multiple=True,
-    default=[],
     help="Filter podcasts by tag. Multiple tags can be provided.",
 )
 @click.option(
     "--untagged",
     "-u",
     multiple=True,
-    default=[],
-    help="Filter podcasts by tag. Multiple tags can be provided.",
+    help="Filter podcasts by absence of tag. Multiple tags can be provided.",
 )
 @catch_pod_store_errors
 @require_store
@@ -517,6 +516,9 @@ def refresh(
 ):
     """Refresh podcast episode data from the RSS feed."""
     store = ctx.obj
+    tagged = tagged or []
+    untagged = untagged or []
+
     filter = get_filter_from_command_arguments(
         store=store,
         filter_for_episodes=False,
@@ -561,7 +563,7 @@ def rm(ctx: click.Context, title: str):
 @cli.command()
 @click.pass_context
 @click.argument("podcast")
-@click.argument("tag")
+@click.option("--tag", "-t", multiple=True, required=True, help="Tags to apply.")
 @click.option(
     "-e",
     "--episode",
@@ -577,7 +579,7 @@ def rm(ctx: click.Context, title: str):
     commit_message_builder=tagger_commit_message_builder,
 )
 @save_store_changes
-def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
+def tag(ctx: click.Context, podcast: str, tag: List[str], episode: Optional[str]):
     """Tag a single podcast or episode with an arbitrary text tag. If the optional
     episode ID is provided, it will be tagged. Otherwise, the podcast itself will
     be tagged.
@@ -585,7 +587,6 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     Note that tagging an episode requires the user to provide the podcast AND episode.
 
     PODCAST: title of podcast
-    TAG: arbitrary text tag
     """
     store = ctx.obj
     if episode:
@@ -595,7 +596,7 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
 
     tagger = get_tagger_from_command_arguments(
         store=store,
-        tag=tag,
+        tags=tag,
         podcast_title=podcast,
         tag_episodes=bool(episode),
         filters=filters,
@@ -606,7 +607,7 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
 
 @cli.command()
 @click.pass_context
-@click.argument("tag")
+@click.option("--tag", "-t", multiple=True, required=True, help="Tags to apply.")
 @click.option(
     "-p",
     "--podcast",
@@ -635,21 +636,18 @@ def tag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
 @save_store_changes
 def tag_episodes(
     ctx: click.Context,
-    tag: str,
+    tag: List[str],
     podcast: Optional[str],
     interactive: bool,
     force: Optional[bool],
 ):
-    """Tag episodes in groups.
-
-    TAG: arbitrary text tag to apply
-    """
+    """Tag episodes in groups."""
     store = ctx.obj
     tagger = get_tagger_from_command_arguments(
         store=store,
         podcast_title=podcast,
         tag_episodes=True,
-        tag=tag,
+        tags=tag,
     )
 
     for msg in tagger.tag_items(interactive_mode=interactive):
@@ -682,7 +680,7 @@ def unencrypt_store(ctx: click.Context):
 @cli.command()
 @click.pass_context
 @click.argument("podcast")
-@click.argument("tag")
+@click.option("--tag", "-t", multiple=True, required=True, help="Tags to remove.")
 @click.option(
     "-e",
     "--episode",
@@ -698,7 +696,7 @@ def unencrypt_store(ctx: click.Context):
     commit_message_builder=tagger_commit_message_builder,
 )
 @save_store_changes
-def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
+def untag(ctx: click.Context, podcast: str, tag: List[str], episode: Optional[str]):
     """Untag a single podcast or episode. If the optional episode ID is provided,
     it will be untagged. Otherwise, the podcast itself will be untagged.
 
@@ -706,7 +704,6 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
     AND episode.
 
     PODCAST: title of podcast
-    TAG: arbitrary text tag
     """
     store = ctx.obj
     if episode:
@@ -716,7 +713,7 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
 
     tagger = get_tagger_from_command_arguments(
         store=store,
-        tag=tag,
+        tags=tag,
         is_untagger=True,
         podcast_title=podcast,
         tag_episodes=bool(episode),
@@ -728,7 +725,7 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
 
 @cli.command()
 @click.pass_context
-@click.argument("tag")
+@click.option("--tag", "-t", multiple=True, required=True, help="Tags to remove.")
 @click.option(
     "-p",
     "--podcast",
@@ -758,21 +755,18 @@ def untag(ctx: click.Context, podcast: str, tag: str, episode: Optional[str]):
 @save_store_changes
 def untag_episodes(
     ctx: click.Context,
-    tag: str,
+    tag: List[str],
     podcast: Optional[str],
     interactive: bool,
     force: Optional[bool],
 ):
-    """Untag episodes in groups.
-
-    TAG: tag to remove
-    """
+    """Untag episodes in groups."""
     store = ctx.obj
     tagger = get_tagger_from_command_arguments(
         store=store,
         podcast_title=podcast,
         tag_episodes=True,
-        tag=tag,
+        tags=tag,
         is_untagger=True,
     )
 
