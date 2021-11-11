@@ -289,6 +289,11 @@ def test_rm_aborts_if_not_confirmed(runner):
     assert result.exit_code == 1
 
 
+def test_set_active(runner):
+    result = runner.invoke(cli, ["set-active", "other"])
+    assert result.exit_code == 0
+
+
 def test_set_inactive(runner):
     result = runner.invoke(cli, ["set-inactive", "greetings"])
     assert result.exit_code == 0

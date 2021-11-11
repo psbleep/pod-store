@@ -569,6 +569,29 @@ def rm(ctx: click.Context, title: str):
     commit_message_builder=tagger_commit_message_builder,
 )
 @save_store_changes
+def set_active(ctx: click.Context, podcast: str):
+    """Set a podcast to `active`. The RSS feed data be refreshed.
+
+    Reverses the `set-inactive` command.
+
+    PODCAST: title of podcast to set as 'active'
+    """
+    store = ctx.obj
+
+    podcast = store.podcasts.get(podcast)
+    podcast.untag("inactive")
+
+
+@cli.command()
+@click.pass_context
+@click.argument("podcast")
+@catch_pod_store_errors
+@require_store
+@git_add_and_commit(
+    secure_git_mode_message="Tagged items.",
+    commit_message_builder=tagger_commit_message_builder,
+)
+@save_store_changes
 def set_inactive(ctx: click.Context, podcast: str):
     """Set a podcast to `inactive`. The RSS feed data will no longer be refreshed.
 
