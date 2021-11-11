@@ -1,4 +1,7 @@
-"""Helpers for building git commit messages."""
+"""Helpers for building `git` commit messages after a command is run.
+
+See the `pod_store.commands.decorators.git_add_and_commit` decorator for more info.
+"""
 from typing import List, Optional
 
 DOWNLOAD_COMMIT_MESSAGE_TEMPLATE = "Downloaded new episodes{tags} for {podcast}."
