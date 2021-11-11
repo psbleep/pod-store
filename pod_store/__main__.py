@@ -375,7 +375,7 @@ def ls(
     is_flag=True,
     help="Skip confirmation prompt for bulk mode actions.",
 )
-@conditional_confirmation_prompt(param="interactive", value=False, override="force")
+@conditional_confirmation_prompt(interactive=False, override="force")
 @catch_pod_store_errors
 @require_store
 @git_add_and_commit(
@@ -425,7 +425,7 @@ def mark_as_new(
     is_flag=True,
     help="Skip confirmation prompt for bulk mode actions.",
 )
-@conditional_confirmation_prompt(param="interactive", value=False, override="force")
+@conditional_confirmation_prompt(interactive=False, override="force")
 @catch_pod_store_errors
 @require_store
 @git_add_and_commit(
@@ -605,15 +605,40 @@ def set_inactive(ctx: click.Context, podcast: str):
 
 @cli.command()
 @click.pass_context
-@click.argument("podcast")
 @click.option("--tag", "-t", multiple=True, required=True, help="Tags to apply.")
+@click.option(
+    "--untag",
+    "-u",
+    is_flag=True,
+    help="Remove the specified tags (rather than apply them).",
+)
+@click.option(
+    "--podcast", "-p", default=None, help="(podcast title): Tag a single podcast."
+)
 @click.option(
     "-e",
     "--episode",
     default=None,
-    help="(episode ID): Episode to tag. "
+    help="(episode ID): Tag a single episode. "
     "Note that this is the ID from the `ls --episodes --verbose` listing, not the "
     "episode number.",
+)
+@click.option(
+    "--episodes/--podcasts", default=True, help="Tag episodes or podcasts in groups."
+)
+@click.option(
+    "--interactive/--bulk",
+    default=True,
+    help="Interactively determine which items to tag, or apply the tag to all items.",
+)
+@click.option(
+    "-f",
+    "--force",
+    is_flag=True,
+    help="Skip confirmation prompt for bulk mode actions.",
+)
+@conditional_confirmation_prompt(
+    interactive=False, episode=None, podcast=None, override="force"
 )
 @catch_pod_store_errors
 @require_store
@@ -622,15 +647,34 @@ def set_inactive(ctx: click.Context, podcast: str):
     commit_message_builder=tagger_commit_message_builder,
 )
 @save_store_changes
-def tag(ctx: click.Context, podcast: str, tag: List[str], episode: Optional[str]):
-    """Tag a single podcast or episode with an arbitrary text tag. If the optional
-    episode ID is provided, it will be tagged. Otherwise, the podcast itself will
-    be tagged.
+def tag(
+    ctx: click.Context,
+    tag: List[str],
+    untag: bool,
+    podcast: Optional[str],
+    episode: Optional[str],
+    episodes: bool,
+    interactive: bool,
+    force: bool,
+):
+    """Tag (or untag) podcasts or episodes with arbitrary tags.
 
-    Note that tagging an episode requires the user to provide the podcast AND episode.
+    By default, this command works on groups (rather than individual items). Determine
+    which type of item to tag using the `--episodes` or `--podcasts` option.
+    (Defaults to episodes.)
 
-    PODCAST: title of podcast
+    When working in group mode, you can interactively determine which items to tag
+    using the `--interactive` option, or apply the tag to all items in the group using
+    the `--bulk` tag. (Defaults to interactive mode.)
+
+    In bulk mode, a single confirmation prompt will be shown unless the user passes in
+    the `--force` flag.
+
+    It is possible to tag individual items instead using the `--podcast` and `--episode`
+    options. Specify a podcast by title to tag the podcast. To tag an episode, specify
+    the podcast by title and then specify the episode by ID.
     """
+    tag_episodes = bool(not podcast or episode) and bool(episodes or episode)
     store = ctx.obj
     if episode:
         filters = {"id": episode}
@@ -640,59 +684,11 @@ def tag(ctx: click.Context, podcast: str, tag: List[str], episode: Optional[str]
     tagger = get_tagger_from_command_arguments(
         store=store,
         tags=tag,
+        tag_episodes=tag_episodes,
         podcast_title=podcast,
-        tag_episodes=bool(episode),
+        is_untagger=untag,
         filters=filters,
     )
-    for msg in tagger.tag_items():
-        click.echo(msg)
-
-
-@cli.command()
-@click.pass_context
-@click.option("--tag", "-t", multiple=True, required=True, help="Tags to apply.")
-@click.option(
-    "-p",
-    "--podcast",
-    default=None,
-    help="(podcast title): Tag episodes for only the specified podcast.",
-)
-@click.option(
-    "--interactive/--bulk",
-    default=True,
-    help="(flag): Run this command in interactive mode to select which episodes to "
-    "tag, or bulk mode to tag all episodes in the group. Defaults to `--interactive`.",
-)
-@click.option(
-    "-f",
-    "--force",
-    is_flag=True,
-    help="Skip confirmation prompt for bulk mode actions.",
-)
-@conditional_confirmation_prompt(param="interactive", value=False, override="force")
-@catch_pod_store_errors
-@require_store
-@git_add_and_commit(
-    secure_git_mode_message="Tagged items.",
-    commit_message_builder=tagger_commit_message_builder,
-)
-@save_store_changes
-def tag_episodes(
-    ctx: click.Context,
-    tag: List[str],
-    podcast: Optional[str],
-    interactive: bool,
-    force: Optional[bool],
-):
-    """Tag episodes in groups."""
-    store = ctx.obj
-    tagger = get_tagger_from_command_arguments(
-        store=store,
-        podcast_title=podcast,
-        tag_episodes=True,
-        tags=tag,
-    )
-
     for msg in tagger.tag_items(interactive_mode=interactive):
         click.echo(msg)
 
@@ -718,103 +714,6 @@ def unencrypt_store(ctx: click.Context):
     store = ctx.obj
     store.unencrypt()
     click.echo("Store was unencrypted.")
-
-
-@cli.command()
-@click.pass_context
-@click.argument("podcast")
-@click.option("--tag", "-t", multiple=True, required=True, help="Tags to remove.")
-@click.option(
-    "-e",
-    "--episode",
-    default=None,
-    help="(episode ID): Episode to untag. "
-    "Note that this is the ID from the `ls --episodes --verbose` listing, not the "
-    "episode number.",
-)
-@catch_pod_store_errors
-@require_store
-@git_add_and_commit(
-    secure_git_mode_message="Tagged items.",
-    commit_message_builder=tagger_commit_message_builder,
-)
-@save_store_changes
-def untag(ctx: click.Context, podcast: str, tag: List[str], episode: Optional[str]):
-    """Untag a single podcast or episode. If the optional episode ID is provided,
-    it will be untagged. Otherwise, the podcast itself will be untagged.
-
-    Note that untagging an episode requires the user to provide both the podcast
-    AND episode.
-
-    PODCAST: title of podcast
-    """
-    store = ctx.obj
-    if episode:
-        filters = {"id": episode}
-    else:
-        filters = {}
-
-    tagger = get_tagger_from_command_arguments(
-        store=store,
-        tags=tag,
-        is_untagger=True,
-        podcast_title=podcast,
-        tag_episodes=bool(episode),
-        filters=filters,
-    )
-    for msg in tagger.tag_items():
-        click.echo(msg)
-
-
-@cli.command()
-@click.pass_context
-@click.option("--tag", "-t", multiple=True, required=True, help="Tags to remove.")
-@click.option(
-    "-p",
-    "--podcast",
-    default=None,
-    help="(podcast title): Untag episodes for only the specified podcast.",
-)
-@click.option(
-    "--interactive/--bulk",
-    default=True,
-    help="(flag): Run this command in interactive mode to select which episodes to "
-    "untag, or bulk mode to untag all episodes in the group. Defaults to "
-    "`--interactive`.",
-)
-@click.option(
-    "-f",
-    "--force",
-    is_flag=True,
-    help="Skip confirmation prompt for bulk mode actions.",
-)
-@conditional_confirmation_prompt(param="interactive", value=False, override="force")
-@catch_pod_store_errors
-@require_store
-@git_add_and_commit(
-    secure_git_mode_message="Tagged items.",
-    commit_message_builder=tagger_commit_message_builder,
-)
-@save_store_changes
-def untag_episodes(
-    ctx: click.Context,
-    tag: List[str],
-    podcast: Optional[str],
-    interactive: bool,
-    force: Optional[bool],
-):
-    """Untag episodes in groups."""
-    store = ctx.obj
-    tagger = get_tagger_from_command_arguments(
-        store=store,
-        podcast_title=podcast,
-        tag_episodes=True,
-        tags=tag,
-        is_untagger=True,
-    )
-
-    for msg in tagger.tag_items(interactive_mode=interactive):
-        click.echo(msg)
 
 
 def main() -> None:

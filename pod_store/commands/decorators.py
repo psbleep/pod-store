@@ -29,23 +29,25 @@ def catch_pod_store_errors(f: Callable) -> Callable:
 
 
 def conditional_confirmation_prompt(
-    param: str, value: Any, override: Optional[str] = None
+    override: Optional[str] = None, **conditions
 ) -> Callable:
     """Decorator for prompting the user to confirm the command if conditions are met.
 
-    The `param` argument is used to look up a parameter in the Click context. If the
-    param value matches the one provided in the `value` argument, a confirmation prompt
-    is provided to the user (unless the command param noted in the optional `override`
-    argument is found to be True).
+    Conditions are passed as a set of key/value pairs that represent Click command
+    params and values. If the params match the expected values, the user will be
+    prompted to confirm that they want to run this command.
+
+    The `override` argument can be set to the name of a flag param that will skip this
+    confirmation.
 
     For example:
 
-    @conditional_confirmation_prompt(param="hello", value="world", override="force")
+    @conditional_confirmation_prompt(hello="world", foo="bar", override="force")
     ...
 
-    Would show a prompt if:
+    Would show a prompt if both of these conditions were met:
 
-        - the `hello` parameter had a value of 'world'
+        - `hello` param had a value of 'world', `foo` param had a value of 'bar'
         - the `force` parameter was not set to True
 
     If the user does not confirm the action, the command is aborted.
@@ -54,9 +56,13 @@ def conditional_confirmation_prompt(
     def conditional_confirmation_prompt_wrapper(f: Callable) -> Callable:
         @functools.wraps(f)
         def conditional_confirmation_prompt_inner(ctx, *args, **kwargs) -> Any:
-            if ctx.params.get(param) == value and not ctx.params.get(override) is True:
-                if click.prompt("Confirm?", type=click.Choice(["y", "n"])) != "y":
-                    raise click.Abort()
+            if ctx.params.get(override) is not True:
+                for param, value in conditions.items():
+                    if ctx.params.get(param) != value:
+                        break
+                else:
+                    if click.prompt("Confirm?", type=click.Choice(["y", "n"])) != "y":
+                        raise click.Abort()
             return f(ctx, *args, **kwargs)
 
         return conditional_confirmation_prompt_inner
