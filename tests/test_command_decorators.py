@@ -33,8 +33,8 @@ def test_catch_pod_store_errors_decorator_aborts_command_and_displays_error_mess
     )
 
 
-def test_conditional_confirmation_prompt_param_does_not_match_value():
-    @decorators.conditional_confirmation_prompt(param="hello", value=False)
+def test_conditional_confirmation_prompt_params_do_not_match_all_conditions():
+    @decorators.conditional_confirmation_prompt(hello=True, foo="bar")
     def no_match(ctx):
         return True
 
@@ -42,10 +42,8 @@ def test_conditional_confirmation_prompt_param_does_not_match_value():
     assert no_match(ctx) is True
 
 
-def test_conditional_confirmation_prompt_param_matches_value_but_override_flag_is_set():
-    @decorators.conditional_confirmation_prompt(
-        param="hello", value=True, override="flagged"
-    )
+def test_conditional_confirmation_prompt_params_match_conditions_but_override_is_set():
+    @decorators.conditional_confirmation_prompt(hello=True, override="flagged")
     def flagged(ctx):
         return True
 
@@ -53,12 +51,12 @@ def test_conditional_confirmation_prompt_param_matches_value_but_override_flag_i
     assert flagged(ctx) is True
 
 
-def test_conditional_confirmation_prompt_param_matches_no_override_prompt_confirmed(
+def test_conditional_confirmation_prompt_user_confirms_choice(
     mocker,
 ):
     mocker.patch("click.prompt", return_value="y")
 
-    @decorators.conditional_confirmation_prompt(param="hello", value=True)
+    @decorators.conditional_confirmation_prompt(hello=True)
     def prompt_passed(ctx):
         return True
 
@@ -66,12 +64,12 @@ def test_conditional_confirmation_prompt_param_matches_no_override_prompt_confir
     assert prompt_passed(ctx) is True
 
 
-def test_conditional_confirmation_prompt_param_no_override_prompt_not_confirmed(
+def test_conditional_confirmation_prompt_user_does_not_confirm_choice(
     mocker,
 ):
     mocker.patch("click.prompt", return_value="n")
 
-    @decorators.conditional_confirmation_prompt(param="hello", value=True)
+    @decorators.conditional_confirmation_prompt(hello=True)
     def prompt_failed(ctx):
         return True
 
