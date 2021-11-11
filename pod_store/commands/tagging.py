@@ -147,6 +147,11 @@ def get_tagger_from_command_arguments(
     filters: Optional[dict] = None,
     **tagger_kwargs,
 ) -> Tagger:
+    """Factory for building an appropriate `Tagger` object from the CLI options passed
+    in to a command.
+
+    Builds a filter for the tagger to use.
+    """
     filters = filters or {}
     tags = [tag]
     filter = get_filter_from_command_arguments(
