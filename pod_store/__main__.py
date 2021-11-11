@@ -167,8 +167,8 @@ def download(
 ):
     """Download podcast episodes."""
     store = ctx.obj
-    tagged = tagged or []
-    untagged = untagged or []
+    tagged = list(tagged or [])
+    untagged = list(untagged or [])
 
     filter = get_filter_from_command_arguments(
         store=store,
@@ -340,8 +340,8 @@ def ls(
     the provided flags and command options.
     """
     store = ctx.obj
-    tagged = tagged or []
-    untagged = untagged or []
+    tagged = list(tagged or [])
+    untagged = list(untagged or [])
 
     lister = get_lister_from_command_arguments(
         store=store,
@@ -512,8 +512,11 @@ def refresh(
 ):
     """Refresh podcast episode data from the RSS feed."""
     store = ctx.obj
-    tagged = tagged or []
-    untagged = untagged or []
+    tagged = list(tagged or [])
+    untagged = list(untagged or [])
+
+    if not podcast:
+        untagged.append("inactive")
 
     filter = get_filter_from_command_arguments(
         store=store,
@@ -532,7 +535,7 @@ def refresh(
 
 @cli.command()
 @click.pass_context
-@click.argument("title")
+@click.argument("podcast")
 @click.option(
     "-f",
     "--force",
@@ -544,16 +547,60 @@ def refresh(
 )
 @catch_pod_store_errors
 @require_store
-@git_add_and_commit(message="Removed podcast: {title!r}.", params=["title"])
+@git_add_and_commit(message="Removed podcast: {podcast!r}.", params=["podcast"])
 @save_store_changes
-def rm(ctx: click.Context, title: str):
+def rm(ctx: click.Context, podcast: str):
     """Remove a podcast from the store. This command will NOT delete the podcast
     episodes that have been downloaded.
 
-    TITLE: title of podcast to remove
+    PODCAST: title of podcast to remove
     """
     store = ctx.obj
-    store.podcasts.delete(title)
+    store.podcasts.delete(podcast)
+
+
+@cli.command()
+@click.pass_context
+@click.argument("podcast")
+@catch_pod_store_errors
+@require_store
+@git_add_and_commit(
+    secure_git_mode_message="Tagged items.",
+    commit_message_builder=tagger_commit_message_builder,
+)
+@save_store_changes
+def set_active(ctx: click.Context, podcast: str):
+    """Set a podcast to `active`. The RSS feed data be refreshed.
+
+    Reverses the `set-inactive` command.
+
+    PODCAST: title of podcast to set as 'active'
+    """
+    store = ctx.obj
+
+    podcast = store.podcasts.get(podcast)
+    podcast.untag("inactive")
+
+
+@cli.command()
+@click.pass_context
+@click.argument("podcast")
+@catch_pod_store_errors
+@require_store
+@git_add_and_commit(
+    secure_git_mode_message="Tagged items.",
+    commit_message_builder=tagger_commit_message_builder,
+)
+@save_store_changes
+def set_inactive(ctx: click.Context, podcast: str):
+    """Set a podcast to `inactive`. The RSS feed data will no longer be refreshed.
+
+    PODCAST: title of podcast to set as 'inactive'
+    """
+    store = ctx.obj
+
+    podcast = store.podcasts.get(podcast)
+    podcast.tag("inactive")
 
 
 @cli.command()

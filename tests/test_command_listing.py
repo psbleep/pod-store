@@ -107,7 +107,7 @@ def test_episode_lister_list_raises_exception_when_no_episodes_found(store):
 def test_podcast_lister_list(podcast_lister):
     assert list(podcast_lister.list()) == [
         "farewell [1]",
-        "other",
+        "other -> inactive",
         "greetings [1] -> hello",
     ]
 
@@ -124,6 +124,7 @@ updated at: {now_formatted}""",
         "",
         f"""other
 0 new episodes
+tags: inactive
 feed: http://other.thing/rss
 created at: {yesterday_formatted}
 updated at: {now_formatted}""",

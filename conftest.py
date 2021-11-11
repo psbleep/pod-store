@@ -181,7 +181,7 @@ def store_data(now, yesterday, podcast_episode_data, other_podcast_episode_data)
         "other": {
             "title": "other",
             "feed": "http://other.thing/rss",
-            "tags": [],
+            "tags": ["inactive"],
             "episode_data": {},
             "created_at": yesterday.isoformat(),
             "updated_at": now.isoformat(),
