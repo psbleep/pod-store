@@ -91,21 +91,16 @@ Download all new episodes, or new episodes for just a specific podcast:
 
 By default podcast episodes will be downloaded to e.g. `/home/<username>/Podcasts/<podcast-name>/<001-episode-title>.mp3`. See the configuration section for how to adjust the download path.
 
-Sometimes you may want to mark an episode as being not-new without actually downloading it. Do that using the `mark` command. By default you will interactively choose which episodes to mark, or you can bulk-mark all episodes. Either of these strategies can be applied to _all_ new episodes, or just the episodes of a specific podcast:
+Sometimes you may want to mark an episode as being not-new without actually downloading it. Do that using the `mark-as-old` command. By default you will interactively choose which episodes to mark, or you can bulk-mark all episodes. Either of these strategies can be applied to _all_ new episodes, or just the episodes of a specific podcast:
 
     pod mark-as-old
     pod mark-as-old --bulk
 
     pod mark-as-old -p podcast-name
-    pod mark-as-old --bulk -p podcast-name
 
-The reverse can be accomplished as well, if you want to download episodes that have been previously marked as "old":
+The reverse can be accomplished as well, if you want to download episodes that have been previously marked as "old". All the same command options apply:
 
     pod mark-as-new
-    pod mark-as-new --bulk
-
-    pod mark-as-new -p podcast-name
-    pod mark-as-new --bulk -p podcast-name
 
 Rename a podcast in the store:
 
@@ -129,35 +124,31 @@ Unencrypt a store that is set up as encrypted:
 
     pod unencrypt-store
 
-Podcasts and episodes can be marked with tags:
+Podcasts and episodes can be marked with tags. The `tag` command allows tagging a single podcast or episode:
 
-    pod tag podcast-name tag-name
-    pod tag podcast-name tag-name --episode episode-id
+    pod tag -p podcast-name -t tag-name
+    pod tag -p podcast-name -e episode-id -t tag-name
 
-Note that to reference an episode to tag you will need the episode ID. You can get that using the `ls --verbose --episodes` command.
+You can also tag groups of podcasts, or episodes, or episodes for a particular podcast:
 
-Podcasts and episodes can be untagged with a similar command:
+    pod tag --podcasts -t tag-name
+    pod tag --episodes -t tag-name
+    pod tag -p podcast-name --episodes -t tag-name
 
-    pod untag podcast-name tag-name
-    pod untag podcast-name tag-name --episode episode-id
+By default, the `tag` command works on groups of items. By default, it tags episodes.
 
-Episodes can be tagged in groups:
+When tagging groups of items, you can interactively select which items to tag or apply the tag to the whole group by using the `interactive` and `bulk` mode options:
 
-    pod tag-episodes tag-name
+    pod tag --podcasts --interactive -t tag-name
+    pod tag --episodes --bulk -t tag-name
 
-By default you will be prompted to select which episodes to apply the tag too, but you can bulk aply the tag to every episode in the group without being prompted:
+By default, group tagging operations are run in interactive mode. Bulk mode tagging operations will prompt the user for a single confirmation, unless you pass in the `force` flag:
 
-    pod tag-episodes tag-name --bulk
+    pod tag --episodes --bulk --force -t tag-name
 
-Either mode can be restricted to episodes for a single podcast:
+Any of the tagging commands can be used to remove tags (rather than apply them) using the `untag` option:
 
-    pod tag-episodes -p podcast-name tag-name
-
-A similar command allows untagging episodes in groups:
-
-    pod untag-episodes tag-name
-    pod untag-episodes tag-name --bulk
-    pod untag-episodes -p podcast-name tag-name
+    pod tag --untag --episodes -t tag-name
 
 ## Configuration
 
@@ -190,12 +181,13 @@ Write tests for your changes!
 
 The CLI is built using the [Click](https://click.palletsprojects.com/) library, so some familiarity with that library will help in understanding/contributing to the code.
 
-This project uses [black](https://github.com/psf/black) for code formatting/linting, and [https://pycqa.github.io/isort/](isort) for import linting. [PEP-8](https://www.python.org/dev/peps/pep-0008/) is generally followed, with the exception of an 88 character line limit rather than 79 characters (which is in line with the default behavior for `black`).
+This project uses [flake8](https://flake8.pycqa.org/en/latest/) for linting, [black](https://github.com/psf/black) for code formatting, and [https://pycqa.github.io/isort/](isort) for import standards. [PEP-8](https://www.python.org/dev/peps/pep-0008/) is generally followed, with the exception of an 88 character line limit rather than 79 characters (which is in line with the default behavior for `black`).
 
 Tests are run using [pytest](https://docs.pytest.org/) and run against multiple Python versions using [tox](https://tox.wiki/en/latest/).
 
 Code will not be accepted that doesn't pass the test suite or the code style checks. You can run the linters and tests yourself locally before opening the PR. These commands should do it (run from the root directory of the git repo):
 
+    flake8 .
     black .
     isort .
     pytest

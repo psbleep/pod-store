@@ -606,18 +606,31 @@ def set_inactive(ctx: click.Context, podcast: str):
 @cli.command()
 @click.pass_context
 @click.option("--tag", "-t", multiple=True, required=True, help="Tags to apply.")
-@click.option("--untag", "-u", is_flag=True)
-@click.option("--podcast", "-p", default=None)
+@click.option(
+    "--untag",
+    "-u",
+    is_flag=True,
+    help="Remove the specified tags (rather than apply them).",
+)
+@click.option(
+    "--podcast", "-p", default=None, help="(podcast title): Tag a single podcast."
+)
 @click.option(
     "-e",
     "--episode",
     default=None,
-    help="(episode ID): Episode to tag. "
+    help="(episode ID): Tag a single episode. "
     "Note that this is the ID from the `ls --episodes --verbose` listing, not the "
     "episode number.",
 )
-@click.option("--episodes/--podcasts", default=True)
-@click.option("--interactive/--bulk", default=True)
+@click.option(
+    "--episodes/--podcasts", default=True, help="Tag episodes or podcasts in groups."
+)
+@click.option(
+    "--interactive/--bulk",
+    default=True,
+    help="Interactively determine which items to tag, or apply the tag to all items.",
+)
 @click.option(
     "-f",
     "--force",
@@ -644,13 +657,22 @@ def tag(
     interactive: bool,
     force: bool,
 ):
-    """Tag a single podcast or episode with an arbitrary text tag. If the optional
-    episode ID is provided, it will be tagged. Otherwise, the podcast itself will
-    be tagged.
+    """Tag (or untag) podcasts or episodes with arbitrary tags.
 
-    Note that tagging an episode requires the user to provide the podcast AND episode.
+    By default, this command works on groups (rather than individual items). Determine
+    which type of item to tag using the `--episodes` or `--podcasts` option.
+    (Defaults to episodes.)
 
-    PODCAST: title of podcast
+    When working in group mode, you can interactively determine which items to tag
+    using the `--interactive` option, or apply the tag to all items in the group using
+    the `--bulk` tag. (Defaults to interactive mode.)
+
+    In bulk mode, a single confirmation prompt will be shown unless the user passes in
+    the `--force` flag.
+
+    It is possible to tag individual items instead using the `--podcast` and `--episode`
+    options. Specify a podcast by title to tag the podcast. To tag an episode, specify
+    the podcast by title and then specify the episode by ID.
     """
     tag_episodes = bool(not podcast or episode) and bool(episodes or episode)
     store = ctx.obj
