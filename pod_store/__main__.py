@@ -535,7 +535,7 @@ def refresh(
 
 @cli.command()
 @click.pass_context
-@click.argument("title")
+@click.argument("podcast")
 @click.option(
     "-f",
     "--force",
@@ -547,16 +547,16 @@ def refresh(
 )
 @catch_pod_store_errors
 @require_store
-@git_add_and_commit(message="Removed podcast: {title!r}.", params=["title"])
+@git_add_and_commit(message="Removed podcast: {podcast!r}.", params=["podcast"])
 @save_store_changes
-def rm(ctx: click.Context, title: str):
+def rm(ctx: click.Context, podcast: str):
     """Remove a podcast from the store. This command will NOT delete the podcast
     episodes that have been downloaded.
 
-    TITLE: title of podcast to remove
+    PODCAST: title of podcast to remove
     """
     store = ctx.obj
-    store.podcasts.delete(title)
+    store.podcasts.delete(podcast)
 
 
 @cli.command()
