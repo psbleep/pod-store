@@ -230,7 +230,6 @@ class PodcastLister(Lister):
 
 
 def get_lister_from_command_arguments(
-    list_untagged_items: bool = False,
     list_episodes: bool = False,
     podcast_title: Optional[str] = None,
     **filters,
@@ -241,8 +240,7 @@ def get_lister_from_command_arguments(
     Builds a filter that the lister will use.
     """
     filter = get_filter_from_command_arguments(
-        filter_untagged_items=list_untagged_items,
-        filter_episodes=list_episodes,
+        filter_for_episodes=list_episodes,
         podcast_title=podcast_title,
         **filters,
     )

@@ -59,7 +59,7 @@ def test_download_new_episodes_with_tag(runner):
 
 
 def test_download_new_episodes_without_tag(runner):
-    result = runner.invoke(cli, ["download", "--not-tagged", "-t", "bar"])
+    result = runner.invoke(cli, ["download", "-u", "bar"])
     assert result.exit_code == 0
     assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n\n"
 
@@ -154,7 +154,7 @@ def test_ls_podcasts_with_tag(runner):
 
 
 def test_ls_podcasts_without_tag(runner):
-    result = runner.invoke(cli, ["ls", "--all", "--not-tagged", "-t", "hello"])
+    result = runner.invoke(cli, ["ls", "--all", "-u", "hello"])
     assert result.exit_code == 0
     assert "farewell" in result.output
     assert "greetings" not in result.output
@@ -187,9 +187,7 @@ def test_ls_episodes_with_tag(runner):
 
 
 def test_ls_without_tag(runner):
-    result = runner.invoke(
-        cli, ["ls", "--episodes", "--all", "--not-tagged", "-t", "foo"]
-    )
+    result = runner.invoke(cli, ["ls", "--episodes", "--all", "-u", "foo"])
     assert result.exit_code == 0
     assert "0001" in result.output
     assert "0002" not in result.output
@@ -272,7 +270,7 @@ def test_refresh_podcasts_with_tag(runner):
 
 
 def test_refresh_podcasts_without_tag(runner):
-    result = runner.invoke(cli, ["refresh", "--not-tagged", "-t", "hello"])
+    result = runner.invoke(cli, ["refresh", "-u", "hello"])
     assert result.exit_code == 0
     assert result.output == "Refreshing farewell\nRefreshing other\n"
 
@@ -294,19 +292,21 @@ def test_rm_aborts_if_not_confirmed(runner):
 
 
 def test_tag_a_podcast(runner):
-    result = runner.invoke(cli, ["tag", "greetings", "foobar"])
+    result = runner.invoke(cli, ["tag", "greetings", "-t", "foobar"])
     assert result.exit_code == 0
     assert result.output == "Tagged as foobar: greetings.\n"
 
 
 def test_tag_a_pocast_episode(runner):
-    result = runner.invoke(cli, ["tag", "greetings", "--episode", "aaa", "foobar"])
+    result = runner.invoke(
+        cli, ["tag", "greetings", "--episode", "aaa", "-t", "foobar"]
+    )
     assert result.exit_code == 0
     assert result.output == "Tagged as foobar: greetings -> [0023] hello.\n"
 
 
 def test_tag_episodes_all_episodes_bulk_mode(runner):
-    result = runner.invoke(cli, ["tag-episodes", "foo", "--force", "--bulk"])
+    result = runner.invoke(cli, ["tag-episodes", "-t", "foo", "--force", "--bulk"])
     assert result.exit_code == 0
     assert "Tagged as foo: farewell" in result.output
     assert "Tagged as foo: greetings" in result.output
@@ -314,7 +314,7 @@ def test_tag_episodes_all_episodes_bulk_mode(runner):
 
 def test_tag_episodes_for_single_podcast(runner):
     result = runner.invoke(
-        cli, ["tag-episodes", "zozo", "--force", "--bulk", "-p", "greetings"]
+        cli, ["tag-episodes", "-t", "zozo", "--force", "--bulk", "-p", "greetings"]
     )
     assert result.exit_code == 0
     assert "Tagged as zozo: farewell" not in result.output
@@ -323,7 +323,7 @@ def test_tag_episodes_for_single_podcast(runner):
 
 def test_tag_episodes_interactive_mode(runner):
     result = runner.invoke(
-        cli, ["tag-episodes", "foo", "--interactive"], input="n\ny\n"
+        cli, ["tag-episodes", "-t", "foo", "--interactive"], input="n\ny\n"
     )
     assert result.exit_code == 0
     assert "Tagged as foo: farewell" not in result.output
@@ -344,19 +344,19 @@ def test_unencrypt_aborts_if_not_confirmed(runner):
 
 
 def test_untag_a_podcast(runner):
-    result = runner.invoke(cli, ["untag", "greetings", "hello"])
+    result = runner.invoke(cli, ["untag", "greetings", "-t", "hello"])
     assert result.exit_code == 0
     assert result.output == "Untagged as hello: greetings.\n"
 
 
 def test_untag_single_pocast_episode(runner):
-    result = runner.invoke(cli, ["untag", "greetings", "--episode", "aaa", "new"])
+    result = runner.invoke(cli, ["untag", "greetings", "--episode", "aaa", "-t", "new"])
     assert result.exit_code == 0
     assert result.output == "Untagged as new: greetings -> [0023] hello.\n"
 
 
 def test_untag_episodes_all_episodes_bulk_mode(runner):
-    result = runner.invoke(cli, ["untag-episodes", "foo", "--force", "--bulk"])
+    result = runner.invoke(cli, ["untag-episodes", "-t", "foo", "--force", "--bulk"])
     assert result.exit_code == 0
     assert "Untagged as foo: farewell" in result.output
     assert "Untagged as foo: greetings" in result.output
@@ -364,7 +364,7 @@ def test_untag_episodes_all_episodes_bulk_mode(runner):
 
 def test_untag_episodes_for_single_podcast(runner):
     result = runner.invoke(
-        cli, ["untag-episodes", "foo", "--force", "--bulk", "-p", "greetings"]
+        cli, ["untag-episodes", "-t", "foo", "--force", "--bulk", "-p", "greetings"]
     )
     assert result.exit_code == 0
     assert "Untagged as foo: farewell" not in result.output
@@ -373,7 +373,7 @@ def test_untag_episodes_for_single_podcast(runner):
 
 def test_untag_episodes_interactive_mode(runner):
     result = runner.invoke(
-        cli, ["untag-episodes", "foo", "--interactive"], input="n\ny\nn\n"
+        cli, ["untag-episodes", "-t", "foo", "--interactive"], input="n\ny\nn\n"
     )
     assert result.exit_code == 0
     assert "Untagged as foo: farewell" not in result.output

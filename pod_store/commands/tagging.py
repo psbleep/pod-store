@@ -140,10 +140,10 @@ class Untagger(BaseTagger):
 
 def get_tagger_from_command_arguments(
     store: Store,
-    tag: str,
+    tags: List[str],
     tag_episodes: bool = False,
-    is_untagger: bool = False,
     podcast_title: Optional[str] = None,
+    is_untagger: bool = False,
     filters: Optional[dict] = None,
     **tagger_kwargs,
 ) -> Tagger:
@@ -153,12 +153,19 @@ def get_tagger_from_command_arguments(
     Builds a filter for the tagger to use.
     """
     filters = filters or {}
-    tags = [tag]
+
+    if is_untagger:
+        filter_tagged = tags
+        filter_untagged = []
+    else:
+        filter_tagged = []
+        filter_untagged = tags
+
     filter = get_filter_from_command_arguments(
         store=store,
-        filter_untagged_items=not is_untagger,
-        tags=tags,
-        filter_episodes=tag_episodes,
+        tagged=filter_tagged,
+        untagged=filter_untagged,
+        filter_for_episodes=tag_episodes,
         podcast_title=podcast_title,
         **filters,
     )
