@@ -678,7 +678,7 @@ def tag(
     tag_episodes = bool(not podcast or episode) and bool(episodes or episode)
     store = ctx.obj
     if episode is not None:
-        filters = {"episode_number": int(episode)}
+        filters = {"episode_number": episode}
     else:
         filters = {}
 
