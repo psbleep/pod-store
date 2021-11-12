@@ -39,6 +39,11 @@ def test_episode_filter_for_podcast(store):
     assert _get_episode_ids(filter.items) == ["aaa", "zzz"]
 
 
+def test_episode_filter_for_podcasts_with_extra_podcast_filters(store):
+    filter = EpisodeFilter(store=store, podcast_filters={"hello": True})
+    assert _get_episode_ids(filter.items) == ["aaa", "zzz"]
+
+
 def test_episode_filter_raises_exception_if_no_episodes_found(store):
     filter = EpisodeFilter(store=store, tags=["whoooo"])
     with pytest.raises(NoEpisodesFoundError):
