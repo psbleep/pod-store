@@ -653,7 +653,7 @@ def tag(
     tag: List[str],
     untag: bool,
     podcast: Optional[str],
-    episode: Optional[str],
+    episode: Optional[int],
     episodes: bool,
     interactive: bool,
     force: bool,
