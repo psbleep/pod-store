@@ -348,7 +348,7 @@ def test_tag_single_podcast(runner):
 
 def test_tag_single_episode(runner):
     result = runner.invoke(
-        cli, ["tag", "--bulk", "-p", "greetings", "-e", "aaa", "-t", "foobar"]
+        cli, ["tag", "--bulk", "-p", "greetings", "-e", "023", "-t", "foobar"]
     )
     assert result.exit_code == 0
     assert result.output == "Tagged as foobar: greetings -> [0023] hello.\n"
