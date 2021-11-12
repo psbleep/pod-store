@@ -175,7 +175,13 @@ def download(
     tagged: Optional[List[str]],
     untagged: Optional[List[str]],
 ):
-    """Download podcast episodes."""
+    """Download podcast episodes. Use the command options to download all new episodes,
+    only new episodes for a specific podcast, only episodes with specific tags, or only
+    a single episode.
+
+    By default, only new episodes will be downloaded, but when specifying a single
+    episode it will be downloaded whether or not it is marked as 'new'.
+    """
     store = ctx.obj
     tagged = list(tagged or [])
     untagged = list(untagged or [])
