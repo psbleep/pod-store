@@ -223,7 +223,7 @@ def test_ls_without_tag(runner):
 
 
 def test_ls_podcast_episodes(runner):
-    result = runner.invoke(cli, ["ls", "--episodes", "-p", "greetings", "--all"])
+    result = runner.invoke(cli, ["ls", "-p", "greetings", "--all"])
     assert result.exit_code == 0
     assert "0023" in result.output
     assert "0001" not in result.output
