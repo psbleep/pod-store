@@ -330,6 +330,15 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
     help="(podcast title): List only episodes for the specified podcast.",
 )
 @click.option(
+    "-e",
+    "--episode",
+    type=int,
+    default=None,
+    help="(episode number): List a single podcast episode. "
+    "Note that you must specify a podcast this episode belongs to using the "
+    "`--podcast` option.",
+)
+@click.option(
     "--tagged",
     "-t",
     multiple=True,
@@ -354,6 +363,7 @@ def ls(
     new: bool,
     episodes: bool,
     podcast: Optional[str],
+    episode: Optional[int],
     tagged: Optional[List[str]],
     untagged: Optional[List[str]],
     verbose: bool,
@@ -367,13 +377,23 @@ def ls(
     tagged = list(tagged or [])
     untagged = list(untagged or [])
 
+    if episode is not None:
+        list_episodes = True
+        new_episodes = False
+        filters = {"episode_number": episode}
+    else:
+        list_episodes = episodes
+        new_episodes = new
+        filters = {}
+
     lister = get_lister_from_command_arguments(
         store=store,
-        new_episodes=new,
-        list_episodes=episodes,
+        new_episodes=new_episodes,
+        list_episodes=list_episodes,
         podcast_title=podcast,
         tagged=tagged,
         untagged=untagged,
+        **filters,
     )
     for msg in lister.list(verbose=verbose):
         click.echo(msg)

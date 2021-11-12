@@ -211,6 +211,13 @@ def test_ls_podcast_episodes(runner):
     assert "0001" not in result.output
 
 
+def test_ls_single_podcast_episode(runner):
+    result = runner.invoke(cli, ["ls", "-p", "greetings", "-e", "23"])
+    assert result.exit_code == 0
+    assert "0023" in result.output
+    assert "0011" not in result.output  # does not show other podcast episode data
+
+
 def test_mark_as_new_all_episodes_bulk_mode(runner):
     result = runner.invoke(cli, ["mark-as-new", "--force", "--bulk"])
     assert result.exit_code == 0
