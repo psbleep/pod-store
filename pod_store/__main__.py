@@ -141,6 +141,15 @@ def add(ctx: click.Context, title: str, feed: str):
     help="(podcast title): Download only episodes for the specified podcast.",
 )
 @click.option(
+    "-e",
+    "--episode",
+    type=int,
+    default=None,
+    help="(episode number): Download a single episode. "
+    "Note that you must specify the podcast this episode belongs to using the "
+    "`--podcast` option.",
+)
+@click.option(
     "--tagged",
     "-t",
     multiple=True,
@@ -162,6 +171,7 @@ def add(ctx: click.Context, title: str, feed: str):
 def download(
     ctx: click.Context,
     podcast: Optional[str],
+    episode: Optional[int],
     tagged: Optional[List[str]],
     untagged: Optional[List[str]],
 ):
@@ -170,13 +180,21 @@ def download(
     tagged = list(tagged or [])
     untagged = list(untagged or [])
 
+    if episode is not None:
+        new_episodes = False
+        filters = {"episode_number": episode}
+    else:
+        new_episodes = True
+        filters = {}
+
     filter = get_filter_from_command_arguments(
         store=store,
-        new_episodes=True,
+        new_episodes=new_episodes,
         filter_for_episodes=True,
         podcast_title=podcast,
         tagged=tagged,
         untagged=untagged,
+        **filters,
     )
 
     for ep in filter.items:
