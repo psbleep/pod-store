@@ -186,7 +186,7 @@ class Episode:
         file_type = os.path.splitext(self.url)[1][:4]
         return os.path.join(
             self.podcast.episode_downloads_path,
-            f"{self.episode_number}-{cleaned_title}{file_type}",
+            f"{self.padded_episode_number}-{cleaned_title}{file_type}",
         )
 
     @property
@@ -196,6 +196,14 @@ class Episode:
         Looks for the presence of a 'new' tag assigned to the episode.
         """
         return "new" in self.tags
+
+    @property
+    def padded_episode_number(self) -> str:
+        """Zero-padded episode number.
+
+        Provided for consistency in filenames and listing output.
+        """
+        return str(self.episode_number).rjust(4, "0")
 
     def download(self) -> None:
         """Download the audio file of the episode to the file system."""

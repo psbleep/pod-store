@@ -104,7 +104,7 @@ def podcast_episode_data(now, yesterday):
     return {
         "aaa": {
             "id": "aaa",
-            "episode_number": "0023",
+            "episode_number": 23,
             "title": "hello",
             "short_description": "hello world",
             "long_description": "hello world (longer description)",
@@ -116,7 +116,7 @@ def podcast_episode_data(now, yesterday):
         },
         "zzz": {
             "id": "zzz",
-            "episode_number": "0011",
+            "episode_number": 11,
             "title": "goodbye",
             "short_description": "goodbye world",
             "long_description": "goodbye world (longer description)",
@@ -134,7 +134,7 @@ def other_podcast_episode_data(now):
     return {
         "111": {
             "id": "111",
-            "episode_number": "0001",
+            "episode_number": 1,
             "title": "gone",
             "short_description": "all gone",
             "long_description": "all gone (longer description)",
@@ -146,7 +146,7 @@ def other_podcast_episode_data(now):
         },
         "222": {
             "id": "222",
-            "episode_number": "0002",
+            "episode_number": 2,
             "title": "not forgotten",
             "short_description": "never forgotten",
             "long_description": "never forgotten (longer description)",
@@ -219,7 +219,7 @@ def episode(now, podcast):
     return Episode(
         podcast=podcast,
         id="aaa",
-        episode_number="0023",
+        episode_number=23,
         title="hello",
         short_description="hello world",
         long_description="hello world (longer description)",

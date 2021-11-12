@@ -618,6 +618,7 @@ def set_inactive(ctx: click.Context, podcast: str):
 @click.option(
     "-e",
     "--episode",
+    type=int,
     default=None,
     help="(episode number): Tag a single podcast episode. "
     "Note that you must specify a podcast this episode belongs to using the "
@@ -676,8 +677,8 @@ def tag(
     """
     tag_episodes = bool(not podcast or episode) and bool(episodes or episode)
     store = ctx.obj
-    if episode:
-        filters = {"episode_number": episode.rjust(4, "0")}
+    if episode is not None:
+        filters = {"episode_number": int(episode)}
     else:
         filters = {}
 

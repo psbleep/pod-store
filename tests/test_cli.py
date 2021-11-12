@@ -352,7 +352,6 @@ def test_tag_single_episode(runner):
     )
     assert result.exit_code == 0
     assert result.output == "Tagged as foobar: greetings -> [0023] hello.\n"
-    assert False  # replace duplicate rjust logic for padding episode number
 
 
 def test_tag_with_untag_flag(runner):
