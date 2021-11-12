@@ -61,11 +61,12 @@ Get more detail with any `ls` command by adding the `--verbose` flag:
 
     pod ls --verbose --all
 
-List new episodes, list all episodes, list new episodes for a specific podcast:
+List new episodes, list all episodes, list new episodes for a specific podcast, list data for only a single podcast episode:
 
     pod ls --episodes
     pod ls --all --episodes
     pod ls -p podcast-name
+    pod ls -p podcast-name -e episode-number
 
 Refresh episode data for all podcasts from their RSS feeds, or just a specific podcast:
 
