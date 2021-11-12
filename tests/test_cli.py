@@ -57,6 +57,13 @@ def test_download_episodes_for_podcasts_with_tag(runner):
     assert OTHER_TEST_PODCAST_EPISODE_DOWNLOADS_PATH not in result.output
 
 
+def test_download_episodes_for_podcasts_without_tag(runner):
+    result = runner.invoke(cli, ["download", "-up", "hello"])
+    assert result.exit_code == 0
+    assert OTHER_TEST_PODCAST_EPISODE_DOWNLOADS_PATH in result.output
+    assert TEST_PODCAST_EPISODE_DOWNLOADS_PATH not in result.output
+
+
 def test_download_single_podcast_new_episodes(runner):
     result = runner.invoke(cli, ["download", "-p", "greetings"])
     assert result.exit_code == 0
