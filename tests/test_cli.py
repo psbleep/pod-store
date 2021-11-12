@@ -52,6 +52,17 @@ def test_download_single_podcast_new_episodes(runner):
     assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n\n"
 
 
+def test_download_single_episode(runner):
+    download_path = os.path.join(
+        TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0011-goodbye.mp3"
+    )
+    # Tests against an episode that is not tagged as 'new', to verify that it will
+    # still be downloaded if it is specifically chosen by the user.
+    result = runner.invoke(cli, ["download", "-p", "greetings", "-e", "11"])
+    assert result.exit_code == 0
+    assert result.output == f"Downloading: {download_path}.\n\n"
+
+
 def test_download_new_episodes_with_tag(runner):
     result = runner.invoke(cli, ["download", "-t", "bar"])
     assert result.exit_code == 0

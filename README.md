@@ -84,10 +84,12 @@ To reactivate a podcast and resume updating it from RSS feed data regularly:
 
     pod set-active podcast-name
 
-Download all new episodes, or new episodes for just a specific podcast:
+Download all new episodes, or new episodes for just a specific podcast, or episodes with certain tags, or just a single episode:
 
     pod download
     pod download -p podcast-name
+    pod download -t tag-name
+    pod download -p podcast-name -e episode-number
 
 By default podcast episodes will be downloaded to e.g. `/home/<username>/Podcasts/<podcast-name>/<001-episode-title>.mp3`. See the configuration section for how to adjust the download path.
 
@@ -127,7 +129,7 @@ Unencrypt a store that is set up as encrypted:
 Podcasts and episodes can be marked with tags. The `tag` command allows tagging a single podcast or episode:
 
     pod tag -p podcast-name -t tag-name
-    pod tag -p podcast-name -e episode-id -t tag-name
+    pod tag -p podcast-name -e episode-number -t tag-name
 
 You can also tag groups of podcasts, or episodes, or episodes for a particular podcast:
 
