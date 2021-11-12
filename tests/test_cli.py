@@ -212,10 +212,12 @@ def test_ls_podcast_episodes(runner):
 
 
 def test_ls_single_podcast_episode(runner):
-    result = runner.invoke(cli, ["ls", "-p", "greetings", "-e", "23"])
+    # Test against an episode not marked as 'new' to verify that the new/not-new flag
+    # is ignored in cases where the user is specifying a single episode.
+    result = runner.invoke(cli, ["ls", "-p", "greetings", "-e", "11"])
     assert result.exit_code == 0
-    assert "0023" in result.output
-    assert "0011" not in result.output  # does not show other podcast episode data
+    assert "0011" in result.output
+    assert "0023" not in result.output  # does not show other podcast episode data
 
 
 def test_mark_as_new_all_episodes_bulk_mode(runner):
