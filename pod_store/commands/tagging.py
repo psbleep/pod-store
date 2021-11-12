@@ -11,18 +11,32 @@ from .filtering import Filter, get_filter_from_command_arguments
 
 TAG_EPISODES_INTERACTIVE_MODE_HELP_MESSAGE_TEMPLATE = """{tagger.capitalized_performing_action} in interactive mode. Options are:
 
+    h = help (display this message)
     y = yes ({tagger.action} this episode as {tagger.tag_listing}
     n = no (do not {tagger.action} this episode as {tagger.tag_listing}
     b = bulk ({tagger.action} this and all following episodes as {tagger.tag_listing}
     q = quit (stop {tagger.performing_action} episodes and quit)
 """
 
+TAG_PODCASTS_INTERACTIVE_MODE_HELP_MESSAGE_TEMPLATE = """{tagger.capitalized_performing_action} in interactive mode. Options are:
+
+    h = help (display this message)
+    y = yes ({tagger.action} this podcast as {tagger.tag_listing}
+    n = no (do not {tagger.action} this podcast as {tagger.tag_listing}
+    b = bulk ({tagger.action} this and all following podcasts as {tagger.tag_listing}
+    q = quit (stop {tagger.performing_action} podcasts and quit)
+"""
 
 TAG_EPISODES_INTERACTIVE_MODE_PROMPT_MESSAGE_TEMPLATE = (
     "{item.podcast.title} -> [{item.episode_number}] {item.title}\n"
     "{item.short_description}\n\n"
     "{tagger.capitalized_action} as {tagger.tag_listing}?"
 )
+
+TAG_PODCASTS_INTERACTIVE_MODE_PROMPT_MESSAGE_TEMPLATE = (
+    "{tagger.capitalized_action} {item.title} as {tagger.tag_listing}?"
+)
+
 
 TAGGED_EPISODE_MESSAGE_TEMPLATE = (
     "{tagger.capitalized_performed_action} as {tagger.tag_listing}: "
@@ -32,6 +46,8 @@ TAGGED_EPISODE_MESSAGE_TEMPLATE = (
 TAGGED_PODCAST_MESSAGE_TEMPLATE = (
     "{tagger.capitalized_performed_action} as {tagger.tag_listing}: {item.title}."
 )
+
+interactive_mode_prompt_choices = click.Choice(["h", "y", "n", "b", "q"])
 
 
 class BaseTagger(ABC):
@@ -97,9 +113,13 @@ class BaseTagger(ABC):
         result = click.prompt(
             self._interactive_mode_prompt_message_template.format(
                 tagger=self, item=item
-            )
+            ),
+            type=interactive_mode_prompt_choices,
         )
-        if result == "y":
+        if result == "h":
+            click.echo(self._interactive_mode_help_message_template.format(tagger=self))
+            return self._handle_item_interactively(item)
+        elif result == "y":
             msg = self._tag_item(item)
         elif result == "q":
             raise click.Abort()
@@ -237,8 +257,12 @@ def _get_message_template(tag_episodes: bool) -> str:
 def _get_interactive_mode_help_message_template(tag_episodes: bool) -> str:
     if tag_episodes:
         return TAG_EPISODES_INTERACTIVE_MODE_HELP_MESSAGE_TEMPLATE
+    else:
+        return TAG_PODCASTS_INTERACTIVE_MODE_HELP_MESSAGE_TEMPLATE
 
 
 def _get_interactive_mode_prompt_message_template(tag_episodes: bool) -> str:
     if tag_episodes:
         return TAG_EPISODES_INTERACTIVE_MODE_PROMPT_MESSAGE_TEMPLATE
+    else:
+        return TAG_PODCASTS_INTERACTIVE_MODE_PROMPT_MESSAGE_TEMPLATE

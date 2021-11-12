@@ -2,7 +2,7 @@ import click
 import pytest
 
 from pod_store.commands.filtering import EpisodeFilter, PodcastFilter
-from pod_store.commands.tagging import Tagger, Untagger
+from pod_store.commands.tagging import Tagger, Untagger, interactive_mode_prompt_choices
 
 MESSAGE_TEMPLATE = (
     "{tagger.capitalized_performing_action} the following tag(s) for {item.title}: "
@@ -71,7 +71,9 @@ def test_tagger_interactive_mode_tags_items_when_prompted(mocker, store, tagger)
     ]
 
     # verify the prompt is called by checking the last call
-    mocked_click_prompt.assert_called_with("Choose greetings with tag(s) foo?")
+    mocked_click_prompt.assert_called_with(
+        "Choose greetings with tag(s) foo?", type=interactive_mode_prompt_choices
+    )
 
     assert "foo" in store.podcasts.get("farewell").tags
     assert "foo" in store.podcasts.get("greetings").tags
@@ -91,7 +93,9 @@ def test_tagger_interactive_mode_does_not_tag_items_when_not_prompted(
     ]
 
     # verify the prompt is called by checking the last call
-    mocked_click_prompt.assert_called_with("Choose greetings with tag(s) foo?")
+    mocked_click_prompt.assert_called_with(
+        "Choose greetings with tag(s) foo?", type=interactive_mode_prompt_choices
+    )
 
     assert "foo" not in store.podcasts.get("farewell").tags
     assert "foo" not in store.podcasts.get("greetings").tags
@@ -108,7 +112,9 @@ def test_tagger_interactive_mode_quits_when_prompted(mocker, store, tagger):
         ]
 
     # verify the prompt is called by checking the last call
-    mocked_click_prompt.assert_called_with("Choose farewell with tag(s) foo?")
+    mocked_click_prompt.assert_called_with(
+        "Choose farewell with tag(s) foo?", type=interactive_mode_prompt_choices
+    )
 
     assert "foo" not in store.podcasts.get("farewell").tags
     assert "foo" not in store.podcasts.get("greetings").tags
@@ -129,7 +135,22 @@ def test_tagger_interactive_mode_switches_to_bulk_mode_when_prompted(
     ]
 
     # verify the prompt is called by checking the last call
-    mocked_click_prompt.assert_called_with("Choose farewell with tag(s) foo?")
+    mocked_click_prompt.assert_called_with(
+        "Choose farewell with tag(s) foo?", type=interactive_mode_prompt_choices
+    )
 
     assert "foo" in store.podcasts.get("farewell").tags
     assert "foo" in store.podcasts.get("greetings").tags
+
+
+def test_tagger_interactive_mode_displays_help_message_when_prompted(
+    mocker, store, tagger
+):
+    mocker.patch("pod_store.commands.tagging.click.prompt", side_effect=["h", "q"])
+    mocked_click_echo = mocker.patch("pod_store.commands.tagging.click.echo")
+
+    # catch the exception raised when quitting after first help message
+    with pytest.raises(click.Abort):
+        list(tagger.tag_items(interactive_mode=True))
+
+    mocked_click_echo.assert_called_with("Choose the podcasts.")

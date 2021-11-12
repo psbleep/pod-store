@@ -299,20 +299,6 @@ def test_set_inactive(runner):
     assert result.exit_code == 0
 
 
-def test_tag_single_podcast(runner):
-    result = runner.invoke(cli, ["tag", "--bulk", "-p", "greetings", "-t", "foobar"])
-    assert result.exit_code == 0
-    assert result.output == "Tagged as foobar: greetings.\n"
-
-
-def test_tag_single_episode(runner):
-    result = runner.invoke(
-        cli, ["tag", "--bulk", "-p", "greetings", "-e", "aaa", "-t", "foobar"]
-    )
-    assert result.exit_code == 0
-    assert result.output == "Tagged as foobar: greetings -> [0023] hello.\n"
-
-
 def test_tag_all_episodes_bulk_mode(runner):
     result = runner.invoke(cli, ["tag", "-t", "foo", "--force", "--bulk"])
     assert result.exit_code == 0
@@ -334,6 +320,38 @@ def test_tag_episodes_interactive_mode(runner):
     assert result.exit_code == 0
     assert "Tagged as foo: farewell" not in result.output
     assert "Tagged as foo: greetings" in result.output
+
+
+def test_tag_all_podcasts_bulk_mode(runner):
+    result = runner.invoke(cli, ["tag", "-t", "zoo", "--podcasts", "--force", "--bulk"])
+    assert result.exit_code == 0
+    assert "Tagged as zoo: farewell" in result.output
+    assert "Tagged as zoo: other" in result.output
+    assert "Tagged as zoo: greetings" in result.output
+
+
+def test_tag_podcasts_interactive_mode(runner):
+    result = runner.invoke(
+        cli, ["tag", "-t", "zoo", "--podcasts", "--interactive"], input="n\ny\nn\n"
+    )
+    assert result.exit_code == 0
+    assert "Tagged as zoo: farewell" not in result.output
+    assert "Tagged as zoo: other" in result.output
+    assert "Tagged as zoo: greetings" not in result.output
+
+
+def test_tag_single_podcast(runner):
+    result = runner.invoke(cli, ["tag", "--bulk", "-p", "greetings", "-t", "foobar"])
+    assert result.exit_code == 0
+    assert result.output == "Tagged as foobar: greetings.\n"
+
+
+def test_tag_single_episode(runner):
+    result = runner.invoke(
+        cli, ["tag", "--bulk", "-p", "greetings", "-e", "aaa", "-t", "foobar"]
+    )
+    assert result.exit_code == 0
+    assert result.output == "Tagged as foobar: greetings -> [0023] hello.\n"
 
 
 def test_tag_with_untag_flag(runner):
