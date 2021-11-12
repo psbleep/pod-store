@@ -177,12 +177,13 @@ def get_filter_from_command_arguments(
     podcast_title: Optional[str] = None,
     tagged: Optional[List] = None,
     untagged: Optional[List] = None,
-    podcast_filters: Optional[dict] = None,
+    podcasts_tagged: Optional[list] = None,
     **filters,
 ) -> Union[EpisodeFilter, PodcastFilter]:
     """Helper method for building a filter based on common CLI command arguments."""
     tagged = tagged or []
     untagged = untagged or []
+    podcasts_tagged = podcasts_tagged or []
     if filter_for_episodes is None:
         filter_for_episodes = filter_for_episodes or podcast_title
 
@@ -191,6 +192,8 @@ def get_filter_from_command_arguments(
         **{u: False for u in untagged},
         **filters,
     }
+
+    podcast_filters = {**{pt: True for pt in podcasts_tagged}}
 
     if filter_for_episodes:
         filter_cls = EpisodeFilter

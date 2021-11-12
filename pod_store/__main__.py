@@ -161,6 +161,13 @@ def add(ctx: click.Context, title: str, feed: str):
     multiple=True,
     help="Download episodes that have NOT been tagged. Multiple tags can be provided.",
 )
+@click.option(
+    "--podcast-tagged",
+    "-pt",
+    multiple=True,
+    help="Download episodes for podcasts that have been tagged. "
+    "Multiple tags can be provided.",
+)
 @catch_pod_store_errors
 @require_store
 @git_add_and_commit(
@@ -174,6 +181,7 @@ def download(
     episode: Optional[int],
     tagged: Optional[List[str]],
     untagged: Optional[List[str]],
+    podcast_tagged: Optional[List[str]],
 ):
     """Download podcast episodes. Use the command options to download all new episodes,
     only new episodes for a specific podcast, only episodes with specific tags, or only
@@ -200,6 +208,7 @@ def download(
         podcast_title=podcast,
         tagged=tagged,
         untagged=untagged,
+        podcasts_tagged=podcast_tagged,
         **filters,
     )
 
