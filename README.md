@@ -158,7 +158,7 @@ Any of the tagging commands can be used to remove tags (rather than apply them) 
 `pod-store` allows the user to override some default behavior by setting env vars:
 
     POD_STORE_PATH  # defaults to /home/<username>/.pod-store
-    POD_STORE_FILE_NAME  # defaults to "pod-store.json"
+    POD_STORE_FILE_NAME  # defaults to "pod-store.json" if not encrypted, "pod-store.gpg" if encrypted
     POD_STORE_PODCAST_DOWNLOAD_PATH  # defaults to /home/<username>/Podcasts
     POD_STORE_PODCAST_REFRESH_TIMEOUT  # seconds to wait before timing out a podcast RSS refresh. defaults to 15 seconds
     POD_STORE_EPISODE_DOWNLOAD_TIMEOUT  # seconds to wait before timing out an episode download. defaults to the value of `POD_STORE_PODCAST_REFRESH_TIMEOUT`

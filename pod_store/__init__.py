@@ -32,9 +32,6 @@ DO_NOT_SET_EPISODE_METADATA = os.getenv("DO_NOT_SET_POD_STORE_EPISODE_METADATA",
 
 STORE_PATH = os.path.abspath(os.getenv("POD_STORE_PATH", DEFAULT_STORE_PATH))
 
-STORE_FILE_NAME = os.getenv("POD_STORE_FILE_NAME", "pod-store.json")
-STORE_FILE_PATH = os.path.join(STORE_PATH, STORE_FILE_NAME)
-
 GPG_ID_FILE_PATH = os.getenv(
     "POD_STORE_GPG_ID_FILE", os.path.join(STORE_PATH, ".gpg-id")
 )
@@ -43,6 +40,15 @@ try:
         GPG_ID = f.read()
 except FileNotFoundError:
     GPG_ID = None
+
+if GPG_ID:
+    DEFAULT_STORE_FILE_NAME = "pod-store.gpg"
+else:
+    DEFAULT_STORE_FILE_NAME = "pod-store.json"
+
+STORE_FILE_NAME = os.getenv("POD_STORE_FILE_NAME", DEFAULT_STORE_FILE_NAME)
+STORE_FILE_PATH = os.path.join(STORE_PATH, STORE_FILE_NAME)
+
 
 STORE_GIT_REPO = os.path.join(STORE_PATH, ".git")
 
