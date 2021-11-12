@@ -104,7 +104,7 @@ class EpisodeLister(Lister):
             downloaded_at_msg = ""
 
         return VERBOSE_EPISODE_LISTING_TEMPLATE.format(
-            episode_number=e.episode_number,
+            episode_number=e.padded_episode_number,
             title=e.title,
             id=e.id,
             tags_msg=tags_msg,
@@ -128,7 +128,7 @@ class EpisodeLister(Lister):
         # The template kwargs have to be gathered for use in the description message
         # helper anyway. To avoid doing so twice I build a dict for them here.
         template_kwargs = {
-            "episode_number": episode.episode_number,
+            "episode_number": episode.padded_episode_number,
             "title": episode.title,
             "downloaded_msg": downloaded_msg,
             "tags_msg": tags_msg,

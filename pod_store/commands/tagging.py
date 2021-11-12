@@ -40,7 +40,7 @@ TAG_PODCASTS_INTERACTIVE_MODE_PROMPT_MESSAGE_TEMPLATE = (
 
 TAGGED_EPISODE_MESSAGE_TEMPLATE = (
     "{tagger.capitalized_performed_action} as {tagger.tag_listing}: "
-    "{item.podcast.title} -> [{item.episode_number}] {item.title}."
+    "{item.podcast.title} -> [{item.padded_episode_number}] {item.title}."
 )
 
 TAGGED_PODCAST_MESSAGE_TEMPLATE = (

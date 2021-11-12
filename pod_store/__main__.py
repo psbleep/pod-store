@@ -618,10 +618,11 @@ def set_inactive(ctx: click.Context, podcast: str):
 @click.option(
     "-e",
     "--episode",
+    type=int,
     default=None,
-    help="(episode ID): Tag a single episode. "
-    "Note that this is the ID from the `ls --episodes --verbose` listing, not the "
-    "episode number.",
+    help="(episode number): Tag a single podcast episode. "
+    "Note that you must specify a podcast this episode belongs to using the "
+    "`--podcast` option.",
 )
 @click.option(
     "--episodes/--podcasts", default=True, help="Tag episodes or podcasts in groups."
@@ -672,12 +673,12 @@ def tag(
 
     It is possible to tag individual items instead using the `--podcast` and `--episode`
     options. Specify a podcast by title to tag the podcast. To tag an episode, specify
-    the podcast by title and then specify the episode by ID.
+    the podcast by title and then specify the episode by episode number.
     """
     tag_episodes = bool(not podcast or episode) and bool(episodes or episode)
     store = ctx.obj
-    if episode:
-        filters = {"id": episode}
+    if episode is not None:
+        filters = {"episode_number": episode}
     else:
         filters = {}
 

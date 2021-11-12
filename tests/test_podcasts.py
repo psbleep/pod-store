@@ -61,7 +61,7 @@ def test_podcast_refresh(mocked_feedparser_parse, now, podcast):
                     },
                     {
                         "id": "https://www.foo.bar/aaa",
-                        "itunes_episode": "0023",
+                        "itunes_episode": "23",
                         "title": "hello-updated",
                         "summary": "hello world",
                         "links": [
@@ -83,13 +83,15 @@ def test_podcast_refresh(mocked_feedparser_parse, now, podcast):
     assert podcast.updated_at == now
     assert podcast.episodes.ids == ["aaa", "ccc"]
 
-    assert podcast.episodes.get("aaa").title == "hello-updated"
+    old_episode = podcast.episodes.get("aaa")
+    assert old_episode.title == "hello-updated"
+    assert old_episode.episode_number == 23
 
     new_episode = podcast.episodes.get("ccc")
     assert new_episode.download_path == os.path.join(
         TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0002-no-number-provided.ogg"
     )
-    assert new_episode.episode_number == "0002"
+    assert new_episode.episode_number == 2
     assert new_episode.short_description == "this is a short description"
     assert new_episode.long_description == "this is a long description"
 

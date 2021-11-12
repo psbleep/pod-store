@@ -195,10 +195,9 @@ class Podcast:
 
             # If no episode number can be parsed from the RSS feed data, guess based
             # on position in the loop.
-            episode_number = episode_data.get("episode_number") or (
-                str(number_of_entries - entry_number)
+            episode_data["episode_number"] = episode_data.get("episode_number") or (
+                number_of_entries - entry_number
             )
-            episode_data["episode_number"] = self._pad_episode_number(episode_number)
 
             episode = self.episodes.get(episode_data["id"], allow_empty=True)
             if episode:
@@ -268,12 +267,15 @@ class Podcast:
         url = self._get_download_url(links)
         published_parsed = datetime(*published_parsed[:6])
 
+        if itunes_episode:
+            episode_number = int(itunes_episode)
+        else:
+            episode_number = None
+
         if subtitle:
             short_description = self._strip_html_and_non_ascii_characters(subtitle)
         else:
             short_description = long_description
-
-        episode_number = itunes_episode
 
         if updated_parsed:
             updated_parsed = datetime(*updated_parsed[:6])
@@ -286,8 +288,8 @@ class Podcast:
             "long_description": long_description,
             "url": url,
             "created_at": published_parsed,
-            "short_description": short_description,
             "episode_number": episode_number,
+            "short_description": short_description,
             "updated_at": updated_parsed,
         }
 
@@ -317,8 +319,3 @@ class Podcast:
                 return audio_link["href"]
             download_urls.append(audio_link["href"])
         return download_urls[0]
-
-    @staticmethod
-    def _pad_episode_number(episode_number: str) -> str:
-        """Create an episode number padded with up to 3 zeros."""
-        return episode_number.rjust(4, "0")

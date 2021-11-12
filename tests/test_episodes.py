@@ -38,7 +38,7 @@ def test_episode_download_path_is_correct_path_for_filetype_without_invalid_char
     episode = Episode(
         podcast=podcast,
         id="bbb",
-        episode_number="0981",
+        episode_number=981,
         title="foo/bar: the fin?al[ RE:^ckONing",
         short_description="foo",
         long_description="foo (longer description)",
@@ -114,7 +114,7 @@ def test_episode_untag(episode):
 def test_episode_to_json(now, episode):
     assert episode.to_json() == {
         "id": "aaa",
-        "episode_number": "0023",
+        "episode_number": 23,
         "title": "hello",
         "short_description": "hello world",
         "long_description": "hello world (longer description)",
