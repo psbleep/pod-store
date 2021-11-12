@@ -85,10 +85,12 @@ To reactivate a podcast and resume updating it from RSS feed data regularly:
 
     pod set-active podcast-name
 
-Download all new episodes, or new episodes for just a specific podcast, or episodes with certain tags, or just a single episode:
+Download all new episodes, or new episodes for just a specific podcast, or episodes for podcasts with a certain tags, or episodes for podcasts without certain tags, or episodes with certain tags, or just a single episode:
 
     pod download
     pod download -p podcast-name
+    pod download -pt tag-name
+    pod download -up tag-name
     pod download -t tag-name
     pod download -p podcast-name -e episode-number
 
