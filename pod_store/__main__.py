@@ -400,7 +400,7 @@ def ls(
         new_episodes = False
         filters = {"episode_number": episode}
     else:
-        list_episodes = episodes
+        list_episodes = bool(episodes or podcast)
         new_episodes = new
         filters = {}
 
