@@ -17,8 +17,12 @@ TEST_EPISODE_DOWNLOAD_PATH = os.path.join(
     TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0023-hello.mp3"
 )
 
-TEST_OTHER_EPISODE_DOWNLOAD_PATH = os.path.join(
-    TEST_PODCAST_DOWNLOADS_PATH, "farewell/0001-gone.mp3"
+OTHER_TEST_PODCAST_EPISODE_DOWNLOADS_PATH = os.path.join(
+    TEST_PODCAST_DOWNLOADS_PATH, "farewell"
+)
+
+OTHER_TEST_EPISODE_DOWNLOAD_PATH = os.path.join(
+    OTHER_TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0001-gone.mp3"
 )
 
 
@@ -41,9 +45,23 @@ def test_download_all_new_podcast_episodes(runner):
     result = runner.invoke(cli, ["download"])
     assert result.exit_code == 0
     assert result.output == (
-        f"Downloading: {TEST_OTHER_EPISODE_DOWNLOAD_PATH}.\n\n"
+        f"Downloading: {OTHER_TEST_EPISODE_DOWNLOAD_PATH}.\n\n"
         f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n\n"
     )
+
+
+def test_download_episodes_for_podcasts_with_tag(runner):
+    result = runner.invoke(cli, ["download", "-pt", "hello"])
+    assert result.exit_code == 0
+    assert TEST_PODCAST_EPISODE_DOWNLOADS_PATH in result.output
+    assert OTHER_TEST_PODCAST_EPISODE_DOWNLOADS_PATH not in result.output
+
+
+def test_download_episodes_for_podcasts_without_tag(runner):
+    result = runner.invoke(cli, ["download", "-up", "hello"])
+    assert result.exit_code == 0
+    assert OTHER_TEST_PODCAST_EPISODE_DOWNLOADS_PATH in result.output
+    assert TEST_PODCAST_EPISODE_DOWNLOADS_PATH not in result.output
 
 
 def test_download_single_podcast_new_episodes(runner):
@@ -63,13 +81,13 @@ def test_download_single_episode(runner):
     assert result.output == f"Downloading: {download_path}.\n\n"
 
 
-def test_download_new_episodes_with_tag(runner):
+def test_download_episodes_with_tag(runner):
     result = runner.invoke(cli, ["download", "-t", "bar"])
     assert result.exit_code == 0
-    assert result.output == f"Downloading: {TEST_OTHER_EPISODE_DOWNLOAD_PATH}.\n\n"
+    assert result.output == f"Downloading: {OTHER_TEST_EPISODE_DOWNLOAD_PATH}.\n\n"
 
 
-def test_download_new_episodes_without_tag(runner):
+def test_download_episodes_without_tag(runner):
     result = runner.invoke(cli, ["download", "-u", "bar"])
     assert result.exit_code == 0
     assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n\n"

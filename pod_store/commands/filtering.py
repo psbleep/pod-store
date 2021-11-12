@@ -31,11 +31,13 @@ class Filter(ABC):
         store: Store,
         new_episodes: bool = False,
         podcast_title: Optional[str] = None,
+        podcast_filters: Optional[dict] = None,
         **filters,
     ) -> None:
         self._store = store
         self._new_episodes = new_episodes
         self._podcast_title = podcast_title
+        self._extra_podcast_filters = podcast_filters or {}
         self._filters = filters
 
     @abstractproperty
@@ -66,7 +68,7 @@ class Filter(ABC):
             filters["has_new_episodes"] = True
         if self._podcast_title:
             filters["title"] = self._podcast_title
-        return filters
+        return {**filters, **self._extra_podcast_filters}
 
     def _passes_filters(self, obj: Union[Episode, Podcast], **filters) -> bool:
         """Checks whether a podcast/episode meets all the provided filter criteria."""
@@ -175,11 +177,15 @@ def get_filter_from_command_arguments(
     podcast_title: Optional[str] = None,
     tagged: Optional[List] = None,
     untagged: Optional[List] = None,
+    podcasts_tagged: Optional[list] = None,
+    podcasts_untagged: Optional[list] = None,
     **filters,
 ) -> Union[EpisodeFilter, PodcastFilter]:
     """Helper method for building a filter based on common CLI command arguments."""
     tagged = tagged or []
     untagged = untagged or []
+    podcasts_tagged = podcasts_tagged or []
+    podcasts_untagged = podcasts_untagged or []
     if filter_for_episodes is None:
         filter_for_episodes = filter_for_episodes or podcast_title
 
@@ -189,11 +195,20 @@ def get_filter_from_command_arguments(
         **filters,
     }
 
+    podcast_filters = {
+        **{pt: True for pt in podcasts_tagged},
+        **{up: False for up in podcasts_untagged},
+    }
+
     if filter_for_episodes:
         filter_cls = EpisodeFilter
     else:
         filter_cls = PodcastFilter
 
     return filter_cls(
-        store=store, new_episodes=new_episodes, podcast_title=podcast_title, **filters
+        store=store,
+        new_episodes=new_episodes,
+        podcast_title=podcast_title,
+        podcast_filters=podcast_filters,
+        **filters,
     )
