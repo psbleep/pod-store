@@ -39,7 +39,7 @@ def test_episode_download_path_is_correct_path_for_filetype_without_invalid_char
         podcast=podcast,
         id="bbb",
         episode_number=981,
-        title="foo/bar: the fin?al[ RE:^ckONing",
+        title="foo/bar: the fin?al[ RE:^'ckONing",
         short_description="foo",
         long_description="foo (longer description)",
         url="http://foo.bar/bbb.ogg?jd289ds89xchw",
@@ -48,7 +48,7 @@ def test_episode_download_path_is_correct_path_for_filetype_without_invalid_char
     )
 
     assert episode.download_path == os.path.join(
-        TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0981-foo-bar--the-fin-al--re--ckoning.ogg"
+        TEST_PODCAST_EPISODE_DOWNLOADS_PATH, "0981-foo-bar-the-fin-al-re-ckoning.ogg"
     )
 
 

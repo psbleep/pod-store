@@ -183,10 +183,11 @@ class Episode:
         """
         lowercase_title = self.title.lower()
         cleaned_title = re.sub(r"[^a-zA-Z0-9]", "-", lowercase_title)
+        stripped_title = re.sub(r"(-{2,})", "-", cleaned_title)
         file_type = os.path.splitext(self.url)[1][:4]
         return os.path.join(
             self.podcast.episode_downloads_path,
-            f"{self.padded_episode_number}-{cleaned_title}{file_type}",
+            f"{self.padded_episode_number}-{stripped_title}{file_type}",
         )
 
     @property
