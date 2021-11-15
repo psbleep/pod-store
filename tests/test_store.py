@@ -6,6 +6,7 @@ import pytest
 from pod_store import (
     DEFAULT_ENCRYPTED_STORE_FILE_NAME,
     DEFAULT_UNENCRYPTED_STORE_FILE_NAME,
+    get_store_file_path,
 )
 from pod_store.exc import StoreExistsError, StoreIsNotEncrypted
 from pod_store.store import Store
@@ -134,18 +135,57 @@ def test_store_encrypt_reads_existing_store_data_and_sets_up_encrypted_store_and
     )
 
 
-def test_unencrypt_reads_existing_store_data_and_writes_unencrypted_store_file(
+def test_unencrypt_writes_unencrypted_store_file_cleans_up_old_store_data(
     mocker, start_with_no_store, store_data
 ):
+    encrypted_store_file_path = get_store_file_path(gpg_id=True)
+
     Store.init(
         store_path=TEST_STORE_PATH,
-        store_file_name=DEFAULT_UNENCRYPTED_STORE_FILE_NAME,
+        store_file_name=DEFAULT_ENCRYPTED_STORE_FILE_NAME,
         setup_git=False,
         gpg_id="oof@rab.com",
     )
 
     file_handler = EncryptedStoreFileHandler(
-        store_file_path=TEST_STORE_FILE_PATH, gpg_id="oof@rab.com"
+        store_file_path=encrypted_store_file_path, gpg_id="oof@rab.com"
+    )
+    file_handler.read_data = mocker.Mock(return_value=store_data)
+
+    store = Store(
+        store_path=TEST_STORE_PATH,
+        file_handler=file_handler,
+    )
+    with open(encrypted_store_file_path, "w") as f:
+        f.write("")
+
+    store.unencrypt()
+
+    assert not os.path.exists(TEST_GPG_ID_FILE_PATH)
+    assert not os.path.exists(encrypted_store_file_path)
+
+    with open(TEST_STORE_FILE_PATH) as f:
+        assert json.load(f) == store_data
+
+
+def test_unencrypt_does_not_delete_new_store_file_if_has_same_name_as_old(
+    mocker, start_with_no_store, store_data
+):
+    custom_store_file_path = os.path.join(TEST_STORE_PATH, "custom.file")
+    mocker.patch("pod_store.get_store_file_path", return_value=custom_store_file_path)
+    mocker.patch(
+        "pod_store.store.get_store_file_path", return_value=custom_store_file_path
+    )
+
+    Store.init(
+        store_path=TEST_STORE_PATH,
+        store_file_name="custom.file",
+        setup_git=False,
+        gpg_id="oof@rab.com",
+    )
+
+    file_handler = EncryptedStoreFileHandler(
+        store_file_path=custom_store_file_path, gpg_id="oof@rab.com"
     )
     file_handler.read_data = mocker.Mock(return_value=store_data)
 
@@ -156,9 +196,7 @@ def test_unencrypt_reads_existing_store_data_and_writes_unencrypted_store_file(
 
     store.unencrypt()
 
-    assert not os.path.exists(TEST_GPG_ID_FILE_PATH)
-
-    with open(TEST_STORE_FILE_PATH) as f:
+    with open(custom_store_file_path) as f:
         assert json.load(f) == store_data
 
 
