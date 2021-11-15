@@ -44,27 +44,38 @@ def test_init_store_setup_git_initializes_git_repo_and_sets_gitignore(
 
 
 def test_init_store_setup_git_with_git_url_clones_remote_repo(
-    start_with_no_store, mocker
+    mocked_git_clone_with_store_file, start_with_no_store
 ):
-    mocked_run_shell_command = mocker.patch("pod_store.store.run_shell_command")
     Store.init(
         setup_git=True,
         git_url="https://git.foo.bar/pod-store.git",
         store_path=TEST_STORE_PATH,
         store_file_name=DEFAULT_UNENCRYPTED_STORE_FILE_NAME,
     )
-    mocked_run_shell_command.assert_called_with(
+    mocked_git_clone_with_store_file.assert_called_with(
         f"git clone https://git.foo.bar/pod-store.git {TEST_STORE_PATH}"
     )
+    assert os.path.exists(TEST_STORE_FILE_PATH)
+
+
+def test_init_store_setup_git_with_git_url_will_create_store_file_if_repo_is_empty(
+    mocked_git_clone_with_empty_repo, start_with_no_store
+):
+    Store.init(
+        setup_git=True,
+        git_url="https://git.foo.bar/pod-store.git",
+        store_path=TEST_STORE_PATH,
+        store_file_name=DEFAULT_UNENCRYPTED_STORE_FILE_NAME,
+    )
+    mocked_git_clone_with_empty_repo.assert_called_with(
+        f"git clone https://git.foo.bar/pod-store.git {TEST_STORE_PATH}"
+    )
+    assert os.path.exists(TEST_STORE_FILE_PATH)
 
 
 def test_init_store_setup_git_with_git_url_and_gpg_id_creates_gpg_id_file(
-    start_with_no_store, mocker
+    mocked_git_clone_with_empty_repo, start_with_no_store
 ):
-    mocked_run_shell_command = mocker.patch(
-        "pod_store.store.run_shell_command",
-        side_effect=lambda _: os.makedirs(TEST_STORE_PATH),
-    )
     Store.init(
         setup_git=True,
         git_url="https://git.foo.bar/pod-store.git",
@@ -72,7 +83,7 @@ def test_init_store_setup_git_with_git_url_and_gpg_id_creates_gpg_id_file(
         store_file_name=DEFAULT_ENCRYPTED_STORE_FILE_NAME,
         gpg_id="foo@bar.com",
     )
-    mocked_run_shell_command.assert_called_with(
+    mocked_git_clone_with_empty_repo.assert_called_with(
         f"git clone https://git.foo.bar/pod-store.git {TEST_STORE_PATH}",
     )
     with open(TEST_GPG_ID_FILE_PATH) as f:
