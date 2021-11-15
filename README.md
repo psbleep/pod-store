@@ -165,7 +165,8 @@ Any of the tagging commands can be used to remove tags (rather than apply them) 
     POD_STORE_PODCAST_REFRESH_TIMEOUT  # seconds to wait before timing out a podcast RSS refresh. defaults to 15 seconds
     POD_STORE_EPISODE_DOWNLOAD_TIMEOUT  # seconds to wait before timing out an episode download. defaults to the value of `POD_STORE_PODCAST_REFRESH_TIMEOUT`
     POD_STORE_GPG_ID_FILE  # defaults to <POD_STORE_PATH>/.gpg-id
-    POD_STORE_SECURE_GIT_MODE  # set this to remove identifying information from git commit messages
+    POD_STORE_SECURE_GIT_MODE  # set this to remove some identifying information from git commit messages
+    POD_STORE_EXTREME_SECURE_GIT_MODE  # set this to use hashes of the current timestamp as git commit messages to remove all identifying information
     DO_NOT_SET_POD_STORE_EPISODE_METADATA  # set this to prevent setting metadata on downloaded episodes
 
 The default GPG ID file is automatically included in the git repo's `.gitignore` file. If you want to track it for some reason you can remove the entry from the `.gitignore` file (or remove the `.gitignore` file entirely).

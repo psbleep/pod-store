@@ -1,12 +1,14 @@
 """Decorators used on the Click commands defined in `pod_store.__main__`."""
 
 import functools
+import hashlib
 import os
+import time
 from typing import Any, Callable, Optional
 
 import click
 
-from .. import SECURE_GIT_MODE, STORE_GIT_REPO
+from .. import EXTREME_SECURE_GIT_MODE, SECURE_GIT_MODE, STORE_GIT_REPO
 from ..exc import ShellCommandError, StoreDoesNotExistError
 from ..util import run_git_command
 from .commit_messages import default_commit_message_builder
@@ -100,7 +102,9 @@ def git_add_and_commit(
             if not os.path.exists(STORE_GIT_REPO):
                 return resp
 
-            if SECURE_GIT_MODE:
+            if EXTREME_SECURE_GIT_MODE:
+                commit_msg = hashlib.sha256(str(time.time()).encode()).hexdigest()
+            elif SECURE_GIT_MODE:
                 commit_msg = secure_git_mode_message
             else:
                 commit_msg = commit_message_builder(
