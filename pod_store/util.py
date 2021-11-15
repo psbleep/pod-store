@@ -50,7 +50,11 @@ def run_shell_command(cmd, cwd: Optional[str] = None) -> str:
     """
     try:
         proc = subprocess.run(cmd, cwd=cwd, capture_output=True, check=True, shell=True)
-        return proc.stdout.decode()
+        stdout = proc.stdout.decode()
+        if stdout:
+            return stdout
+        else:
+            return proc.stderr.decode()
     except subprocess.CalledProcessError as err:
         stderr = err.stderr.decode()
         raise ShellCommandError(f"{cmd}: {stderr}")
