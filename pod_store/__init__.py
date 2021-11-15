@@ -2,7 +2,6 @@
 import os
 from typing import Optional
 
-
 # The version is set automatically within the Github action for building a new
 # PyPI release: `pod_store./github/workflows/release.yml`
 #
