@@ -33,7 +33,15 @@ DEFAULT_TIMEOUT = 15
 DEFAULT_STORE_PATH = os.path.join(os.path.expanduser("~"), ".pod-store")
 
 
-def get_default_store_file_name(gpg_id: Optional[str]) -> str:
+def get_store_file_path(
+    store_file_name: Optional[str] = None,
+    gpg_id: Optional[str] = None,
+) -> str:
+    store_file_name = store_file_name or get_default_store_file_name(gpg_id)
+    return os.path.join(STORE_PATH, store_file_name)
+
+
+def get_default_store_file_name(gpg_id: Optional[str] = None) -> str:
     if gpg_id:
         return DEFAULT_ENCRYPTED_STORE_FILE_NAME
     else:
@@ -52,7 +60,7 @@ except FileNotFoundError:
     GPG_ID = None
 
 STORE_FILE_NAME = os.getenv("POD_STORE_FILE_NAME", get_default_store_file_name(GPG_ID))
-STORE_FILE_PATH = os.path.join(STORE_PATH, STORE_FILE_NAME)
+STORE_FILE_PATH = get_store_file_path(store_file_name=STORE_FILE_NAME, gpg_id=GPG_ID)
 STORE_GIT_REPO = os.path.join(STORE_PATH, ".git")
 
 

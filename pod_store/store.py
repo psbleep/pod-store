@@ -8,7 +8,7 @@ Reading/writing to the store file is delegated to the classes in the
 import os
 from typing import List, Optional
 
-from . import GPG_ID_FILE_PATH, PODCAST_DOWNLOADS_PATH
+from . import GPG_ID_FILE_PATH, PODCAST_DOWNLOADS_PATH, get_store_file_path
 from .exc import (
     PodcastDoesNotExistError,
     PodcastExistsError,
@@ -171,14 +171,17 @@ class Store:
 
     def encrypt(self, gpg_id: str) -> None:
         """Encrypt an existing store that is currently stored in plaintext."""
-        store_file_path = self._file_handler.store_file_path
+        existing_store_file_path = self._file_handler.store_file_path
         store_data = self._file_handler.read_data()
+        encrypted_store_file_path = get_store_file_path(gpg_id=gpg_id)
         self._setup_encrypted_store(
             gpg_id=gpg_id,
-            store_file_path=store_file_path,
+            store_file_path=encrypted_store_file_path,
             store_data=store_data,
             overwrite_existing=True,
         )
+        if encrypted_store_file_path != existing_store_file_path:
+            os.remove(existing_store_file_path)
 
     def unencrypt(self) -> None:
         """Unencrypt an existing store that is currently stored as encrypted data.
@@ -188,16 +191,16 @@ class Store:
         """
         if not os.path.exists(GPG_ID_FILE_PATH):
             raise StoreIsNotEncrypted(GPG_ID_FILE_PATH)
-        store_file_path = self._file_handler.store_file_path
+        existing_store_file_path = self._file_handler.store_file_path
         store_data = self._file_handler.read_data()
-        unencrypted_store_file_path = "{basename}.json".format(
-            basename=os.path.splitext(store_file_path)[0]
-        )
+        unencrypted_store_file_path = get_store_file_path(gpg_id=None)
         self._setup_unencrypted_store(
             store_file_path=unencrypted_store_file_path,
             store_data=store_data,
             overwrite_existing=True,
         )
+        if existing_store_file_path != unencrypted_store_file_path:
+            os.remove(existing_store_file_path)
 
     def save(self) -> None:
         """Save data to the store json file."""
