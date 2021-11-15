@@ -243,3 +243,23 @@ def tagger():
 @pytest.fixture
 def start_with_no_store():
     shutil.rmtree(TEST_STORE_PATH)
+
+
+@pytest.fixture
+def mocked_git_clone_with_empty_repo(mocker):
+    return mocker.patch(
+        "pod_store.store.run_shell_command",
+        side_effect=lambda _: os.makedirs(TEST_STORE_PATH),
+    )
+
+
+@pytest.fixture
+def mocked_git_clone_with_store_file(mocker):
+    def _create_store_file(*args, **kwargs):
+        os.makedirs(TEST_STORE_PATH)
+        with open(TEST_STORE_FILE_PATH, "w") as f:
+            f.write("")
+
+    return mocker.patch(
+        "pod_store.store.run_shell_command", side_effect=_create_store_file
+    )

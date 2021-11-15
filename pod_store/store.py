@@ -142,25 +142,28 @@ class Store:
         Optionally set the GPG ID for store encryption and establish the store file
         as an encrypted file.
         """
-        if git_url:
-            return cls._setup_existing_repo(git_url, store_path, gpg_id=gpg_id)
+        store_file_path = os.path.join(store_path, store_file_name)
 
-        try:
-            os.makedirs(store_path)
-        except FileExistsError:
-            raise StoreExistsError(store_path)
         os.makedirs(PODCAST_DOWNLOADS_PATH, exist_ok=True)
 
-        if setup_git:
-            run_git_command("init")
-            with open(os.path.join(store_path, ".gitignore"), "w") as f:
-                f.write(".gpg-id")
+        if git_url:
+            cls._setup_existing_repo(git_url, store_path, gpg_id=gpg_id)
+        else:
+            try:
+                os.makedirs(store_path)
+            except FileExistsError:
+                raise StoreExistsError(store_path)
 
-        store_file_path = os.path.join(store_path, store_file_name)
+            if setup_git:
+                run_git_command("init")
+
+        with open(os.path.join(store_path, ".gitignore"), "w") as f:
+            f.write(".gpg-id")
+
         if gpg_id:
             cls._setup_encrypted_store(gpg_id=gpg_id, store_file_path=store_file_path)
         else:
-            UnencryptedStoreFileHandler.create_store_file(store_file_path)
+            cls._setup_unencrypted_store(store_file_path)
 
     def __repr__(self) -> str:
         return f"<Store({self._store_path!r})>"
@@ -170,7 +173,10 @@ class Store:
         store_file_path = self._file_handler.store_file_path
         store_data = self._file_handler.read_data()
         self._setup_encrypted_store(
-            gpg_id=gpg_id, store_file_path=store_file_path, store_data=store_data
+            gpg_id=gpg_id,
+            store_file_path=store_file_path,
+            store_data=store_data,
+            overwrite_existing=True,
         )
 
     def unencrypt(self) -> None:
@@ -183,10 +189,14 @@ class Store:
             raise StoreIsNotEncrypted(GPG_ID_FILE_PATH)
         store_file_path = self._file_handler.store_file_path
         store_data = self._file_handler.read_data()
-        UnencryptedStoreFileHandler.create_store_file(
-            store_file_path=store_file_path, store_data=store_data
+        unencrypted_store_file_path = "{basename}.json".format(
+            basename=os.path.splitext(store_file_path)[0]
         )
-        os.remove(GPG_ID_FILE_PATH)
+        self._setup_unencrypted_store(
+            store_file_path=unencrypted_store_file_path,
+            store_data=store_data,
+            overwrite_existing=True,
+        )
 
     def save(self) -> None:
         """Save data to the store json file."""
@@ -204,7 +214,10 @@ class Store:
 
     @staticmethod
     def _setup_encrypted_store(
-        gpg_id: str, store_file_path: str, store_data: dict = None
+        gpg_id: str,
+        store_file_path: str,
+        store_data: dict = None,
+        overwrite_existing: bool = False,
     ) -> None:
         """Set up the store as a GPG encrypted store.
 
@@ -215,6 +228,22 @@ class Store:
 
         with open(os.path.join(GPG_ID_FILE_PATH), "w") as f:
             f.write(gpg_id)
-        EncryptedStoreFileHandler.create_store_file(
-            gpg_id=gpg_id, store_file_path=store_file_path, store_data=store_data
-        )
+
+        if not os.path.exists(store_file_path) or overwrite_existing:
+            EncryptedStoreFileHandler.create_store_file(
+                gpg_id=gpg_id, store_file_path=store_file_path, store_data=store_data
+            )
+
+    @staticmethod
+    def _setup_unencrypted_store(
+        store_file_path: str, store_data: dict = None, overwrite_existing: bool = False
+    ) -> None:
+        store_data = store_data or {}
+
+        if not os.path.exists(store_file_path) or overwrite_existing:
+            UnencryptedStoreFileHandler.create_store_file(
+                store_file_path, store_data=store_data
+            )
+
+        if os.path.exists(GPG_ID_FILE_PATH):
+            os.remove(GPG_ID_FILE_PATH)

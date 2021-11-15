@@ -143,7 +143,14 @@ def test_init_with_git(start_with_no_store, runner):
     )
 
 
-def test_init_with_git_url(start_with_no_store, runner):
+def test_init_with_git_url(
+    mocked_git_clone_with_store_file, start_with_no_store, runner
+):
+    def _create_store_file(*args, **kwargs):
+        os.makedirs(TEST_STORE_PATH)
+        with open(TEST_STORE_FILE_PATH, "w") as f:
+            f.write("")
+
     result = runner.invoke(cli, ["init", "-u", "https://git.foo.bar/pod-store.git"])
     assert result.exit_code == 0
     assert "take a minute" in result.output
