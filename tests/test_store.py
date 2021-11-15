@@ -3,6 +3,10 @@ import os
 
 import pytest
 
+from pod_store import (
+    DEFAULT_ENCRYPTED_STORE_FILE_NAME,
+    DEFAULT_UNENCRYPTED_STORE_FILE_NAME,
+)
 from pod_store.exc import StoreExistsError, StoreIsNotEncrypted
 from pod_store.store import Store
 from pod_store.store_file_handlers import EncryptedStoreFileHandler
@@ -21,18 +25,9 @@ def test_init_store_creates_store_directory_and_store_file_and_downloads_path(
     Store.init(
         setup_git=False,
         store_path=TEST_STORE_PATH,
-        store_file_path=TEST_STORE_FILE_PATH,
+        store_file_name=DEFAULT_UNENCRYPTED_STORE_FILE_NAME,
     )
     assert os.path.exists(TEST_STORE_FILE_PATH)
-
-
-def test_init_store_already_exists():
-    with pytest.raises(StoreExistsError):
-        Store.init(
-            setup_git=False,
-            store_path=TEST_STORE_PATH,
-            store_file_path=TEST_STORE_FILE_PATH,
-        )
 
 
 def test_init_store_setup_git_initializes_git_repo_and_sets_gitignore(
@@ -41,7 +36,7 @@ def test_init_store_setup_git_initializes_git_repo_and_sets_gitignore(
     Store.init(
         setup_git=True,
         store_path=TEST_STORE_PATH,
-        store_file_path=TEST_STORE_FILE_PATH,
+        store_file_name=DEFAULT_UNENCRYPTED_STORE_FILE_NAME,
     )
     with open(os.path.join(TEST_STORE_PATH, ".gitignore")) as f:
         assert f.read() == ".gpg-id"
@@ -56,7 +51,7 @@ def test_init_store_setup_git_with_git_url_clones_remote_repo(
         setup_git=True,
         git_url="https://git.foo.bar/pod-store.git",
         store_path=TEST_STORE_PATH,
-        store_file_path=TEST_STORE_FILE_PATH,
+        store_file_name=DEFAULT_UNENCRYPTED_STORE_FILE_NAME,
     )
     mocked_run_shell_command.assert_called_with(
         f"git clone https://git.foo.bar/pod-store.git {TEST_STORE_PATH}"
@@ -74,7 +69,7 @@ def test_init_store_setup_git_with_git_url_and_gpg_id_creates_gpg_id_file(
         setup_git=True,
         git_url="https://git.foo.bar/pod-store.git",
         store_path=TEST_STORE_PATH,
-        store_file_path=TEST_STORE_FILE_PATH,
+        store_file_name=DEFAULT_ENCRYPTED_STORE_FILE_NAME,
         gpg_id="foo@bar.com",
     )
     mocked_run_shell_command.assert_called_with(
@@ -91,11 +86,20 @@ def test_init_store_with_gpg_id_sets_gpg_id_file_and_creates_encrypted_store_fil
         gpg_id="hello@world.com",
         setup_git=False,
         store_path=TEST_STORE_PATH,
-        store_file_path=TEST_STORE_FILE_PATH,
+        store_file_name=DEFAULT_ENCRYPTED_STORE_FILE_NAME,
     )
 
     with open(os.path.join(TEST_STORE_PATH, ".gpg-id")) as f:
         assert f.read() == "hello@world.com"
+
+
+def test_init_store_already_exists():
+    with pytest.raises(StoreExistsError):
+        Store.init(
+            setup_git=False,
+            store_path=TEST_STORE_PATH,
+            store_file_name=DEFAULT_UNENCRYPTED_STORE_FILE_NAME,
+        )
 
 
 def test_store_encrypt_reads_existing_store_data_and_sets_up_encrypted_store_and_file(
@@ -124,7 +128,7 @@ def test_unencrypt_reads_existing_store_data_and_writes_unencrypted_store_file(
 ):
     Store.init(
         store_path=TEST_STORE_PATH,
-        store_file_path=TEST_STORE_FILE_PATH,
+        store_file_name=DEFAULT_UNENCRYPTED_STORE_FILE_NAME,
         setup_git=False,
         gpg_id="oof@rab.com",
     )

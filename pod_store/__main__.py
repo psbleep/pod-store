@@ -5,7 +5,13 @@ from typing import Any, List, Optional
 import click
 import requests
 
-from . import GPG_ID, PODCAST_DOWNLOADS_PATH, STORE_FILE_PATH, STORE_PATH
+from . import (
+    DEFAULT_UNENCRYPTED_STORE_FILE_NAME,
+    GPG_ID,
+    PODCAST_DOWNLOADS_PATH,
+    STORE_FILE_PATH,
+    STORE_PATH,
+)
 from .commands.commit_messages import (
     download_commit_message_builder,
     refresh_commit_message_builder,
@@ -308,7 +314,7 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
 
     Store.init(
         store_path=STORE_PATH,
-        store_file_path=STORE_FILE_PATH,
+        store_file_name=DEFAULT_UNENCRYPTED_STORE_FILE_NAME,
         setup_git=git,
         git_url=git_url,
         gpg_id=gpg_id,
