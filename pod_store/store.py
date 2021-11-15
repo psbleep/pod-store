@@ -130,7 +130,7 @@ class Store:
     def init(
         cls,
         store_path: str,
-        store_file_path: str,
+        store_file_name: str,
         setup_git: bool,
         git_url: Optional[str] = None,
         gpg_id: Optional[str] = None,
@@ -156,6 +156,7 @@ class Store:
             with open(os.path.join(store_path, ".gitignore"), "w") as f:
                 f.write(".gpg-id")
 
+        store_file_path = os.path.join(store_path, store_file_name)
         if gpg_id:
             cls._setup_encrypted_store(gpg_id=gpg_id, store_file_path=store_file_path)
         else:

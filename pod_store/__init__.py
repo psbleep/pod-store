@@ -1,5 +1,6 @@
 """Encrypted CLI podcast tracker that syncs across devices. Inspired by `pass`."""
 import os
+from typing import Optional
 
 # The version is set automatically within the Github action for building a new
 # PyPI release: `pod_store./github/workflows/release.yml`
@@ -25,10 +26,19 @@ __license__ = "GPLv3+"
 __title__ = "pod-store"
 __version__ = version
 
-DEFAULT_STORE_PATH = os.path.join(os.path.expanduser("~"), ".pod-store")
+DEFAULT_ENCRYPTED_STORE_FILE_NAME = "pod-store.gpg"
+DEFAULT_UNENCRYPTED_STORE_FILE_NAME = "pod-store.json"
 DEFAULT_PODCAST_DOWNLOADS_PATH = os.path.join(os.path.expanduser("~"), "Podcasts")
+DEFAULT_TIMEOUT = 15
+DEFAULT_STORE_PATH = os.path.join(os.path.expanduser("~"), ".pod-store")
 
-DO_NOT_SET_EPISODE_METADATA = os.getenv("DO_NOT_SET_POD_STORE_EPISODE_METADATA", False)
+
+def get_default_store_file_name(gpg_id: Optional[str]) -> str:
+    if gpg_id:
+        return DEFAULT_ENCRYPTED_STORE_FILE_NAME
+    else:
+        return DEFAULT_UNENCRYPTED_STORE_FILE_NAME
+
 
 STORE_PATH = os.path.abspath(os.getenv("POD_STORE_PATH", DEFAULT_STORE_PATH))
 
@@ -41,24 +51,21 @@ try:
 except FileNotFoundError:
     GPG_ID = None
 
-if GPG_ID:
-    DEFAULT_STORE_FILE_NAME = "pod-store.gpg"
-else:
-    DEFAULT_STORE_FILE_NAME = "pod-store.json"
-
-STORE_FILE_NAME = os.getenv("POD_STORE_FILE_NAME", DEFAULT_STORE_FILE_NAME)
+STORE_FILE_NAME = os.getenv("POD_STORE_FILE_NAME", get_default_store_file_name(GPG_ID))
 STORE_FILE_PATH = os.path.join(STORE_PATH, STORE_FILE_NAME)
-
-
 STORE_GIT_REPO = os.path.join(STORE_PATH, ".git")
 
+
+DO_NOT_SET_EPISODE_METADATA = os.getenv("DO_NOT_SET_POD_STORE_EPISODE_METADATA", False)
+EPISODE_DOWNLOAD_TIMEOUT = float(
+    os.getenv("POD_STORE_EPISODE_DOWNLOAD_TIMEOUT", DEFAULT_TIMEOUT)
+)
 
 PODCAST_DOWNLOADS_PATH = os.path.abspath(
     os.getenv("POD_STORE_PODCAST_DOWNLOADS_PATH", DEFAULT_PODCAST_DOWNLOADS_PATH)
 )
-PODCAST_REFRESH_TIMEOUT = float(os.getenv("POD_STORE_PODCAST_REFRESH_TIMEOUT", 15))
-EPISODE_DOWNLOAD_TIMEOUT = float(
-    os.getenv("POD_STORE_EPISODE_DOWNLOAD_TIMEOUT", PODCAST_REFRESH_TIMEOUT)
+PODCAST_REFRESH_TIMEOUT = float(
+    os.getenv("POD_STORE_PODCAST_REFRESH_TIMEOUT", DEFAULT_TIMEOUT)
 )
 
 SECURE_GIT_MODE = os.getenv("POD_STORE_SECURE_GIT_MODE", False)
