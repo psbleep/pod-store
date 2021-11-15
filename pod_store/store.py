@@ -143,6 +143,7 @@ class Store:
         as an encrypted file.
         """
         store_file_path = os.path.join(store_path, store_file_name)
+        gitignore_file_path = os.path.join(store_path, ".gitignore")
 
         os.makedirs(PODCAST_DOWNLOADS_PATH, exist_ok=True)
 
@@ -157,8 +158,8 @@ class Store:
             if setup_git:
                 run_git_command("init")
 
-        with open(os.path.join(store_path, ".gitignore"), "w") as f:
-            f.write(".gpg-id")
+                with open(gitignore_file_path, "w") as f:
+                    f.write(".gpg-id")
 
         if gpg_id:
             cls._setup_encrypted_store(gpg_id=gpg_id, store_file_path=store_file_path)
