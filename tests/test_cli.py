@@ -4,12 +4,14 @@ import pytest
 import requests
 from click.testing import CliRunner
 
+from pod_store import DEFAULT_ENCRYPTED_STORE_FILE_NAME
 from pod_store.__main__ import cli
 
 from . import (
     TEST_GPG_ID_FILE_PATH,
     TEST_PODCAST_DOWNLOADS_PATH,
     TEST_PODCAST_EPISODE_DOWNLOADS_PATH,
+    TEST_STORE_FILE_PATH,
     TEST_STORE_PATH,
 )
 
@@ -127,7 +129,7 @@ def test_init(start_with_no_store, runner):
     result = runner.invoke(cli, ["init", "--no-git"])
     assert result.exit_code == 0
     assert result.output == (
-        f"Store created: {TEST_STORE_PATH}\n"
+        f"Store created: {TEST_STORE_FILE_PATH}\n"
         f"Podcast episodes will be downloaded to {TEST_PODCAST_DOWNLOADS_PATH}\n"
     )
 
@@ -151,8 +153,12 @@ def test_init_with_git_url(start_with_no_store, runner):
 
 
 def test_init_with_gpg_id(start_with_no_store, runner):
+    encrypted_store_file_path = os.path.join(
+        TEST_STORE_PATH, DEFAULT_ENCRYPTED_STORE_FILE_NAME
+    )
     result = runner.invoke(cli, ["init", "--no-git", "-g", "foo@bar.com"])
     assert result.exit_code == 0
+    assert encrypted_store_file_path in result.output
     assert result.output.endswith("GPG ID set for store encryption.\n")
 
 

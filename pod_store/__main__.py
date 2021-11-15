@@ -6,11 +6,11 @@ import click
 import requests
 
 from . import (
-    DEFAULT_UNENCRYPTED_STORE_FILE_NAME,
     GPG_ID,
     PODCAST_DOWNLOADS_PATH,
     STORE_FILE_PATH,
     STORE_PATH,
+    get_default_store_file_name,
 )
 from .commands.commit_messages import (
     download_commit_message_builder,
@@ -312,15 +312,20 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
     if git_url:
         click.echo("Please note, this could take a minute or two...")
 
+    store_file_name = os.getenv(
+        "POD_STORE_FILE_NAME", get_default_store_file_name(gpg_id)
+    )
+
     Store.init(
         store_path=STORE_PATH,
-        store_file_name=DEFAULT_UNENCRYPTED_STORE_FILE_NAME,
+        store_file_name=store_file_name,
         setup_git=git,
         git_url=git_url,
         gpg_id=gpg_id,
     )
 
-    click.echo(f"Store created: {STORE_PATH}")
+    store_file_path = os.path.join(STORE_PATH, store_file_name)
+    click.echo(f"Store created: {store_file_path}")
     click.echo(f"Podcast episodes will be downloaded to {PODCAST_DOWNLOADS_PATH}")
 
     if git:
