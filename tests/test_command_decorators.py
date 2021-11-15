@@ -112,6 +112,31 @@ def test_git_add_and_commit_chooses_secure_message_if_secure_git_mode_is_configu
     )
 
 
+def test_git_add_and_commit_chooses_random_message_if_extreme_git_mode_is_configured(
+    mocker,
+    mocked_run_git_command,
+):
+    fake_hash_obj = mocker.Mock()
+    fake_hash_obj.hexdigest = mocker.Mock(return_value="abc123def")
+
+    mocker.patch.object(decorators, "EXTREME_SECURE_GIT_MODE", True)
+    mocker.patch(
+        "pod_store.commands.decorators.hashlib.sha256", return_value=fake_hash_obj
+    )
+
+    @decorators.git_add_and_commit(
+        message="hello world", secure_git_mode_message="<redacted> world"
+    )
+    def secure(ctx):
+        return True
+
+    assert secure(ctx=None) is True
+
+    mocked_run_git_command.assert_has_calls(
+        [call("add ."), call("commit -m 'abc123def'")]
+    )
+
+
 def test_git_add_and_commit_does_nothing_if_git_not_set_up(
     start_with_no_store, mocked_run_git_command
 ):
