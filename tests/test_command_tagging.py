@@ -2,33 +2,101 @@ import click
 import pytest
 
 from pod_store.commands.filtering import EpisodeFilter, PodcastFilter
-from pod_store.commands.tagging import Tagger, Untagger, interactive_mode_prompt_choices
-
-MESSAGE_TEMPLATE = (
-    "{tagger.capitalized_performing_action} the following tag(s) for {item.title}: "
-    "{tagger.tag_listing}."
+from pod_store.commands.tagging import (
+    TAG_EPISODES_INTERACTIVE_MODE_HELP_MESSAGE_TEMPLATE,
+    TAG_EPISODES_INTERACTIVE_MODE_PROMPT_MESSAGE_TEMPLATE,
+    TAGGED_EPISODE_MESSAGE_TEMPLATE,
+    TAGGED_PODCAST_MESSAGE_TEMPLATE,
+    TAG_PODCASTS_INTERACTIVE_MODE_HELP_MESSAGE_TEMPLATE,
+    TAG_PODCASTS_INTERACTIVE_MODE_PROMPT_MESSAGE_TEMPLATE,
+    Tagger,
+    TaggerPresenter,
+    Untagger,
+    interactive_mode_prompt_choices,
 )
 
-HELP_MESSAGE_TEMPLATE = "{tagger.capitalized_action} the podcasts."
+MESSAGE_TEMPLATE = (
+    "{presenter.capitalized_performing_action} the following tag(s) for {item.title}: "
+    "{presenter.tag_listing}."
+)
+
+HELP_MESSAGE_TEMPLATE = "{presenter.capitalized_action} the podcasts."
 
 PROMPT_MESSAGE_TEMPLATE = (
-    "{tagger.capitalized_action} {item.title} with tag(s) {tagger.tag_listing}?"
+    "{presenter.capitalized_action} {item.title} with tag(s) {presenter.tag_listing}?"
 )
 
 
 @pytest.fixture
 def tagger(store):
     filter = PodcastFilter(store=store, new_episodes=True)
-    return Tagger(
-        filter=filter,
-        tags=["foo"],
+    presenter = TaggerPresenter(
+        tagged_message_template=MESSAGE_TEMPLATE,
+        tag_listing="foo",
         action="choose",
         performing_action="choosing",
         performed_action="chosen",
-        message_template=MESSAGE_TEMPLATE,
         interactive_mode_help_message_template=HELP_MESSAGE_TEMPLATE,
         interactive_mode_prompt_message_template=PROMPT_MESSAGE_TEMPLATE,
     )
+    return Tagger(tags=["foo"], filter=filter, presenter=presenter)
+
+
+def test_tagger_presenter_from_command_arguments_default_podcast_tagger():
+    presenter = TaggerPresenter.from_command_arguments(
+        tag_episodes=False, is_untagger=False, tags=["hello", "world"]
+    )
+    assert presenter.tagged_message_template == TAGGED_PODCAST_MESSAGE_TEMPLATE
+    assert presenter.tag_listing == "hello, world"
+    assert presenter.action == "tag"
+    assert presenter.performing_action == "tagging"
+    assert presenter.performed_action == "tagged"
+    assert (
+        presenter.interactive_mode_help_message_template
+        == TAG_PODCASTS_INTERACTIVE_MODE_HELP_MESSAGE_TEMPLATE
+    )
+    assert (
+        presenter.interactive_mode_prompt_message_template
+        == TAG_PODCASTS_INTERACTIVE_MODE_PROMPT_MESSAGE_TEMPLATE
+    )
+
+
+def test_tagger_presenter_from_command_arguments_default_episode_tagger():
+    presenter = TaggerPresenter.from_command_arguments(
+        tag_episodes=True, is_untagger=False, tags=["hello", "world"]
+    )
+    assert presenter.tagged_message_template == TAGGED_EPISODE_MESSAGE_TEMPLATE
+    assert (
+        presenter.interactive_mode_help_message_template
+        == TAG_EPISODES_INTERACTIVE_MODE_HELP_MESSAGE_TEMPLATE
+    )
+    assert (
+        presenter.interactive_mode_prompt_message_template
+        == TAG_EPISODES_INTERACTIVE_MODE_PROMPT_MESSAGE_TEMPLATE
+    )
+
+
+def test_tagger_presenter_from_command_arugments_default_untagger():
+    presenter = TaggerPresenter.from_command_arguments(
+        tag_episodes=False, is_untagger=True, tags=["hello", "world"]
+    )
+    assert presenter.action == "untag"
+    assert presenter.performing_action == "untagging"
+    assert presenter.performed_action == "untagged"
+
+
+def test_tagger_presenter_from_command_arguments_accepts_custom_actions():
+    presenter = TaggerPresenter.from_command_arguments(
+        tag_episodes=False,
+        is_untagger=False,
+        tags=["hello", "world"],
+        action="mark",
+        performing_action="marking",
+        performed_action="marked",
+    )
+    assert presenter.action == "mark"
+    assert presenter.performing_action == "marking"
+    assert presenter.performed_action == "marked"
 
 
 def test_tagger_applies_tags_to_filter_items_and_returns_formatted_messages(
@@ -45,14 +113,14 @@ def test_tagger_applies_tags_to_filter_items_and_returns_formatted_messages(
 
 def test_untagger_removes_tags_from_filter_items_and_returns_formatted_messages(store):
     filter = EpisodeFilter(store=store, foo=True)
-    tagger = Untagger(
-        filter=filter,
-        tags=["foo"],
+    presenter = TaggerPresenter(
+        tagged_message_template=MESSAGE_TEMPLATE,
+        tag_listing="foo",
         action="unchoose",
         performing_action="unchoosing",
         performed_action="unchosen",
-        message_template=MESSAGE_TEMPLATE,
     )
+    tagger = Untagger(tags=["foo"], filter=filter, presenter=presenter)
     assert list(tagger.tag_items()) == [
         "Unchoosing the following tag(s) for not forgotten: foo.",
         "Unchoosing the following tag(s) for goodbye: foo.",
