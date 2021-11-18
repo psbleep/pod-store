@@ -116,7 +116,7 @@ class TaggerPresenter:
         performed_action: Optional[str] = None,
         interactive_mode_help_message_template: Optional[str] = None,
         interactive_mode_prompt_message_template: Optional[str] = None,
-    ) -> dict:
+    ):
         """Converts the arguments passed into a command via the CLI into a tagger
         presenter, accepting specified custom arguments for most things but
         providing defaults where custom output is not needed.
@@ -191,6 +191,46 @@ class BaseTagger(ABC):
         self._tags = tags
         self._filter = filter
         self._presenter = presenter
+
+    @staticmethod
+    def from_command_arguments(
+        store: Store,
+        tags: List[str],
+        tag_episodes: bool = False,
+        podcast_title: Optional[str] = None,
+        is_untagger: bool = False,
+        filters: Optional[dict] = None,
+        **kwargs,
+    ):
+        filters = filters or {}
+
+        if is_untagger:
+            filter_tagged = tags
+            filter_untagged = []
+        else:
+            filter_tagged = []
+            filter_untagged = tags
+
+        filter = Filter.from_command_arguments(
+            store=store,
+            tagged=filter_tagged,
+            untagged=filter_untagged,
+            filter_for_episodes=tag_episodes,
+            podcast_title=podcast_title,
+            **filters,
+        )
+
+        if tag_episodes is None:
+            tag_episodes = tag_episodes or podcast_title
+
+        presenter = TaggerPresenter.from_command_arguments(
+            is_untagger=is_untagger, tag_episodes=tag_episodes, tags=tags, **kwargs
+        )
+
+        if is_untagger:
+            return Untagger(filter=filter, tags=tags, presenter=presenter)
+        else:
+            return Tagger(filter=filter, tags=tags, presenter=presenter)
 
     @abstractmethod
     def _perform_tagging(self, item: Union[Episode, Podcast]) -> None:
@@ -277,48 +317,3 @@ class Untagger(BaseTagger):
 
     def __repr__(self) -> str:
         return "<Untagger>"
-
-
-def get_tagger_from_command_arguments(
-    store: Store,
-    tags: List[str],
-    tag_episodes: bool = False,
-    podcast_title: Optional[str] = None,
-    is_untagger: bool = False,
-    filters: Optional[dict] = None,
-    **kwargs,
-) -> Tagger:
-    """Factory for building an appropriate `Tagger` object from the CLI options passed
-    in to a command.
-
-    Builds a filter and presenter for the tagger to use.
-    """
-    filters = filters or {}
-
-    if is_untagger:
-        filter_tagged = tags
-        filter_untagged = []
-    else:
-        filter_tagged = []
-        filter_untagged = tags
-
-    filter = Filter.from_command_arguments(
-        store=store,
-        tagged=filter_tagged,
-        untagged=filter_untagged,
-        filter_for_episodes=tag_episodes,
-        podcast_title=podcast_title,
-        **filters,
-    )
-
-    if tag_episodes is None:
-        tag_episodes = tag_episodes or podcast_title
-
-    presenter = TaggerPresenter.from_command_arguments(
-        is_untagger=is_untagger, tag_episodes=tag_episodes, tags=tags, **kwargs
-    )
-
-    if is_untagger:
-        return Untagger(filter=filter, tags=tags, presenter=presenter)
-    else:
-        return Tagger(filter=filter, tags=tags, presenter=presenter)
