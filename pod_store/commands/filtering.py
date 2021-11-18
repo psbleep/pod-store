@@ -40,6 +40,49 @@ class Filter(ABC):
         self._extra_podcast_filters = podcast_filters or {}
         self._filters = filters
 
+    @staticmethod
+    def from_command_arguments(
+        store: Store,
+        new_episodes: bool = None,
+        filter_for_episodes: bool = False,
+        podcast_title: Optional[str] = None,
+        tagged: Optional[List] = None,
+        untagged: Optional[List] = None,
+        podcasts_tagged: Optional[list] = None,
+        podcasts_untagged: Optional[list] = None,
+        **filters,
+    ):
+        tagged = tagged or []
+        untagged = untagged or []
+        podcasts_tagged = podcasts_tagged or []
+        podcasts_untagged = podcasts_untagged or []
+        if filter_for_episodes is None:
+            filter_for_episodes = filter_for_episodes or podcast_title
+
+        filters = {
+            **{t: True for t in tagged},
+            **{u: False for u in untagged},
+            **filters,
+        }
+
+        podcast_filters = {
+            **{pt: True for pt in podcasts_tagged},
+            **{up: False for up in podcasts_untagged},
+        }
+
+        if filter_for_episodes:
+            filter_cls = EpisodeFilter
+        else:
+            filter_cls = PodcastFilter
+
+        return filter_cls(
+            store=store,
+            new_episodes=new_episodes,
+            podcast_title=podcast_title,
+            podcast_filters=podcast_filters,
+            **filters,
+        )
+
     @abstractproperty
     def items(self) -> List:
         pass
@@ -168,47 +211,3 @@ class PodcastFilter(Filter):
 
     def __repr__(self):
         return "<PodcastFilter>"
-
-
-def get_filter_from_command_arguments(
-    store: Store,
-    new_episodes: bool = None,
-    filter_for_episodes: bool = False,
-    podcast_title: Optional[str] = None,
-    tagged: Optional[List] = None,
-    untagged: Optional[List] = None,
-    podcasts_tagged: Optional[list] = None,
-    podcasts_untagged: Optional[list] = None,
-    **filters,
-) -> Union[EpisodeFilter, PodcastFilter]:
-    """Helper method for building a filter based on common CLI command arguments."""
-    tagged = tagged or []
-    untagged = untagged or []
-    podcasts_tagged = podcasts_tagged or []
-    podcasts_untagged = podcasts_untagged or []
-    if filter_for_episodes is None:
-        filter_for_episodes = filter_for_episodes or podcast_title
-
-    filters = {
-        **{t: True for t in tagged},
-        **{u: False for u in untagged},
-        **filters,
-    }
-
-    podcast_filters = {
-        **{pt: True for pt in podcasts_tagged},
-        **{up: False for up in podcasts_untagged},
-    }
-
-    if filter_for_episodes:
-        filter_cls = EpisodeFilter
-    else:
-        filter_cls = PodcastFilter
-
-    return filter_cls(
-        store=store,
-        new_episodes=new_episodes,
-        podcast_title=podcast_title,
-        podcast_filters=podcast_filters,
-        **filters,
-    )

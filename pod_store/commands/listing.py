@@ -7,7 +7,7 @@ from typing import List, Optional
 from ..episodes import Episode
 from ..exc import NoEpisodesFoundError
 from ..podcasts import Podcast
-from .filtering import Filter, get_filter_from_command_arguments
+from .filtering import Filter
 
 EPISODE_LISTING_TEMPLATE = (
     "[{episode_number}] {title}: {short_description_msg}{downloaded_msg}{tags_msg}"
@@ -232,17 +232,17 @@ class PodcastLister(Lister):
 def get_lister_from_command_arguments(
     list_episodes: bool = False,
     podcast_title: Optional[str] = None,
-    **filters,
+    **filter_kwargs,
 ):
     """Factory for building an appropriate `Lister` object from the CLI options passed
     in to a command.
 
     Builds a filter that the lister will use.
     """
-    filter = get_filter_from_command_arguments(
+    filter = Filter.from_command_arguments(
         filter_for_episodes=list_episodes,
         podcast_title=podcast_title,
-        **filters,
+        **filter_kwargs,
     )
 
     list_episodes = list_episodes or podcast_title

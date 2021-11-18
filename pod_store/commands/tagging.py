@@ -7,7 +7,7 @@ import click
 from ..episodes import Episode
 from ..podcasts import Podcast
 from ..store import Store
-from .filtering import Filter, get_filter_from_command_arguments
+from .filtering import Filter
 
 TAG_EPISODES_INTERACTIVE_MODE_HELP_MESSAGE_TEMPLATE = """{presenter.capitalized_performing_action} in interactive mode. Options are:
 
@@ -302,7 +302,7 @@ def get_tagger_from_command_arguments(
         filter_tagged = []
         filter_untagged = tags
 
-    filter = get_filter_from_command_arguments(
+    filter = Filter.from_command_arguments(
         store=store,
         tagged=filter_tagged,
         untagged=filter_untagged,

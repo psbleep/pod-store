@@ -24,7 +24,7 @@ from .commands.decorators import (
     require_store,
     save_store_changes,
 )
-from .commands.filtering import get_filter_from_command_arguments
+from .commands.filtering import Filter
 from .commands.helpers import abort_if_false, display_pod_store_error_from_exception
 from .commands.listing import get_lister_from_command_arguments
 from .commands.tagging import get_tagger_from_command_arguments
@@ -215,7 +215,7 @@ def download(
         new_episodes = True
         filters = {}
 
-    filter = get_filter_from_command_arguments(
+    filter = Filter.from_command_arguments(
         store=store,
         new_episodes=new_episodes,
         filter_for_episodes=True,
@@ -591,7 +591,7 @@ def refresh(
     if not podcast:
         untagged.append("inactive")
 
-    filter = get_filter_from_command_arguments(
+    filter = Filter.from_command_arguments(
         store=store,
         filter_for_episodes=False,
         podcast_title=podcast,
