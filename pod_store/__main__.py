@@ -424,7 +424,7 @@ def ls(
         untagged=untagged,
         **filters,
     )
-    for msg in lister.list(verbose=verbose):
+    for msg in lister.list_items(verbose=verbose):
         click.echo(msg)
 
 

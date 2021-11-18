@@ -3,7 +3,7 @@ from collections import namedtuple
 import pytest
 
 from pod_store.commands.filtering import EpisodeFilter, PodcastFilter
-from pod_store.commands.listing import EpisodeLister, PodcastLister
+from pod_store.commands.listing import Lister, episodes_presenter, podcasts_presenter
 from pod_store.exc import NoEpisodesFoundError
 
 fake_terminal_size = namedtuple("fake_terminal_size", ["columns"])
@@ -20,17 +20,17 @@ def fake_terminal_width(mocker):
 @pytest.fixture
 def episode_lister(store):
     filter = EpisodeFilter(store=store)
-    return EpisodeLister(filter=filter)
+    return Lister(filter=filter, presenter=episodes_presenter)
 
 
 @pytest.fixture
 def podcast_lister(store):
     filter = PodcastFilter(store=store)
-    return PodcastLister(filter=filter)
+    return Lister(filter=filter, presenter=podcasts_presenter)
 
 
 def test_episode_lister_list(episode_lister):
-    assert list(episode_lister.list()) == [
+    assert list(episode_lister.list_items()) == [
         "farewell",
         "[0001] gone: 'all' -> new, bar",
         "[0002] not forgotten: 'never' -> foo, bar",
@@ -44,7 +44,7 @@ def test_episode_lister_list(episode_lister):
 def test_episode_lister_list_verbose_mode(
     yesterday_formatted, now_formatted, episode_lister
 ):
-    assert list(episode_lister.list(verbose=True)) == [
+    assert list(episode_lister.list_items(verbose=True)) == [
         "farewell",
         f"""[0001] gone
 id: 111
@@ -83,7 +83,7 @@ def test_episode_lister_allows_empty_short_description(store, episode_lister):
     episode = podcast.episodes.get("aaa")
     episode.short_description = ""
 
-    assert "[0023] hello: (no description) -> new" in list(episode_lister.list())
+    assert "[0023] hello: (no description) -> new" in list(episode_lister.list_items())
 
 
 def test_episode_lister_allows_empty_long_description_in_verbose_mode(
@@ -93,19 +93,19 @@ def test_episode_lister_allows_empty_long_description_in_verbose_mode(
     episode = podcast.episodes.get("111")
     episode.long_description = ""
 
-    verbose_episode_listing = list(episode_lister.list(verbose=True))[1]
+    verbose_episode_listing = list(episode_lister.list_items(verbose=True))[1]
     assert "(no description)" in verbose_episode_listing
 
 
 def test_episode_lister_list_raises_exception_when_no_episodes_found(store):
     filter = EpisodeFilter(store=store, tags=["whoooooo"])
-    episode_lister = EpisodeLister(filter=filter)
+    episode_lister = Lister(filter=filter, presenter=episodes_presenter)
     with pytest.raises(NoEpisodesFoundError):
-        list(episode_lister.list())
+        list(episode_lister.list_items())
 
 
 def test_podcast_lister_list(podcast_lister):
-    assert list(podcast_lister.list()) == [
+    assert list(podcast_lister.list_items()) == [
         "farewell [1]",
         "other -> inactive",
         "greetings [1] -> hello",
@@ -115,7 +115,7 @@ def test_podcast_lister_list(podcast_lister):
 def test_podcast_lister_list_verbose_mode(
     yesterday_formatted, now_formatted, podcast_lister
 ):
-    assert list(podcast_lister.list(verbose=True)) == [
+    assert list(podcast_lister.list_items(verbose=True)) == [
         f"""farewell
 1 new episodes
 feed: http://goodbye.world/rss
