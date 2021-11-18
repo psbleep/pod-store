@@ -11,7 +11,8 @@ from pod_store.commands.tagging import (
     TAGGED_PODCAST_MESSAGE_TEMPLATE,
     Tagger,
     TaggerPresenter,
-    Untagger,
+    apply_tags,
+    remove_tags,
     interactive_mode_prompt_choices,
 )
 
@@ -39,7 +40,9 @@ def tagger(store):
         interactive_mode_help_message_template=HELP_MESSAGE_TEMPLATE,
         interactive_mode_prompt_message_template=PROMPT_MESSAGE_TEMPLATE,
     )
-    return Tagger(tags=["foo"], filter=filter, presenter=presenter)
+    return Tagger(
+        tags=["foo"], filter=filter, presenter=presenter, tagging_action=apply_tags
+    )
 
 
 def test_tagger_presenter_from_command_arguments_default_podcast_tagger():
@@ -120,8 +123,10 @@ def test_untagger_removes_tags_from_filter_items_and_returns_formatted_messages(
         performing_action="unchoosing",
         performed_action="unchosen",
     )
-    tagger = Untagger(tags=["foo"], filter=filter, presenter=presenter)
-    assert list(tagger.tag_items()) == [
+    untagger = Tagger(
+        tags=["foo"], filter=filter, presenter=presenter, tagging_action=remove_tags
+    )
+    assert list(untagger.tag_items()) == [
         "Unchoosing the following tag(s) for not forgotten: foo.",
         "Unchoosing the following tag(s) for goodbye: foo.",
     ]

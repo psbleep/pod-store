@@ -201,7 +201,8 @@ class PodcastFilter(Filter):
     def _podcast_filters(self) -> dict:
         """Builds the podcast filters dict.
 
-        Uses the podcast filters from the base class, and adds in the tag filters.
+        Uses the podcast filters from the base class, and adds in the user-provided
+        filters.
         """
         return {**self._filters, **super()._podcast_filters}
 

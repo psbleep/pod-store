@@ -29,6 +29,19 @@ def podcast_lister(store):
     return Lister(filter=filter, presenter=podcasts_presenter)
 
 
+def test_lister_from_command_arguments_provides_an_episode_lister_when_indicated(store):
+    lister = Lister.from_command_arguments(store=store, list_episodes=True)
+    # ignore podcast title as first line of output
+    _, episode_listing, *__ = lister.list_items()
+    assert episode_listing == "[0001] gone: 'all' -> new, bar"
+
+
+def test_lister_from_command_arguments_provides_a_podcast_lister_when_indiciated(store):
+    lister = Lister.from_command_arguments(store=store, list_episodes=False)
+    podcast_listing, *_ = lister.list_items()
+    assert podcast_listing == "farewell [1]"
+
+
 def test_episode_lister_list(episode_lister):
     assert list(episode_lister.list_items()) == [
         "farewell",

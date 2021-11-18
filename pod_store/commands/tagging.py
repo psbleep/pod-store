@@ -1,11 +1,8 @@
 """Tagging episodes and podcasts."""
-from abc import ABC, abstractmethod
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple
 
 import click
 
-from ..episodes import Episode
-from ..podcasts import Podcast
 from ..store import Store
 from .filtering import Filter
 
@@ -49,6 +46,24 @@ TAGGED_PODCAST_MESSAGE_TEMPLATE = (
 )
 
 interactive_mode_prompt_choices = click.Choice(["h", "y", "n", "b", "q"])
+
+
+def apply_tags(tags: List[str], item: Any) -> None:
+    """Apply a list of tags to an item in the store.
+
+    Used to compose a `Tagger` object. See the `Tagger.tagging_action` parameter.
+    """
+    for tag in tags:
+        item.tag(tag)
+
+
+def remove_tags(tags: List[str], item: Any) -> None:
+    """Remove a list of tags from an item  in the store.
+
+    Used to compose a `Tagger` object. See the `Tagger.tagging_action` parameter.
+    """
+    for tag in tags:
+        item.untag(tag)
 
 
 class TaggerPresenter:
@@ -181,19 +196,34 @@ class TaggerPresenter:
             return TAG_PODCASTS_INTERACTIVE_MODE_PROMPT_MESSAGE_TEMPLATE
 
 
-class BaseTagger(ABC):
+class Tagger:
+    """Performs tagging operations (e.g. tagging, untagging) on groups of items from
+    the store.
+
+    tags (list): list of tags to apply the tagging action to
+    filter (Filter): collection of store items (podcasts or episodes)
+    presenter (TaggerPresenter): handles logic about presenting output to the user
+
+    tagging_action (callable):
+        function that does the tagging action (e.g. adding or removing tags).
+        see the `apply_tags` and `remove_tags` functions in this module.
+    """
+
     def __init__(
         self,
         tags: List[str],
         filter: Filter,
         presenter: TaggerPresenter,
+        tagging_action: Callable,
     ) -> None:
         self._tags = tags
         self._filter = filter
         self._presenter = presenter
+        self._perform_tagging_action = tagging_action
 
-    @staticmethod
+    @classmethod
     def from_command_arguments(
+        cls,
         store: Store,
         tags: List[str],
         tag_episodes: bool = False,
@@ -202,6 +232,12 @@ class BaseTagger(ABC):
         filters: Optional[dict] = None,
         **kwargs,
     ):
+        """Constructs an appropriate `Tagger` object from arguments passed into a
+        command in the CLI.
+
+        Constructs appropriate `Filter` and `TaggerPresenter` objects for use in the
+        tagger, and selects with `tagging_action` function to use.
+        """
         filters = filters or {}
 
         if is_untagger:
@@ -228,19 +264,20 @@ class BaseTagger(ABC):
         )
 
         if is_untagger:
-            return Untagger(filter=filter, tags=tags, presenter=presenter)
+            tagging_action = remove_tags
         else:
-            return Tagger(filter=filter, tags=tags, presenter=presenter)
+            tagging_action = apply_tags
 
-    @abstractmethod
-    def _perform_tagging(self, item: Union[Episode, Podcast]) -> None:
-        pass
-
-    @property
-    def tag_listing(self) -> str:
-        return ", ".join(self._tags)
+        return cls(
+            filter=filter, tags=tags, presenter=presenter, tagging_action=tagging_action
+        )
 
     def tag_items(self, interactive_mode: bool = False):
+        """Perform the tagging action on the collection of items.
+
+        If the `intercative_mode` flag is set, the user will be prompted interactively
+        to choose which items to tag or untag.
+        """
         if interactive_mode:
             yield self._presenter.interactive_mode_help_message_template.format(
                 presenter=self._presenter
@@ -257,6 +294,7 @@ class BaseTagger(ABC):
     ) -> Tuple[bool, str]:
         """Prompt the user to decide:
 
+        - display a help message
         - tag the episode
         - do not tag the episode
         - switch away from interactive mode and tag all the remaining episodes
@@ -290,30 +328,19 @@ class BaseTagger(ABC):
 
         return interactive_mode, msg
 
-    def _tag_item(self, item: Union[Episode, Podcast]) -> str:
-        self._perform_tagging(item)
+    def _tag_item(self, item: Any) -> str:
+        """Apply the tagging action to an item from the store.
+
+        Run the `tagging_action` command passed in when the tagger object was
+        constructed.
+
+        Return output to the user from the presenter object to indicate that the action
+        was performed.
+        """
+        self._perform_tagging_action(tags=self._tags, item=item)
         return self._presenter.tagged_message_template.format(
             presenter=self._presenter, item=item
         )
 
-
-class Tagger(BaseTagger):
-    """Applies tags to store items."""
-
-    def _perform_tagging(self, item: Union[Episode, Podcast]) -> None:
-        for tag in self._tags:
-            item.tag(tag)
-
     def __repr__(self) -> str:
         return "<Tagger>"
-
-
-class Untagger(BaseTagger):
-    """Removes tags from store items."""
-
-    def _perform_tagging(self, item: Union[Episode, Podcast]) -> None:
-        for tag in self._tags:
-            item.untag(tag)
-
-    def __repr__(self) -> str:
-        return "<Untagger>"

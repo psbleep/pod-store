@@ -27,7 +27,7 @@ from .commands.decorators import (
 from .commands.filtering import Filter
 from .commands.helpers import abort_if_false, display_pod_store_error_from_exception
 from .commands.listing import Lister
-from .commands.tagging import BaseTagger
+from .commands.tagging import Tagger
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
 from .util import run_git_command
@@ -466,7 +466,7 @@ def mark_as_new(
 ):
     """Add the `new` tag to a group of episodes."""
     store = ctx.obj
-    tagger = BaseTagger.from_command_arguments(
+    tagger = Tagger.from_command_arguments(
         store=store,
         tags=["new"],
         tag_episodes=True,
@@ -516,7 +516,7 @@ def mark_as_old(
 ):
     """Remove the `new` tag from a group of episodes."""
     store = ctx.obj
-    tagger = BaseTagger.from_command_arguments(
+    tagger = Tagger.from_command_arguments(
         store=store,
         tags=["new"],
         tag_episodes=True,
@@ -755,7 +755,7 @@ def tag(
     else:
         filters = {}
 
-    tagger = BaseTagger.from_command_arguments(
+    tagger = Tagger.from_command_arguments(
         store=store,
         tags=tag,
         tag_episodes=tag_episodes,
