@@ -48,6 +48,24 @@ class Lister(ABC):
     def __init__(self, filter: Filter) -> None:
         self._filter = filter
 
+    @staticmethod
+    def from_command_arguments(
+        list_episodes: bool = False,
+        podcast_title: Optional[str] = None,
+        **filter_kwargs,
+    ):
+        filter = Filter.from_command_arguments(
+            filter_for_episodes=list_episodes,
+            podcast_title=podcast_title,
+            **filter_kwargs,
+        )
+
+        list_episodes = list_episodes or podcast_title
+        if list_episodes:
+            return EpisodeLister(filter=filter)
+        else:
+            return PodcastLister(filter=filter)
+
     @abstractmethod
     def list(self) -> str:
         pass
@@ -227,26 +245,3 @@ class PodcastLister(Lister):
 
     def __repr__(self) -> str:
         return "<PodcastLister>"
-
-
-def get_lister_from_command_arguments(
-    list_episodes: bool = False,
-    podcast_title: Optional[str] = None,
-    **filter_kwargs,
-):
-    """Factory for building an appropriate `Lister` object from the CLI options passed
-    in to a command.
-
-    Builds a filter that the lister will use.
-    """
-    filter = Filter.from_command_arguments(
-        filter_for_episodes=list_episodes,
-        podcast_title=podcast_title,
-        **filter_kwargs,
-    )
-
-    list_episodes = list_episodes or podcast_title
-    if list_episodes:
-        return EpisodeLister(filter=filter)
-    else:
-        return PodcastLister(filter=filter)

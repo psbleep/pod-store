@@ -26,7 +26,7 @@ from .commands.decorators import (
 )
 from .commands.filtering import Filter
 from .commands.helpers import abort_if_false, display_pod_store_error_from_exception
-from .commands.listing import get_lister_from_command_arguments
+from .commands.listing import Lister
 from .commands.tagging import get_tagger_from_command_arguments
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
@@ -415,7 +415,7 @@ def ls(
         new_episodes = new
         filters = {}
 
-    lister = get_lister_from_command_arguments(
+    lister = Lister.from_command_arguments(
         store=store,
         new_episodes=new_episodes,
         list_episodes=list_episodes,
