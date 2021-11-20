@@ -11,8 +11,9 @@ from pod_store.commands.tagging import (
     TAGGED_PODCAST_MESSAGE_TEMPLATE,
     Tagger,
     TaggerPresenter,
-    Untagger,
+    apply_tags,
     interactive_mode_prompt_choices,
+    remove_tags,
 )
 
 MESSAGE_TEMPLATE = (
@@ -29,7 +30,7 @@ PROMPT_MESSAGE_TEMPLATE = (
 
 @pytest.fixture
 def tagger(store):
-    filter = PodcastFilter(store=store, new_episodes=True)
+    pod_store_filter = PodcastFilter(store=store, new_episodes=True)
     presenter = TaggerPresenter(
         tagged_message_template=MESSAGE_TEMPLATE,
         tag_listing="foo",
@@ -39,7 +40,12 @@ def tagger(store):
         interactive_mode_help_message_template=HELP_MESSAGE_TEMPLATE,
         interactive_mode_prompt_message_template=PROMPT_MESSAGE_TEMPLATE,
     )
-    return Tagger(tags=["foo"], filter=filter, presenter=presenter)
+    return Tagger(
+        tags=["foo"],
+        pod_store_filter=pod_store_filter,
+        presenter=presenter,
+        tagging_action=apply_tags,
+    )
 
 
 def test_tagger_presenter_from_command_arguments_default_podcast_tagger():
@@ -112,7 +118,7 @@ def test_tagger_applies_tags_to_filter_items_and_returns_formatted_messages(
 
 
 def test_untagger_removes_tags_from_filter_items_and_returns_formatted_messages(store):
-    filter = EpisodeFilter(store=store, foo=True)
+    pod_store_filter = EpisodeFilter(store=store, foo=True)
     presenter = TaggerPresenter(
         tagged_message_template=MESSAGE_TEMPLATE,
         tag_listing="foo",
@@ -120,8 +126,13 @@ def test_untagger_removes_tags_from_filter_items_and_returns_formatted_messages(
         performing_action="unchoosing",
         performed_action="unchosen",
     )
-    tagger = Untagger(tags=["foo"], filter=filter, presenter=presenter)
-    assert list(tagger.tag_items()) == [
+    untagger = Tagger(
+        tags=["foo"],
+        pod_store_filter=pod_store_filter,
+        presenter=presenter,
+        tagging_action=remove_tags,
+    )
+    assert list(untagger.tag_items()) == [
         "Unchoosing the following tag(s) for not forgotten: foo.",
         "Unchoosing the following tag(s) for goodbye: foo.",
     ]

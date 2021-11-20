@@ -24,10 +24,10 @@ from .commands.decorators import (
     require_store,
     save_store_changes,
 )
-from .commands.filtering import get_filter_from_command_arguments
+from .commands.filtering import Filter
 from .commands.helpers import abort_if_false, display_pod_store_error_from_exception
-from .commands.listing import get_lister_from_command_arguments
-from .commands.tagging import get_tagger_from_command_arguments
+from .commands.listing import Lister
+from .commands.tagging import Tagger
 from .store import Store
 from .store_file_handlers import EncryptedStoreFileHandler, UnencryptedStoreFileHandler
 from .util import run_git_command
@@ -208,26 +208,19 @@ def download(
     tagged = list(tagged or [])
     untagged = list(untagged or [])
 
-    if episode is not None:
-        new_episodes = False
-        filters = {"episode_number": episode}
-    else:
-        new_episodes = True
-        filters = {}
-
-    filter = get_filter_from_command_arguments(
+    pod_store_filter = Filter.from_command_arguments(
         store=store,
-        new_episodes=new_episodes,
+        new_episodes=True,
         filter_for_episodes=True,
         podcast_title=podcast,
+        episode_number=episode,
         tagged=tagged,
         untagged=untagged,
         podcasts_tagged=podcast_tagged,
         podcasts_untagged=podcast_untagged,
-        **filters,
     )
 
-    for ep in filter.items:
+    for ep in pod_store_filter.items:
         click.echo(f"Downloading: {ep.download_path}.")
         try:
             with ep.download() as download:
@@ -349,7 +342,7 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
 )
 @click.option(
     "--episodes/--podcasts",
-    default=False,
+    default=None,
     help="(flag): List episodes or podcasts. Defaults to `--podcasts`.",
 )
 @click.option(
@@ -390,7 +383,7 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
 def ls(
     ctx: click.Context,
     new: bool,
-    episodes: bool,
+    episodes: Optional[bool],
     podcast: Optional[str],
     episode: Optional[int],
     tagged: Optional[List[str]],
@@ -402,29 +395,25 @@ def ls(
     By default, this will list podcasts that have new episodes. Adjust the output using
     the provided flags and command options.
     """
+    # It is important to set the `--episodes/--podcasts` option to `None` by default,
+    # rather than `False`. A null value indicates that it has not been set by
+    # explicitly the user, which triggers behavior for inferring the value from other
+    # command arguments.
+
     store = ctx.obj
     tagged = list(tagged or [])
     untagged = list(untagged or [])
 
-    if episode is not None:
-        list_episodes = True
-        new_episodes = False
-        filters = {"episode_number": episode}
-    else:
-        list_episodes = bool(episodes or podcast)
-        new_episodes = new
-        filters = {}
-
-    lister = get_lister_from_command_arguments(
+    lister = Lister.from_command_arguments(
         store=store,
-        new_episodes=new_episodes,
-        list_episodes=list_episodes,
+        new_episodes=new,
+        list_episodes=episodes,
         podcast_title=podcast,
+        episode_number=episode,
         tagged=tagged,
         untagged=untagged,
-        **filters,
     )
-    for msg in lister.list(verbose=verbose):
+    for msg in lister.list_items(verbose=verbose):
         click.echo(msg)
 
 
@@ -466,7 +455,7 @@ def mark_as_new(
 ):
     """Add the `new` tag to a group of episodes."""
     store = ctx.obj
-    tagger = get_tagger_from_command_arguments(
+    tagger = Tagger.from_command_arguments(
         store=store,
         tags=["new"],
         tag_episodes=True,
@@ -516,7 +505,7 @@ def mark_as_old(
 ):
     """Remove the `new` tag from a group of episodes."""
     store = ctx.obj
-    tagger = get_tagger_from_command_arguments(
+    tagger = Tagger.from_command_arguments(
         store=store,
         tags=["new"],
         tag_episodes=True,
@@ -591,14 +580,15 @@ def refresh(
     if not podcast:
         untagged.append("inactive")
 
-    filter = get_filter_from_command_arguments(
+    pod_store_filter = Filter.from_command_arguments(
         store=store,
+        new_episodes=False,
         filter_for_episodes=False,
         podcast_title=podcast,
         tagged=tagged,
         untagged=untagged,
     )
-    for podcast in filter.items:
+    for podcast in pod_store_filter.items:
         click.echo(f"Refreshing {podcast.title}")
         try:
             podcast.refresh()
@@ -750,18 +740,13 @@ def tag(
     """
     tag_episodes = bool(not podcast or episode) and bool(episodes or episode)
     store = ctx.obj
-    if episode is not None:
-        filters = {"episode_number": episode}
-    else:
-        filters = {}
-
-    tagger = get_tagger_from_command_arguments(
+    tagger = Tagger.from_command_arguments(
         store=store,
         tags=tag,
         tag_episodes=tag_episodes,
         podcast_title=podcast,
+        episode_number=episode,
         is_untagger=untag,
-        filters=filters,
     )
     for msg in tagger.tag_items(interactive_mode=interactive):
         click.echo(msg)
