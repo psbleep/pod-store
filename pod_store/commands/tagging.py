@@ -212,12 +212,12 @@ class Tagger:
     def __init__(
         self,
         tags: List[str],
-        filter: Filter,
+        pod_store_filter: Filter,
         presenter: TaggerPresenter,
         tagging_action: Callable,
     ) -> None:
         self._tags = tags
-        self._filter = filter
+        self._pod_store_filter = pod_store_filter
         self._presenter = presenter
         self._perform_tagging_action = tagging_action
 
@@ -248,7 +248,7 @@ class Tagger:
             filter_tagged = []
             filter_untagged = tags
 
-        filter = Filter.from_command_arguments(
+        pod_store_filter = Filter.from_command_arguments(
             store=store,
             tagged=filter_tagged,
             untagged=filter_untagged,
@@ -274,7 +274,7 @@ class Tagger:
             tagging_action = apply_tags
 
         return cls(
-            filter=filter, tags=tags, presenter=presenter, tagging_action=tagging_action
+            pod_store_filter=pod_store_filter, tags=tags, presenter=presenter, tagging_action=tagging_action
         )
 
     def tag_items(self, interactive_mode: bool = False):
@@ -287,7 +287,7 @@ class Tagger:
             yield self._presenter.interactive_mode_help_message_template.format(
                 presenter=self._presenter
             )
-        for item in self._filter.items:
+        for item in self._pod_store_filter.items:
             if interactive_mode:
                 interactive_mode, msg = self._handle_item_interactively(item)
             else:

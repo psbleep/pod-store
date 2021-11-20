@@ -19,27 +19,24 @@ def fake_terminal_width(mocker):
 
 @pytest.fixture
 def episode_lister(store):
-    filter = EpisodeFilter(store=store)
-    return Lister(filter=filter, presenter=episodes_presenter)
+    pod_store_filter = EpisodeFilter(store=store)
+    return Lister(pod_store_filter=pod_store_filter, presenter=episodes_presenter)
 
 
 @pytest.fixture
 def podcast_lister(store):
-    filter = PodcastFilter(store=store)
-    return Lister(filter=filter, presenter=podcasts_presenter)
+    pod_store_filter = PodcastFilter(store=store)
+    return Lister(pod_store_filter=pod_store_filter, presenter=podcasts_presenter)
 
 
 def test_lister_from_command_arguments_provides_an_episode_lister_when_indicated(store):
     lister = Lister.from_command_arguments(store=store, list_episodes=True)
-    # ignore podcast title as first line of output
-    _, episode_listing, *__ = lister.list_items()
-    assert episode_listing == "[0001] gone: 'all' -> new, bar"
+    assert lister.presenter == episodes_presenter
 
 
 def test_lister_from_command_arguments_provides_a_podcast_lister_when_indiciated(store):
     lister = Lister.from_command_arguments(store=store, list_episodes=False)
-    podcast_listing, *_ = lister.list_items()
-    assert podcast_listing == "farewell [1]"
+    assert lister.presenter == podcasts_presenter
 
 
 def test_episode_lister_list(episode_lister):
@@ -111,8 +108,10 @@ def test_episode_lister_allows_empty_long_description_in_verbose_mode(
 
 
 def test_episode_lister_list_raises_exception_when_no_episodes_found(store):
-    filter = EpisodeFilter(store=store, tags=["whoooooo"])
-    episode_lister = Lister(filter=filter, presenter=episodes_presenter)
+    pod_store_filter = EpisodeFilter(store=store, tags=["whoooooo"])
+    episode_lister = Lister(
+        pod_store_filter=pod_store_filter, presenter=episodes_presenter
+    )
     with pytest.raises(NoEpisodesFoundError):
         list(episode_lister.list_items())
 

@@ -208,7 +208,7 @@ def download(
     tagged = list(tagged or [])
     untagged = list(untagged or [])
 
-    filter = Filter.from_command_arguments(
+    pod_store_filter = Filter.from_command_arguments(
         store=store,
         new_episodes=True,
         filter_for_episodes=True,
@@ -220,7 +220,7 @@ def download(
         podcasts_untagged=podcast_untagged,
     )
 
-    for ep in filter.items:
+    for ep in pod_store_filter.items:
         click.echo(f"Downloading: {ep.download_path}.")
         try:
             with ep.download() as download:
@@ -580,7 +580,7 @@ def refresh(
     if not podcast:
         untagged.append("inactive")
 
-    filter = Filter.from_command_arguments(
+    pod_store_filter = Filter.from_command_arguments(
         store=store,
         new_episodes=False,
         filter_for_episodes=False,
@@ -588,7 +588,7 @@ def refresh(
         tagged=tagged,
         untagged=untagged,
     )
-    for podcast in filter.items:
+    for podcast in pod_store_filter.items:
         click.echo(f"Refreshing {podcast.title}")
         try:
             podcast.refresh()

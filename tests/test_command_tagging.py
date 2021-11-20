@@ -30,7 +30,7 @@ PROMPT_MESSAGE_TEMPLATE = (
 
 @pytest.fixture
 def tagger(store):
-    filter = PodcastFilter(store=store, new_episodes=True)
+    pod_store_filter = PodcastFilter(store=store, new_episodes=True)
     presenter = TaggerPresenter(
         tagged_message_template=MESSAGE_TEMPLATE,
         tag_listing="foo",
@@ -41,7 +41,7 @@ def tagger(store):
         interactive_mode_prompt_message_template=PROMPT_MESSAGE_TEMPLATE,
     )
     return Tagger(
-        tags=["foo"], filter=filter, presenter=presenter, tagging_action=apply_tags
+        tags=["foo"], pod_store_filter=pod_store_filter, presenter=presenter, tagging_action=apply_tags
     )
 
 
@@ -115,7 +115,7 @@ def test_tagger_applies_tags_to_filter_items_and_returns_formatted_messages(
 
 
 def test_untagger_removes_tags_from_filter_items_and_returns_formatted_messages(store):
-    filter = EpisodeFilter(store=store, foo=True)
+    pod_store_filter = EpisodeFilter(store=store, foo=True)
     presenter = TaggerPresenter(
         tagged_message_template=MESSAGE_TEMPLATE,
         tag_listing="foo",
@@ -124,7 +124,7 @@ def test_untagger_removes_tags_from_filter_items_and_returns_formatted_messages(
         performed_action="unchosen",
     )
     untagger = Tagger(
-        tags=["foo"], filter=filter, presenter=presenter, tagging_action=remove_tags
+        tags=["foo"], pod_store_filter=pod_store_filter, presenter=presenter, tagging_action=remove_tags
     )
     assert list(untagger.tag_items()) == [
         "Unchoosing the following tag(s) for not forgotten: foo.",

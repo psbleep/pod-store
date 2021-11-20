@@ -34,8 +34,8 @@ VERBOSE_PODCAST_LISTING_TEMPLATE = (
 )
 
 
-def episodes_presenter(filter: Filter, verbose: bool = False) -> str:
-    """List information about the episodes that match the filter.
+def episodes_presenter(pod_store_filter: Filter, verbose: bool = False) -> str:
+    """List information about the episodes that match the pod_store_filter.
 
     verbose: bool
         provide more detailed episode listing
@@ -46,11 +46,11 @@ def episodes_presenter(filter: Filter, verbose: bool = False) -> str:
     # separately for cases where no episodes are found.
     episodes_found = False
 
-    podcasts = filter.podcasts
+    podcasts = pod_store_filter.podcasts
     last_pod_idx = len(podcasts) - 1
 
     for pod_idx, pod in enumerate(podcasts):
-        episodes = filter.get_podcast_episodes(pod)
+        episodes = pod_store_filter.get_podcast_episodes(pod)
         if not episodes:
             continue
 
@@ -154,13 +154,13 @@ def _get_short_description_msg(short_description: str, **template_kwargs) -> str
     return f"{stripped_short_description_msg!r}"
 
 
-def podcasts_presenter(filter: Filter, verbose: bool = False) -> str:
-    """List information about the podcasts that match the filter.
+def podcasts_presenter(pod_store_filter: Filter, verbose: bool = False) -> str:
+    """List information about the podcasts that match the pod_store_filter.
 
     verbose: bool
         provide more detailed podcast listing
     """
-    podcasts = filter.podcasts
+    podcasts = pod_store_filter.podcasts
 
     last_pod_idx = len(podcasts) - 1
     for idx, pod in enumerate(podcasts):
@@ -218,9 +218,9 @@ class Lister:
         see the `episodes_presenter` and `podcasts_presenter` functions in this module.
     """
 
-    def __init__(self, filter: Filter, presenter: Callable) -> None:
-        self._filter = filter
-        self._presenter = presenter
+    def __init__(self, pod_store_filter: Filter, presenter: Callable) -> None:
+        self.presenter = presenter
+        self._pod_store_filter = pod_store_filter
 
     @classmethod
     def from_command_arguments(
@@ -233,22 +233,22 @@ class Lister:
 
         Builds an appropriate `Filter` object and selects the appropriate `presenter`.
         """
-        filter = Filter.from_command_arguments(
+        pod_store_filter = Filter.from_command_arguments(
             filter_for_episodes=list_episodes,
             **filter_kwargs,
         )
 
-        if isinstance(filter, EpisodeFilter):
-            return cls(filter=filter, presenter=episodes_presenter)
+        if isinstance(pod_store_filter, EpisodeFilter):
+            return cls(pod_store_filter=pod_store_filter, presenter=episodes_presenter)
         else:
-            return cls(filter=filter, presenter=podcasts_presenter)
+            return cls(pod_store_filter=pod_store_filter, presenter=podcasts_presenter)
 
     def list_items(self, verbose: bool = False) -> str:
         """List info about the filter's items.
 
         If the `verbose` flag is set, more info will be shown.
         """
-        for msg in self._presenter(self._filter, verbose=verbose):
+        for msg in self.presenter(self._pod_store_filter, verbose=verbose):
             yield msg
 
     def __repr__(self) -> str:
