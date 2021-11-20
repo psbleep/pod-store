@@ -3,7 +3,7 @@ from abc import ABC, abstractproperty
 from typing import Any, List, Optional, Union
 
 from ..episodes import Episode
-from ..exc import NoEpisodesFoundError, NoPodcastsFoundError
+from ..exc import AmbiguousEpisodeError, NoEpisodesFoundError, NoPodcastsFoundError
 from ..podcasts import Podcast
 from ..store import Store
 
@@ -12,18 +12,26 @@ class Filter(ABC):
     """Base class for podcast and episode filter classes.
 
     _store: pod_store.Store
-    _new_episodes: bool
-        Whether to filter based on new episodes. When used to filter episodes, results
-        will be restricted to new episodes. When used to filter podcasts, only podcasts
-        that have new episodes will be returned.
-    _podcast_title: str (optional)
-        if provided, results will be restricted to podcasts with the title indicated,
-        or to episodes that belong to the podcast with the title indicated.
-    _filters: dict (optional)
-        other filter criteria
 
-    Since episodes are ultimately looked up from their podcasts, podcast filtering
-    behavior is defined here in the base class (since it will be needed in all filters).
+    new_episodes: bool
+       Whether to filter based on new episodes. When used to filter episodes, results
+       will be restricted to new episodes. When used to filter podcasts, only podcasts
+       that have new episodes will be returned.
+
+    podcast_title: str (optional)
+       if provided, results will be restricted to podcasts with the title indicated,
+       or to episodes that belong to the podcast with the title indicated.
+
+    filters: dict (optional)
+       other filter criteria
+
+    podcast_filters: dict (optional)
+       used in episode filtering to specify additional filters for which podcasts to
+       include in the search.
+
+    Since episodes are ultimately looked up from their podcasts, default podcast
+    filtering behavior is defined here in the base class (since it will be needed in
+    all filters).
     """
 
     def __init__(
@@ -34,18 +42,20 @@ class Filter(ABC):
         podcast_filters: Optional[dict] = None,
         **filters,
     ) -> None:
+        self.new_episodes = new_episodes
+        self.podcast_title = podcast_title
+        self.extra_podcast_filters = podcast_filters or {}
+        self.filters = filters
+
         self._store = store
-        self._new_episodes = new_episodes
-        self._podcast_title = podcast_title
-        self._extra_podcast_filters = podcast_filters or {}
-        self._filters = filters
 
     @staticmethod
     def from_command_arguments(
         store: Store,
-        new_episodes: bool = None,
-        filter_for_episodes: bool = False,
+        new_episodes: bool = False,
+        filter_for_episodes: bool = None,
         podcast_title: Optional[str] = None,
+        episode_number: Optional[int] = None,
         tagged: Optional[List] = None,
         untagged: Optional[List] = None,
         podcasts_tagged: Optional[list] = None,
@@ -56,8 +66,15 @@ class Filter(ABC):
         untagged = untagged or []
         podcasts_tagged = podcasts_tagged or []
         podcasts_untagged = podcasts_untagged or []
+
         if filter_for_episodes is None:
-            filter_for_episodes = filter_for_episodes or podcast_title
+            filter_for_episodes = bool(podcast_title) or False
+
+        if episode_number is not None:
+            new_episodes = False
+            if podcast_title is None:
+                raise AmbiguousEpisodeError(episode_number)
+            filters["episode_number"] = episode_number
 
         filters = {
             **{t: True for t in tagged},
@@ -107,11 +124,11 @@ class Filter(ABC):
         appropriate.
         """
         filters = {}
-        if self._new_episodes:
+        if self.new_episodes:
             filters["has_new_episodes"] = True
-        if self._podcast_title:
-            filters["title"] = self._podcast_title
-        return {**filters, **self._extra_podcast_filters}
+        if self.podcast_title:
+            filters["title"] = self.podcast_title
+        return {**filters, **self.extra_podcast_filters}
 
     def _passes_filters(self, obj: Union[Episode, Podcast], **filters) -> bool:
         """Checks whether a podcast/episode meets all the provided filter criteria."""
@@ -157,8 +174,8 @@ class EpisodeFilter(Filter):
 
         Adds filters based on the `_new_episodes` attribute whee appropriate.
         """
-        filters = self._filters
-        if self._new_episodes:
+        filters = self.filters
+        if self.new_episodes:
             filters["new"] = True
         return filters
 
@@ -195,7 +212,7 @@ class PodcastFilter(Filter):
     def __init__(self, podcast_title: Optional[str] = None, *args, **kwargs):
         super().__init__(podcast_title=podcast_title, *args, **kwargs)
         if podcast_title:
-            self._new_episodes = False
+            self.new_episodes = False
 
     @property
     def _podcast_filters(self) -> dict:
@@ -204,7 +221,7 @@ class PodcastFilter(Filter):
         Uses the podcast filters from the base class, and adds in the user-provided
         filters.
         """
-        return {**self._filters, **super()._podcast_filters}
+        return {**self.filters, **super()._podcast_filters}
 
     @property
     def items(self) -> List[Podcast]:

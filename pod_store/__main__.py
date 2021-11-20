@@ -208,23 +208,16 @@ def download(
     tagged = list(tagged or [])
     untagged = list(untagged or [])
 
-    if episode is not None:
-        new_episodes = False
-        filters = {"episode_number": episode}
-    else:
-        new_episodes = True
-        filters = {}
-
     filter = Filter.from_command_arguments(
         store=store,
-        new_episodes=new_episodes,
+        new_episodes=True,
         filter_for_episodes=True,
         podcast_title=podcast,
+        episode_number=episode,
         tagged=tagged,
         untagged=untagged,
         podcasts_tagged=podcast_tagged,
         podcasts_untagged=podcast_untagged,
-        **filters,
     )
 
     for ep in filter.items:
@@ -349,7 +342,7 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
 )
 @click.option(
     "--episodes/--podcasts",
-    default=False,
+    default=None,
     help="(flag): List episodes or podcasts. Defaults to `--podcasts`.",
 )
 @click.option(
@@ -390,7 +383,7 @@ def init(git: bool, git_url: Optional[str], gpg_id: Optional[str]):
 def ls(
     ctx: click.Context,
     new: bool,
-    episodes: bool,
+    episodes: Optional[bool],
     podcast: Optional[str],
     episode: Optional[int],
     tagged: Optional[List[str]],
@@ -402,27 +395,23 @@ def ls(
     By default, this will list podcasts that have new episodes. Adjust the output using
     the provided flags and command options.
     """
+    # It is important to set the `--episodes/--podcasts` option to `None` by default,
+    # rather than `False`. A null value indicates that it has not been set by
+    # explicitly the user, which triggers behavior for inferring the value from other
+    # command arguments.
+
     store = ctx.obj
     tagged = list(tagged or [])
     untagged = list(untagged or [])
 
-    if episode is not None:
-        list_episodes = True
-        new_episodes = False
-        filters = {"episode_number": episode}
-    else:
-        list_episodes = bool(episodes or podcast)
-        new_episodes = new
-        filters = {}
-
     lister = Lister.from_command_arguments(
         store=store,
-        new_episodes=new_episodes,
-        list_episodes=list_episodes,
+        new_episodes=new,
+        list_episodes=episodes,
         podcast_title=podcast,
+        episode_number=episode,
         tagged=tagged,
         untagged=untagged,
-        **filters,
     )
     for msg in lister.list_items(verbose=verbose):
         click.echo(msg)
@@ -593,6 +582,7 @@ def refresh(
 
     filter = Filter.from_command_arguments(
         store=store,
+        new_episodes=False,
         filter_for_episodes=False,
         podcast_title=podcast,
         tagged=tagged,
@@ -750,18 +740,13 @@ def tag(
     """
     tag_episodes = bool(not podcast or episode) and bool(episodes or episode)
     store = ctx.obj
-    if episode is not None:
-        filters = {"episode_number": episode}
-    else:
-        filters = {}
-
     tagger = Tagger.from_command_arguments(
         store=store,
         tags=tag,
         tag_episodes=tag_episodes,
         podcast_title=podcast,
+        episode_number=episode,
         is_untagger=untag,
-        filters=filters,
     )
     for msg in tagger.tag_items(interactive_mode=interactive):
         click.echo(msg)

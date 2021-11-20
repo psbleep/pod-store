@@ -228,9 +228,10 @@ class Tagger:
         tags: List[str],
         tag_episodes: bool = False,
         podcast_title: Optional[str] = None,
+        episode_number: Optional[int] = None,
         is_untagger: bool = False,
         filters: Optional[dict] = None,
-        **kwargs,
+        **tagger_kwargs,
     ):
         """Constructs an appropriate `Tagger` object from arguments passed into a
         command in the CLI.
@@ -253,6 +254,7 @@ class Tagger:
             untagged=filter_untagged,
             filter_for_episodes=tag_episodes,
             podcast_title=podcast_title,
+            episode_number=episode_number,
             **filters,
         )
 
@@ -260,7 +262,10 @@ class Tagger:
             tag_episodes = tag_episodes or podcast_title
 
         presenter = TaggerPresenter.from_command_arguments(
-            is_untagger=is_untagger, tag_episodes=tag_episodes, tags=tags, **kwargs
+            is_untagger=is_untagger,
+            tag_episodes=tag_episodes,
+            tags=tags,
+            **tagger_kwargs,
         )
 
         if is_untagger:

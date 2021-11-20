@@ -6,7 +6,7 @@ from typing import Callable, List, Optional
 from ..episodes import Episode
 from ..exc import NoEpisodesFoundError
 from ..podcasts import Podcast
-from .filtering import Filter
+from .filtering import EpisodeFilter, Filter
 
 EPISODE_LISTING_TEMPLATE = (
     "[{episode_number}] {title}: {short_description_msg}{downloaded_msg}{tags_msg}"
@@ -225,8 +225,7 @@ class Lister:
     @classmethod
     def from_command_arguments(
         cls,
-        list_episodes: bool = False,
-        podcast_title: Optional[str] = None,
+        list_episodes: Optional[bool] = None,
         **filter_kwargs,
     ):
         """Constructs an appropriate `Lister` objects from arguments passed in to a
@@ -236,12 +235,10 @@ class Lister:
         """
         filter = Filter.from_command_arguments(
             filter_for_episodes=list_episodes,
-            podcast_title=podcast_title,
             **filter_kwargs,
         )
 
-        list_episodes = list_episodes or podcast_title
-        if list_episodes:
+        if isinstance(filter, EpisodeFilter):
             return cls(filter=filter, presenter=episodes_presenter)
         else:
             return cls(filter=filter, presenter=podcasts_presenter)
