@@ -8,6 +8,7 @@ from pod_store.commands.helpers import (
     display_pod_store_error_from_exception,
 )
 from pod_store.exc import (
+    AmbiguousEpisodeError,
     EpisodeDoesNotExistError,
     GPGCommandError,
     NoEpisodesFoundError,
@@ -37,6 +38,11 @@ def test_abort_if_false_will_not_abort(mocked_ctx):
 
 
 exceptions_and_error_messages = [
+    (
+        AmbiguousEpisodeError(23),
+        "Cannot determine intended episode: 23. "
+        "Please indicate which podcast this episode belongs to.",
+    ),
     (EpisodeDoesNotExistError("hello"), "Episode not found: hello."),
     (
         GPGCommandError("foobar"),

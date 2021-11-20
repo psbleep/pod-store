@@ -4,6 +4,7 @@ from typing import Any
 import click
 
 from ..exc import (
+    AmbiguousEpisodeError,
     EpisodeDoesNotExistError,
     GPGCommandError,
     NoEpisodesFoundError,
@@ -17,6 +18,10 @@ from ..exc import (
 )
 
 POD_STORE_EXCEPTIONS_AND_ERROR_MESSAGE_TEMPLATES = {
+    AmbiguousEpisodeError: (
+        "Cannot determine intended episode: {}. "
+        "Please indicate which podcast this episode belongs to."
+    ),
     EpisodeDoesNotExistError: "Episode not found: {}.",
     GPGCommandError: "Error encountered when running GPG commands: {}.",
     NoEpisodesFoundError: "No episodes found. {}",

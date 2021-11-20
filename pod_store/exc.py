@@ -8,6 +8,10 @@ This behavior happens in the
 """
 
 
+class AmbiguousEpisodeError(Exception):
+    pass
+
+
 class EpisodeDoesNotExistError(Exception):
     pass
 
