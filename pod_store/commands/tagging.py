@@ -274,7 +274,10 @@ class Tagger:
             tagging_action = apply_tags
 
         return cls(
-            pod_store_filter=pod_store_filter, tags=tags, presenter=presenter, tagging_action=tagging_action
+            pod_store_filter=pod_store_filter,
+            tags=tags,
+            presenter=presenter,
+            tagging_action=tagging_action,
         )
 
     def tag_items(self, interactive_mode: bool = False):

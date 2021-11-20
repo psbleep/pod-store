@@ -41,7 +41,10 @@ def tagger(store):
         interactive_mode_prompt_message_template=PROMPT_MESSAGE_TEMPLATE,
     )
     return Tagger(
-        tags=["foo"], pod_store_filter=pod_store_filter, presenter=presenter, tagging_action=apply_tags
+        tags=["foo"],
+        pod_store_filter=pod_store_filter,
+        presenter=presenter,
+        tagging_action=apply_tags,
     )
 
 
@@ -124,7 +127,10 @@ def test_untagger_removes_tags_from_filter_items_and_returns_formatted_messages(
         performed_action="unchosen",
     )
     untagger = Tagger(
-        tags=["foo"], pod_store_filter=pod_store_filter, presenter=presenter, tagging_action=remove_tags
+        tags=["foo"],
+        pod_store_filter=pod_store_filter,
+        presenter=presenter,
+        tagging_action=remove_tags,
     )
     assert list(untagger.tag_items()) == [
         "Unchoosing the following tag(s) for not forgotten: foo.",
