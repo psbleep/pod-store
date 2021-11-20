@@ -12,8 +12,8 @@ from pod_store.commands.tagging import (
     Tagger,
     TaggerPresenter,
     apply_tags,
-    remove_tags,
     interactive_mode_prompt_choices,
+    remove_tags,
 )
 
 MESSAGE_TEMPLATE = (
