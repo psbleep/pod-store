@@ -34,47 +34,6 @@ VERBOSE_PODCAST_LISTING_TEMPLATE = (
 )
 
 
-class Lister:
-    """Base class for the episode and podcast lister classes.
-
-    Seeks to relegate the complexity of presenting data about store items into a
-    single module so it is not bleeding all over `__main__`.
-
-    _filter: an appropriate filter for the type of item you want to list.
-        see the pod_store.commands.filtering module
-    """
-
-    def __init__(self, filter: Filter, presenter: Callable) -> None:
-        self._filter = filter
-        self._presenter = presenter
-
-    @classmethod
-    def from_command_arguments(
-        cls,
-        list_episodes: bool = False,
-        podcast_title: Optional[str] = None,
-        **filter_kwargs,
-    ):
-        filter = Filter.from_command_arguments(
-            filter_for_episodes=list_episodes,
-            podcast_title=podcast_title,
-            **filter_kwargs,
-        )
-
-        list_episodes = list_episodes or podcast_title
-        if list_episodes:
-            return cls(filter=filter, presenter=episodes_presenter)
-        else:
-            return cls(filter=filter, presenter=podcasts_presenter)
-
-    def list_items(self, verbose: bool = False) -> str:
-        for msg in self._presenter(self._filter, verbose=verbose):
-            yield msg
-
-    def __repr__(self) -> str:
-        return "<Lister>"
-
-
 def episodes_presenter(filter: Filter, verbose: bool = False) -> str:
     """List information about the episodes that match the filter.
 
@@ -83,7 +42,7 @@ def episodes_presenter(filter: Filter, verbose: bool = False) -> str:
     """
     # Usually empty episode groups would be caught in the `EpisodeFilter` when
     # the `episodes` property was referenced. Since episodes are listed by podcast,
-    # we never directly reference the `episodes` property. As such we have to check
+    # we never directly reference that `episodes` property. As such we have to check
     # separately for cases where no episodes are found.
     episodes_found = False
 
@@ -96,16 +55,22 @@ def episodes_presenter(filter: Filter, verbose: bool = False) -> str:
             continue
 
         episodes_found = True
+
+        # List the podcast title first.
         yield pod.title
+
         last_ep_idx = len(episodes) - 1
         for ep_idx, ep in enumerate(episodes):
             if verbose:
                 yield _get_verbose_episode_listing(ep)
+                # An extra space is needed unless this is the last episode for the
+                # podcast.
                 if ep_idx < last_ep_idx:
                     yield ""
             else:
                 yield _get_episode_listing(ep)
         if pod_idx < last_pod_idx:
+            # An extra space is needed unless this is the last podcast.
             yield ""
 
     if not episodes_found:
@@ -238,3 +203,56 @@ def _get_podcast_listing(podcast: Podcast) -> str:
     return PODCAST_LISTING_TEMPLATE.format(
         title=podcast.title, episodes_msg=episodes_msg, tags_msg=tags_msg
     )
+
+
+class Lister:
+    """Coordinates listing data about items in the store.
+
+    Seeks to relegate the complexity of presenting data about store items into a
+    single module so it is not bleeding all over `__main__`.
+
+    filter (Filter): an appropriate filter for the type of item you want to list.
+        see the pod_store.commands.filtering module
+
+    presenter (callable): handles the logic about presenting output to the user.
+        see the `episodes_presenter` and `podcasts_presenter` functions in this module.
+    """
+
+    def __init__(self, filter: Filter, presenter: Callable) -> None:
+        self._filter = filter
+        self._presenter = presenter
+
+    @classmethod
+    def from_command_arguments(
+        cls,
+        list_episodes: bool = False,
+        podcast_title: Optional[str] = None,
+        **filter_kwargs,
+    ):
+        """Constructs an appropriate `Lister` objects from arguments passed in to a
+        command in the CLI.
+
+        Builds an appropriate `Filter` object and selects the appropriate `presenter`.
+        """
+        filter = Filter.from_command_arguments(
+            filter_for_episodes=list_episodes,
+            podcast_title=podcast_title,
+            **filter_kwargs,
+        )
+
+        list_episodes = list_episodes or podcast_title
+        if list_episodes:
+            return cls(filter=filter, presenter=episodes_presenter)
+        else:
+            return cls(filter=filter, presenter=podcasts_presenter)
+
+    def list_items(self, verbose: bool = False) -> str:
+        """List info about the filter's items.
+
+        If the `verbose` flag is set, more info will be shown.
+        """
+        for msg in self._presenter(self._filter, verbose=verbose):
+            yield msg
+
+    def __repr__(self) -> str:
+        return "<Lister>"
