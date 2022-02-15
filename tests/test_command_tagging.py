@@ -1,4 +1,3 @@
-import click
 import pytest
 
 from pod_store.commands.filtering import EpisodeFilter, PodcastFilter
@@ -185,10 +184,9 @@ def test_tagger_interactive_mode_quits_when_prompted(mocker, store, tagger):
         "pod_store.commands.tagging.click.prompt", return_value="q"
     )
 
-    with pytest.raises(click.Abort):
-        assert list(tagger.tag_items(interactive_mode=True)) == [
-            "Choose the podcasts.",
-        ]
+    assert list(tagger.tag_items(interactive_mode=True)) == [
+        "Choose the podcasts.",
+    ]
 
     # verify the prompt is called by checking the last call
     mocked_click_prompt.assert_called_with(
@@ -228,8 +226,6 @@ def test_tagger_interactive_mode_displays_help_message_when_prompted(
     mocker.patch("pod_store.commands.tagging.click.prompt", side_effect=["h", "q"])
     mocked_click_echo = mocker.patch("pod_store.commands.tagging.click.echo")
 
-    # catch the exception raised when quitting after first help message
-    with pytest.raises(click.Abort):
-        list(tagger.tag_items(interactive_mode=True))
+    list(tagger.tag_items(interactive_mode=True))
 
     mocked_click_echo.assert_called_with("Choose the podcasts.")

@@ -45,6 +45,11 @@ TAGGED_PODCAST_MESSAGE_TEMPLATE = (
     "{presenter.capitalized_performed_action} as {presenter.tag_listing}: {item.title}."
 )
 
+
+class StopBulkTagging(Exception):
+    pass
+
+
 interactive_mode_prompt_choices = click.Choice(["h", "y", "n", "b", "q"])
 
 
@@ -291,11 +296,14 @@ class Tagger:
                 presenter=self._presenter
             )
         for item in self._pod_store_filter.items:
-            if interactive_mode:
-                interactive_mode, msg = self._handle_item_interactively(item)
-            else:
-                msg = self._tag_item(item)
-            yield msg
+            try:
+                if interactive_mode:
+                    interactive_mode, msg = self._handle_item_interactively(item)
+                else:
+                    msg = self._tag_item(item)
+                yield msg
+            except StopBulkTagging:
+                return
 
     def _handle_item_interactively(
         self, item: Any, interactive_mode: bool = True
@@ -327,7 +335,7 @@ class Tagger:
         elif result == "y":
             msg = self._tag_item(item)
         elif result == "q":
-            raise click.Abort()
+            raise StopBulkTagging()
         elif result == "b":
             interactive_mode = False
             msg = "Switching to 'bulk' mode.\n" + self._tag_item(item)
