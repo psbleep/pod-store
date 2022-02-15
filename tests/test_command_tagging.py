@@ -1,4 +1,3 @@
-import click
 import pytest
 
 from pod_store.commands.filtering import EpisodeFilter, PodcastFilter
@@ -9,7 +8,6 @@ from pod_store.commands.tagging import (
     TAG_PODCASTS_INTERACTIVE_MODE_PROMPT_MESSAGE_TEMPLATE,
     TAGGED_EPISODE_MESSAGE_TEMPLATE,
     TAGGED_PODCAST_MESSAGE_TEMPLATE,
-    StopBulkTagging,
     Tagger,
     TaggerPresenter,
     apply_tags,
