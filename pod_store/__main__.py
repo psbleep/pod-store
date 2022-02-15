@@ -589,7 +589,7 @@ def refresh(
         untagged=untagged,
     )
     for podcast in pod_store_filter.items:
-        click.echo(f"Refreshing {podcast.title}")
+        click.echo(f"Refreshing {podcast.title}.")
         try:
             podcast.refresh()
         except requests.ConnectTimeout:

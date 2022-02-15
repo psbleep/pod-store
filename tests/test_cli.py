@@ -303,25 +303,25 @@ def test_mv(runner):
 def test_refresh_all_podcasts_ignores_inactive_podcasts(runner):
     result = runner.invoke(cli, ["refresh"])
     assert result.exit_code == 0
-    assert result.output == "Refreshing farewell\nRefreshing greetings\n"
+    assert result.output == "Refreshing farewell.\nRefreshing greetings.\n"
 
 
 def test_refresh_single_podcast_will_force_refresh_of_inactive_podcast(runner):
     result = runner.invoke(cli, ["refresh", "-p", "other"])
     assert result.exit_code == 0
-    assert result.output == "Refreshing other\n"
+    assert result.output == "Refreshing other.\n"
 
 
 def test_refresh_podcasts_with_tag(runner):
     result = runner.invoke(cli, ["refresh", "-t", "hello"])
     assert result.exit_code == 0
-    assert result.output == "Refreshing greetings\n"
+    assert result.output == "Refreshing greetings.\n"
 
 
 def test_refresh_podcasts_without_tag(runner):
     result = runner.invoke(cli, ["refresh", "-u", "hello"])
     assert result.exit_code == 0
-    assert result.output == "Refreshing farewell\n"
+    assert result.output == "Refreshing farewell.\n"
 
 
 def test_refresh_podcast_times_out(timed_out_request, runner):
