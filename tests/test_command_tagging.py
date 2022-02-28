@@ -116,6 +116,13 @@ def test_tagger_applies_tags_to_filter_items_and_returns_formatted_messages(
     assert "foo" in store.podcasts.get("greetings").tags
 
 
+def test_tagger_reverses_order_of_items_when_prompted(store, tagger):
+    assert list(tagger.tag_items(reverse_order=True)) == [
+        "Choosing the following tag(s) for greetings: foo.",
+        "Choosing the following tag(s) for farewell: foo.",
+    ]
+
+
 def test_untagger_removes_tags_from_filter_items_and_returns_formatted_messages(store):
     pod_store_filter = EpisodeFilter(store=store, foo=True)
     presenter = TaggerPresenter(

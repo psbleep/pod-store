@@ -258,6 +258,12 @@ def test_mark_as_new_all_episodes_bulk_mode(runner):
     assert "Marked as new: greetings" in result.output
 
 
+def test_mark_as_new_reverse_order(runner):
+    result = runner.invoke(cli, ["mark-as-new", "--reverse", "--force", "--bulk"])
+    assert result.exit_code == 0
+    assert result.output.index("greetings") < result.output.index("farewell")
+
+
 def test_mark_as_new_for_single_podcast(runner):
     result = runner.invoke(cli, ["mark-as-new", "--force", "--bulk", "-p", "farewell"])
     assert result.exit_code == 0
@@ -278,6 +284,12 @@ def test_mark_as_old_all_episodes_bulk_mode(runner):
     assert result.exit_code == 0
     assert "Unmarked as new: farewell" in result.output
     assert "Unmarked as new: greetings" in result.output
+
+
+def test_mark_as_old_reverse_order(runner):
+    result = runner.invoke(cli, ["mark-as-old", "--reverse", "--force", "--bulk"])
+    assert result.exit_code == 0
+    assert result.output.index("greetings") < result.output.index("farewell")
 
 
 def test_mark_as_old_for_single_podcast(runner):
@@ -355,6 +367,12 @@ def test_tag_all_episodes_bulk_mode(runner):
     assert result.exit_code == 0
     assert "Tagged as foo: farewell" in result.output
     assert "Tagged as foo: greetings" in result.output
+
+
+def test_tag_reverse_order(runner):
+    result = runner.invoke(cli, ["tag", "-t", "foo", "--reverse", "--force", "--bulk"])
+    assert result.exit_code == 0
+    assert result.output.index("greetings") < result.output.index("farewell")
 
 
 def test_tag_episodes_for_single_podcast(runner):

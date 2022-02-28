@@ -431,6 +431,7 @@ def ls(
     help="(flag): Run this command in interactive mode to select which episodes to "
     "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
+@click.option("-r", "--reverse", is_flag=True, help="Reverse order of items.")
 @click.option(
     "-f",
     "--force",
@@ -451,6 +452,7 @@ def mark_as_new(
     ctx: click.Context,
     podcast: Optional[str],
     interactive: bool,
+    reverse: bool,
     force: Optional[bool],
 ):
     """Add the `new` tag to a group of episodes."""
@@ -463,7 +465,7 @@ def mark_as_new(
         action="mark",
     )
 
-    for msg in tagger.tag_items(interactive_mode=interactive):
+    for msg in tagger.tag_items(interactive_mode=interactive, reverse_order=reverse):
         click.echo(msg)
 
 
@@ -481,6 +483,7 @@ def mark_as_new(
     help="(flag): Run this command in interactive mode to select which episodes to "
     "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
+@click.option("-r", "--reverse", is_flag=True, help="Reverse order of items.")
 @click.option(
     "-f",
     "--force",
@@ -501,6 +504,7 @@ def mark_as_old(
     ctx: click.Context,
     podcast: Optional[str],
     interactive: bool,
+    reverse: bool,
     force: Optional[bool],
 ):
     """Remove the `new` tag from a group of episodes."""
@@ -514,7 +518,7 @@ def mark_as_old(
         action="unmark",
     )
 
-    for msg in tagger.tag_items(interactive_mode=interactive):
+    for msg in tagger.tag_items(interactive_mode=interactive, reverse_order=reverse):
         click.echo(msg)
 
 
@@ -695,6 +699,7 @@ def set_inactive(ctx: click.Context, podcast: str):
     default=True,
     help="Interactively determine which items to tag, or apply the tag to all items.",
 )
+@click.option("-r", "--reverse", is_flag=True, help="Reverse order of items.")
 @click.option(
     "-f",
     "--force",
@@ -719,6 +724,7 @@ def tag(
     episode: Optional[int],
     episodes: bool,
     interactive: bool,
+    reverse: bool,
     force: bool,
 ):
     """Tag (or untag) podcasts or episodes with arbitrary tags.
@@ -748,7 +754,7 @@ def tag(
         episode_number=episode,
         is_untagger=untag,
     )
-    for msg in tagger.tag_items(interactive_mode=interactive):
+    for msg in tagger.tag_items(interactive_mode=interactive, reverse_order=reverse):
         click.echo(msg)
 
 
