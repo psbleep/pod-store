@@ -285,17 +285,25 @@ class Tagger:
             tagging_action=tagging_action,
         )
 
-    def tag_items(self, interactive_mode: bool = False):
+    def tag_items(self, interactive_mode: bool = False, reverse_order: bool = False):
         """Perform the tagging action on the collection of items.
 
         If the `intercative_mode` flag is set, the user will be prompted interactively
         to choose which items to tag or untag.
+
+        If the `reverse_order` flag is set, the order of items returned by the filter
+        will be reversed.
         """
         if interactive_mode:
             yield self._presenter.interactive_mode_help_message_template.format(
                 presenter=self._presenter
             )
-        for item in self._pod_store_filter.items:
+
+        items = self._pod_store_filter.items
+        if reverse_order:
+            items = list(reversed(items))
+
+        for item in items:
             try:
                 if interactive_mode:
                     interactive_mode, msg = self._handle_item_interactively(item)
