@@ -436,14 +436,22 @@ def ls(
     "--start",
     type=int,
     default=None,
-    help="Starting episode number for episode range.",
+    help=(
+        "Starting episode number for episode range. "
+        "Note that you must specify a podcast these episodes belong to using the "
+        "`--podcast` option."
+    ),
 )
 @click.option(
     "-e",
     "--end",
     type=int,
     default=None,
-    help="Ending episode number for episode range.",
+    help=(
+        "Ending episode number for episode range. "
+        "Note that you must specify a podcast these episodes belong to using the "
+        "`--podcast` option."
+    ),
 )
 @click.option("-r", "--reverse", is_flag=True, help="Reverse order of items.")
 @click.option(
@@ -508,14 +516,22 @@ def mark_as_new(
     "--start",
     type=int,
     default=None,
-    help="Starting episode number for episode range.",
+    help=(
+        "Starting episode number for episode range. "
+        "Note that you must specify a podcast these episodes belong to using the "
+        "`--podcast` option."
+    ),
 )
 @click.option(
     "-e",
     "--end",
     type=int,
     default=None,
-    help="Ending episode number for episode range.",
+    help=(
+        "Ending episode number for episode range. "
+        "Note that you must specify a podcast these episodes belong to using the "
+        "`--podcast` option."
+    ),
 )
 @click.option("-r", "--reverse", is_flag=True, help="Reverse order of items.")
 @click.option(
@@ -744,14 +760,22 @@ def set_inactive(ctx: click.Context, podcast: str):
     "--start",
     type=int,
     default=None,
-    help="Starting episode number for episode range.",
+    help=(
+        "Starting episode number for episode range. "
+        "Note that you must specify a podcast these episodes belong to using the "
+        "`--podcast` option."
+    ),
 )
 @click.option(
     "-e",
     "--end",
     type=int,
     default=None,
-    help="Ending episode number for episode range.",
+    help=(
+        "Ending episode number for episode range. "
+        "Note that you must specify a podcast these episodes belong to using the "
+        "`--podcast` option."
+    ),
 )
 @click.option("-r", "--reverse", is_flag=True, help="Reverse order of items.")
 @click.option(
