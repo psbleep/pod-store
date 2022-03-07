@@ -271,6 +271,27 @@ def test_mark_as_new_for_single_podcast(runner):
     assert "Marked as new: greetings" not in result.output
 
 
+def test_mark_as_new_episode_range_for_podcast(runner):
+    result = runner.invoke(
+        cli,
+        [
+            "mark-as-new",
+            "--force",
+            "--bulk",
+            "--start",
+            "11",
+            "--end",
+            "22",
+            "-p",
+            "greetings",
+        ],
+    )
+    assert result.exit_code == 0
+    assert "Marked as new: greetings" in result.output
+    assert "011" in result.output
+    assert "023" not in result.output
+
+
 def test_mark_as_new_interactive_mode(runner):
     result = runner.invoke(
         cli, ["mark-as-new", "-p", "farewell", "--interactive"], input="y\nn\n"
