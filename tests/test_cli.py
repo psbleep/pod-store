@@ -271,6 +271,27 @@ def test_mark_as_new_for_single_podcast(runner):
     assert "Marked as new: greetings" not in result.output
 
 
+def test_mark_as_new_episode_range_for_podcast(runner):
+    result = runner.invoke(
+        cli,
+        [
+            "mark-as-new",
+            "--force",
+            "--bulk",
+            "--start",
+            "11",
+            "--end",
+            "22",
+            "-p",
+            "greetings",
+        ],
+    )
+    assert result.exit_code == 0
+    assert "Marked as new: greetings" in result.output
+    assert "011" in result.output
+    assert "023" not in result.output
+
+
 def test_mark_as_new_interactive_mode(runner):
     result = runner.invoke(
         cli, ["mark-as-new", "-p", "farewell", "--interactive"], input="y\nn\n"
@@ -290,6 +311,27 @@ def test_mark_as_old_reverse_order(runner):
     result = runner.invoke(cli, ["mark-as-old", "--reverse", "--force", "--bulk"])
     assert result.exit_code == 0
     assert result.output.index("greetings") < result.output.index("farewell")
+
+
+def test_mark_as_old_episode_range_for_podcast(runner):
+    result = runner.invoke(
+        cli,
+        [
+            "mark-as-old",
+            "--force",
+            "--bulk",
+            "--start",
+            "11",
+            "--end",
+            "23",
+            "-p",
+            "greetings",
+        ],
+    )
+    assert result.exit_code == 0
+    assert "Unmarked as new: greetings" in result.output
+    assert "023" in result.output
+    assert "011" not in result.output
 
 
 def test_mark_as_old_for_single_podcast(runner):
@@ -384,6 +426,29 @@ def test_tag_episodes_for_single_podcast(runner):
     assert "Tagged as zozo: greetings" in result.output
 
 
+def test_tag_episode_range_for_podcast(runner):
+    result = runner.invoke(
+        cli,
+        [
+            "tag",
+            "-t",
+            "zozo",
+            "--force",
+            "--bulk",
+            "-p",
+            "greetings",
+            "--start",
+            "12",
+            "--end",
+            "23",
+        ],
+    )
+    assert result.exit_code == 0
+    assert "Tagged as zozo: greetings" in result.output
+    assert "023" in result.output
+    assert "012" not in result.output
+
+
 def test_tag_episodes_interactive_mode(runner):
     result = runner.invoke(cli, ["tag", "-t", "foo", "--interactive"], input="n\ny\n")
     assert result.exit_code == 0
@@ -417,7 +482,7 @@ def test_tag_single_podcast(runner):
 
 def test_tag_single_episode(runner):
     result = runner.invoke(
-        cli, ["tag", "--bulk", "-p", "greetings", "-e", "023", "-t", "foobar"]
+        cli, ["tag", "--bulk", "-p", "greetings", "--episode", "023", "-t", "foobar"]
     )
     assert result.exit_code == 0
     assert result.output == "Tagged as foobar: greetings -> [0023] hello.\n"

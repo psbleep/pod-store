@@ -431,6 +431,28 @@ def ls(
     help="(flag): Run this command in interactive mode to select which episodes to "
     "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
+@click.option(
+    "-s",
+    "--start",
+    type=int,
+    default=None,
+    help=(
+        "Starting episode number for episode range. "
+        "Note that you must specify a podcast these episodes belong to using the "
+        "`--podcast` option."
+    ),
+)
+@click.option(
+    "-e",
+    "--end",
+    type=int,
+    default=None,
+    help=(
+        "Ending episode number for episode range. "
+        "Note that you must specify a podcast these episodes belong to using the "
+        "`--podcast` option."
+    ),
+)
 @click.option("-r", "--reverse", is_flag=True, help="Reverse order of items.")
 @click.option(
     "-f",
@@ -452,15 +474,21 @@ def mark_as_new(
     ctx: click.Context,
     podcast: Optional[str],
     interactive: bool,
+    start: Optional[int],
+    end: Optional[int],
     reverse: bool,
     force: Optional[bool],
 ):
     """Add the `new` tag to a group of episodes."""
     store = ctx.obj
+    episode_range_start = start
+    episode_range_end = end
     tagger = Tagger.from_command_arguments(
         store=store,
         tags=["new"],
         tag_episodes=True,
+        episode_range_start=episode_range_start,
+        episode_range_end=episode_range_end,
         podcast_title=podcast,
         action="mark",
     )
@@ -483,6 +511,28 @@ def mark_as_new(
     help="(flag): Run this command in interactive mode to select which episodes to "
     "mark, or bulk mode to mark all episodes. Defaults to `--interactive`.",
 )
+@click.option(
+    "-s",
+    "--start",
+    type=int,
+    default=None,
+    help=(
+        "Starting episode number for episode range. "
+        "Note that you must specify a podcast these episodes belong to using the "
+        "`--podcast` option."
+    ),
+)
+@click.option(
+    "-e",
+    "--end",
+    type=int,
+    default=None,
+    help=(
+        "Ending episode number for episode range. "
+        "Note that you must specify a podcast these episodes belong to using the "
+        "`--podcast` option."
+    ),
+)
 @click.option("-r", "--reverse", is_flag=True, help="Reverse order of items.")
 @click.option(
     "-f",
@@ -504,15 +554,22 @@ def mark_as_old(
     ctx: click.Context,
     podcast: Optional[str],
     interactive: bool,
+    start: Optional[int],
+    end: Optional[int],
     reverse: bool,
     force: Optional[bool],
 ):
     """Remove the `new` tag from a group of episodes."""
+    episode_range_start = start
+    episode_range_end = end
     store = ctx.obj
+
     tagger = Tagger.from_command_arguments(
         store=store,
         tags=["new"],
         tag_episodes=True,
+        episode_range_start=episode_range_start,
+        episode_range_end=episode_range_end,
         podcast_title=podcast,
         is_untagger=True,
         action="unmark",
@@ -683,7 +740,6 @@ def set_inactive(ctx: click.Context, podcast: str):
     "--podcast", "-p", default=None, help="(podcast title): Tag a single podcast."
 )
 @click.option(
-    "-e",
     "--episode",
     type=int,
     default=None,
@@ -698,6 +754,28 @@ def set_inactive(ctx: click.Context, podcast: str):
     "--interactive/--bulk",
     default=True,
     help="Interactively determine which items to tag, or apply the tag to all items.",
+)
+@click.option(
+    "-s",
+    "--start",
+    type=int,
+    default=None,
+    help=(
+        "Starting episode number for episode range. "
+        "Note that you must specify a podcast these episodes belong to using the "
+        "`--podcast` option."
+    ),
+)
+@click.option(
+    "-e",
+    "--end",
+    type=int,
+    default=None,
+    help=(
+        "Ending episode number for episode range. "
+        "Note that you must specify a podcast these episodes belong to using the "
+        "`--podcast` option."
+    ),
 )
 @click.option("-r", "--reverse", is_flag=True, help="Reverse order of items.")
 @click.option(
@@ -724,6 +802,8 @@ def tag(
     episode: Optional[int],
     episodes: bool,
     interactive: bool,
+    start: Optional[int],
+    end: Optional[int],
     reverse: bool,
     force: bool,
 ):
@@ -744,7 +824,10 @@ def tag(
     options. Specify a podcast by title to tag the podcast. To tag an episode, specify
     the podcast by title and then specify the episode by episode number.
     """
-    tag_episodes = bool(not podcast or episode) and bool(episodes or episode)
+    tag_episodes = bool(podcast and episode or start or end) or (
+        not podcast and episodes
+    )
+
     store = ctx.obj
     tagger = Tagger.from_command_arguments(
         store=store,

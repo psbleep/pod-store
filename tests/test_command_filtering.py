@@ -104,6 +104,30 @@ def test_episode_filter_for_individual_episode(store):
     assert _get_episode_ids(pod_store_filter.items) == ["aaa"]
 
 
+def test_episode_filter_for_range_of_podcast_episodes(store):
+    pod_store_filter = EpisodeFilter(
+        store=store,
+        podcast_title="greetings",
+        episode_range_start=11,
+        episode_range_end=22,
+    )
+    assert _get_episode_ids(pod_store_filter.items) == ["zzz"]
+
+
+def test_episode_filter_for_range_of_podcast_episodes_without_end(store):
+    pod_store_filter = EpisodeFilter(
+        store=store, podcast_title="greetings", episode_range_start=20
+    )
+    assert _get_episode_ids(pod_store_filter.items) == ["aaa"]
+
+
+def test_episode_filter_for_range_of_podcast_episodes_without_start(store):
+    pod_store_filter = EpisodeFilter(
+        store=store, podcast_title="greetings", episode_range_end=11
+    )
+    assert _get_episode_ids(pod_store_filter.items) == ["zzz"]
+
+
 def test_episode_filter_for_podcast(store):
     pod_store_filter = EpisodeFilter(store=store, podcast_title="greetings")
     assert _get_episode_ids(pod_store_filter.items) == ["aaa", "zzz"]
