@@ -313,6 +313,27 @@ def test_mark_as_old_reverse_order(runner):
     assert result.output.index("greetings") < result.output.index("farewell")
 
 
+def test_mark_as_old_episode_range_for_podcast(runner):
+    result = runner.invoke(
+        cli,
+        [
+            "mark-as-old",
+            "--force",
+            "--bulk",
+            "--start",
+            "11",
+            "--end",
+            "23",
+            "-p",
+            "greetings",
+        ],
+    )
+    assert result.exit_code == 0
+    assert "Unmarked as new: greetings" in result.output
+    assert "023" in result.output
+    assert "011" not in result.output
+
+
 def test_mark_as_old_for_single_podcast(runner):
     result = runner.invoke(cli, ["mark-as-old", "--force", "--bulk", "-p", "farewell"])
     assert result.exit_code == 0
