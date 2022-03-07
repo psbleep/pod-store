@@ -164,6 +164,17 @@ class Filter(ABC):
 class EpisodeFilter(Filter):
     """Filter a group of episodes based on the provided criteria."""
 
+    def __init__(
+        self,
+        episode_range_start: Optional[int] = None,
+        episode_range_end: Optional[int] = None,
+        *args,
+        **kwargs,
+    ) -> None:
+        self._episode_range_start = episode_range_start
+        self._episode_range_end = episode_range_end
+        super().__init__(*args, **kwargs)
+
     @property
     def items(self) -> List[Episode]:
         return self._episodes
@@ -195,7 +206,22 @@ class EpisodeFilter(Filter):
             e
             for e in podcast.episodes.list()
             if self._passes_filters(e, **self._episode_filters)
+            and self._is_in_episode_range(e)
         ]
+
+    def _is_in_episode_range(self, episode: Episode) -> bool:
+        if self._episode_range_start is None and self._episode_range_end is None:
+            return True
+
+        if self._episode_range_start and self._episode_range_end:
+            return (
+                episode.episode_number >= self._episode_range_start
+                and episode.episode_number <= self._episode_range_end
+            )
+        elif self._episode_range_start:
+            return episode.episode_number >= self._episode_range_start
+        elif self._episode_range_end:
+            return episode.episode_number <= self._episode_range_end
 
     def __repr__(self) -> str:
         return "<EpisodeFilter>"
