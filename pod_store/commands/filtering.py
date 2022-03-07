@@ -54,6 +54,8 @@ class Filter(ABC):
         store: Store,
         new_episodes: bool = False,
         filter_for_episodes: bool = None,
+        episode_range_start: Optional[int] = None,
+        episode_range_end: Optional[int] = None,
         podcast_title: Optional[str] = None,
         episode_number: Optional[int] = None,
         tagged: Optional[List] = None,
@@ -88,17 +90,23 @@ class Filter(ABC):
         }
 
         if filter_for_episodes:
-            filter_cls = EpisodeFilter
+            return EpisodeFilter(
+                store=store,
+                new_episodes=new_episodes,
+                podcast_title=podcast_title,
+                podcast_filters=podcast_filters,
+                episode_range_start=episode_range_start,
+                episode_range_end=episode_range_end,
+                **filters,
+            )
         else:
-            filter_cls = PodcastFilter
-
-        return filter_cls(
-            store=store,
-            new_episodes=new_episodes,
-            podcast_title=podcast_title,
-            podcast_filters=podcast_filters,
-            **filters,
-        )
+            return PodcastFilter(
+                store=store,
+                new_episodes=new_episodes,
+                podcast_title=podcast_title,
+                podcast_filters=podcast_filters,
+                **filters,
+            )
 
     @abstractproperty
     def items(self) -> List:
