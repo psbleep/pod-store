@@ -724,7 +724,6 @@ def set_inactive(ctx: click.Context, podcast: str):
     "--podcast", "-p", default=None, help="(podcast title): Tag a single podcast."
 )
 @click.option(
-    "-e",
     "--episode",
     type=int,
     default=None,
@@ -739,6 +738,20 @@ def set_inactive(ctx: click.Context, podcast: str):
     "--interactive/--bulk",
     default=True,
     help="Interactively determine which items to tag, or apply the tag to all items.",
+)
+@click.option(
+    "-s",
+    "--start",
+    type=int,
+    default=None,
+    help="Starting episode number for episode range.",
+)
+@click.option(
+    "-e",
+    "--end",
+    type=int,
+    default=None,
+    help="Ending episode number for episode range.",
 )
 @click.option("-r", "--reverse", is_flag=True, help="Reverse order of items.")
 @click.option(
@@ -765,6 +778,8 @@ def tag(
     episode: Optional[int],
     episodes: bool,
     interactive: bool,
+    start: Optional[int],
+    end: Optional[int],
     reverse: bool,
     force: bool,
 ):
@@ -785,7 +800,10 @@ def tag(
     options. Specify a podcast by title to tag the podcast. To tag an episode, specify
     the podcast by title and then specify the episode by episode number.
     """
-    tag_episodes = bool(not podcast or episode) and bool(episodes or episode)
+    tag_episodes = bool(podcast and episode or start or end) or (
+        not podcast and episodes
+    )
+
     store = ctx.obj
     tagger = Tagger.from_command_arguments(
         store=store,
