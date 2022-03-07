@@ -151,6 +151,10 @@ By default, group tagging operations are run in interactive mode. Bulk mode tagg
 
     pod tag --episodes --bulk --force -t tag-name
 
+You can tag ranges of episodes for a podcast by specifying the starting/ending episode numbers:
+
+    pod tag -p podcast-name --start 10 --end 20
+
 Any of the tagging commands can be used to remove tags (rather than apply them) using the `untag` option:
 
     pod tag --untag --episodes -t tag-name
