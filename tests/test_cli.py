@@ -98,7 +98,7 @@ def test_download_episodes_without_tag(runner):
 def test_download_times_out(timed_out_request, runner):
     result = runner.invoke(cli, ["download", "-p", "greetings"])
     assert result.exit_code == 0
-    assert "timed out" in result.output
+    assert "error" in result.output.lower()
 
 
 def test_encrypt_store(runner):
@@ -381,7 +381,7 @@ def test_refresh_podcasts_without_tag(runner):
 def test_refresh_podcast_times_out(timed_out_request, runner):
     result = runner.invoke(cli, ["refresh", "-p", "greetings"])
     assert result.exit_code == 0
-    assert "timed out" in result.output
+    assert "error" in result.output.lower()
 
 
 def test_rm(runner):

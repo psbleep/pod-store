@@ -227,8 +227,8 @@ def download(
                 with click.progressbar(download, length=download.length) as bar:
                     for _ in bar:
                         pass
-        except requests.ConnectTimeout:
-            click.secho("Error: timed out when downloading episode.", fg="red")
+        except requests.exceptions.ConnectionError as err:
+            click.secho(f"Error when downloading episode: {err}", fg="red")
 
 
 @cli.command()
@@ -653,8 +653,8 @@ def refresh(
         click.echo(f"Refreshing {podcast.title}.")
         try:
             podcast.refresh()
-        except requests.ConnectTimeout:
-            click.secho("Error: timed out when reading RSS feed.", fg="red")
+        except requests.exceptions.ConnectionError as err:
+            click.secho(f"Error when updating RSS feed: {err}", fg="red")
 
 
 @cli.command()
