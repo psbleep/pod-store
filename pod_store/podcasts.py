@@ -207,10 +207,13 @@ class Podcast:
 
             episodes_seen.append(episode_data["id"])
 
-        # clean up old episodes no longer present in the feed
+        # Clean up old episodes no longer present in the feed
         for episode in self.episodes.list():
             if episode.id not in episodes_seen:
                 self.episodes.delete(episode.id)
+
+        # Register that the podcast's data has been updated.
+        self.updated_at = datetime.utcnow()
 
     def tag(self, tag_name: str) -> None:
         """Apply a tag to the podcast."""
