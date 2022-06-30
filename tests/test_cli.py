@@ -95,7 +95,7 @@ def test_download_episodes_without_tag(runner):
     assert result.output == f"Downloading: {TEST_EPISODE_DOWNLOAD_PATH}.\n\n"
 
 
-def test_download_times_out(timed_out_request, runner):
+def test_download_encounters_error(timed_out_request, runner):
     result = runner.invoke(cli, ["download", "-p", "greetings"])
     assert result.exit_code == 0
     assert "error" in result.output.lower()
@@ -378,7 +378,7 @@ def test_refresh_podcasts_without_tag(runner):
     assert result.output == "Refreshing farewell.\n"
 
 
-def test_refresh_podcast_times_out(timed_out_request, runner):
+def test_refresh_podcast_encounters_error(timed_out_request, runner):
     result = runner.invoke(cli, ["refresh", "-p", "greetings"])
     assert result.exit_code == 0
     assert "error" in result.output.lower()

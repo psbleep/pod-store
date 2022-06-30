@@ -3,7 +3,6 @@ import os
 from typing import Any, List, Optional
 
 import click
-import requests
 
 from . import (
     GPG_ID,
@@ -227,7 +226,7 @@ def download(
                 with click.progressbar(download, length=download.length) as bar:
                     for _ in bar:
                         pass
-        except requests.exceptions.ConnectionError as err:
+        except Exception as err:
             click.secho(f"Error when downloading episode: {err}", fg="red")
 
 
@@ -653,7 +652,7 @@ def refresh(
         click.echo(f"Refreshing {podcast.title}.")
         try:
             podcast.refresh()
-        except requests.exceptions.ConnectionError as err:
+        except Exception as err:
             click.secho(f"Error when updating RSS feed: {err}", fg="red")
 
 
