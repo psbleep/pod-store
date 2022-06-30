@@ -50,7 +50,7 @@ You can avoid setting up `git` with your store at all using the `--no-git` flag:
 
 Once your store is set up you will want to add a podcast to it. Supply the name you want to use in the store for this podcast, and the RSS feed URL for the podcast episodes:
 
-    pod add <podcast-name> https://pod.cast/episodes/rss
+    pod add <podcast-name> <rss feed url>
 
 You can list which podcasts in your store have new episodes, or list all podcasts in your store:
 
