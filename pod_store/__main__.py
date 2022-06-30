@@ -653,7 +653,7 @@ def refresh(
         click.echo(f"Refreshing {podcast.title}.")
         try:
             podcast.refresh()
-        except requests.exceptions.ConnectionError as err:
+        except Exception as err:
             click.secho(f"Error when updating RSS feed: {err}", fg="red")
 
 
