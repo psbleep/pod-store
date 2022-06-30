@@ -40,7 +40,7 @@ I recommend you install this in a Python [virtual environment](https://docs.pyth
 
 `pod-store` tracks your podcast data in a JSON file (which I will refer to as "the store"). To get started, set up your store. If you have already have a remote `git` repo you want to sync your podcasts with, you can provide that directly during set up. Currently only SSH authentication is supported. For encrypting the store, pass in the GPG ID from your keychain that you want to use:
 
-    pod init --git-url git@git.foo.bar:foobar/pods.git --gpg-id foo@bar.com
+    pod init --git-url <git repo> --gpg-id <gpg key>
 
 Leave off the `git-url` option and you can set up your remote `git` path manually. Leave off the `gpg-id` option and your store will not be encrypted.
 
@@ -50,7 +50,7 @@ You can avoid setting up `git` with your store at all using the `--no-git` flag:
 
 Once your store is set up you will want to add a podcast to it. Supply the name you want to use in the store for this podcast, and the RSS feed URL for the podcast episodes:
 
-    pod add podcast-name https://pod.cast/episodes/rss
+    pod add <podcast-name> https://pod.cast/episodes/rss
 
 You can list which podcasts in your store have new episodes, or list all podcasts in your store:
 
@@ -65,34 +65,32 @@ List new episodes, list all episodes, list new episodes for a specific podcast, 
 
     pod ls --episodes
     pod ls --all --episodes
-    pod ls -p podcast-name
-    pod ls -p podcast-name -e episode-number
+    pod ls -p <podcast-name>
+    pod ls -p <podcast-name> -e <episode-number>
 
 Refresh episode data for all podcasts from their RSS feeds, or just a specific podcast:
 
     pod refresh
-    pod refresh -p podcast-name
+    pod refresh -p <podcast-name>
 
 Sometimes you may want to save data about a podcast in the store, but not continue refreshing the podcast from the RSS feed:
 
-    pod set-inactive podcast-name
+    pod set-inactive <podcast-name>
 
-Using `pod refresh` and specifying the podcast by title will force an RSS feed refresh:
-
-    pod refresh -p inactive-podcast-name
+Using `pod refresh` on a specific podcast will force a refresh, even on a podcast you have set as `inactive`.
 
 To reactivate a podcast and resume updating it from RSS feed data regularly:
 
-    pod set-active podcast-name
+    pod set-active <podcast-name>
 
 Download all new episodes, or new episodes for just a specific podcast, or episodes for podcasts with a certain tags, or episodes for podcasts without certain tags, or episodes with certain tags, or just a single episode:
 
     pod download
-    pod download -p podcast-name
-    pod download -pt tag-name
-    pod download -up tag-name
-    pod download -t tag-name
-    pod download -p podcast-name -e episode-number
+    pod download -p <podcast-name>
+    pod download -pt <tag-name>
+    pod download -up <tag-name>
+    pod download -t <tag-name>
+    pod download -p <podcast-name> -e <episode-number>
 
 By default podcast episodes will be downloaded to e.g. `/home/<username>/Podcasts/<podcast-name>/<001-episode-title>.mp3`. See the configuration section for how to adjust the download path.
 
@@ -101,7 +99,7 @@ Sometimes you may want to mark an episode as being not-new without actually down
     pod mark-as-old
     pod mark-as-old --bulk
 
-    pod mark-as-old -p podcast-name
+    pod mark-as-old -p <podcast-name>
 
 The reverse can be accomplished as well, if you want to download episodes that have been previously marked as "old". All the same command options apply:
 
@@ -109,11 +107,11 @@ The reverse can be accomplished as well, if you want to download episodes that h
 
 Rename a podcast in the store:
 
-    pod mv old-name new-name
+    pod mv <old-name> <new-name>
 
 Remove a podcast from the store:
 
-    pod rm podcast-name
+    pod rm <podcast-name>
 
 Run an arbitrary git command within the `pod-store` repo:
 
@@ -131,33 +129,33 @@ Unencrypt a store that is set up as encrypted:
 
 Podcasts and episodes can be marked with tags. The `tag` command allows tagging a single podcast or episode:
 
-    pod tag -p podcast-name -t tag-name
-    pod tag -p podcast-name -e episode-number -t tag-name
+    pod tag -p <podcast-name> -t <tag-name>
+    pod tag -p <podcast-name> -e <episode-number> -t <tag-name>
 
 You can also tag groups of podcasts, or episodes, or episodes for a particular podcast:
 
-    pod tag --podcasts -t tag-name
-    pod tag --episodes -t tag-name
-    pod tag -p podcast-name --episodes -t tag-name
+    pod tag --podcasts -t <tag-name>
+    pod tag --episodes -t <tag-name>
+    pod tag --episodes -p <podcast-name> -t <tag-name>
 
 By default, the `tag` command works on groups of items. By default, it tags episodes.
 
 When tagging groups of items, you can interactively select which items to tag or apply the tag to the whole group by using the `interactive` and `bulk` mode options:
 
-    pod tag --podcasts --interactive -t tag-name
-    pod tag --episodes --bulk -t tag-name
+    pod tag --podcasts --interactive -t <tag-name>
+    pod tag --episodes --bulk -t <tag-name>
 
 By default, group tagging operations are run in interactive mode. Bulk mode tagging operations will prompt the user for a single confirmation, unless you pass in the `force` flag:
 
-    pod tag --episodes --bulk --force -t tag-name
+    pod tag --episodes --bulk --force -t <tag-name>
 
 You can tag ranges of episodes for a podcast by specifying the starting/ending episode numbers:
 
-    pod tag -p podcast-name --start 10 --end 20
+    pod tag -p <podcast-name> --start <episode-number> --end <episode-number>
 
 Any of the tagging commands can be used to remove tags (rather than apply them) using the `untag` option:
 
-    pod tag --untag --episodes -t tag-name
+    pod tag --untag --episodes -t <tag-name>
 
 ## Configuration
 
