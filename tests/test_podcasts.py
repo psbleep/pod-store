@@ -85,7 +85,7 @@ def test_podcast_refresh(mocked_feedparser_parse, now, podcast):
 
     old_episode = podcast.episodes.get("aaa")
     assert old_episode.title == "hello-updated"
-    assert old_episode.episode_number == 23
+    assert old_episode.episode_number == 1
 
     new_episode = podcast.episodes.get("ccc")
     assert new_episode.download_path == os.path.join(
