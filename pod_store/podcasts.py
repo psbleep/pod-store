@@ -195,9 +195,7 @@ class Podcast:
 
             # If no episode number can be parsed from the RSS feed data, guess based
             # on position in the loop.
-            episode_data["episode_number"] = episode_data.get("episode_number") or (
-                number_of_entries - entry_number
-            )
+            episode_data["episode_number"] = number_of_entries - entry_number
 
             episode = self.episodes.get(episode_data["id"], allow_empty=True)
             if episode:
@@ -247,7 +245,6 @@ class Podcast:
         links: list,
         published_parsed: tuple,
         subtitle: Optional[str] = None,
-        itunes_episode: Optional[str] = None,
         updated_parsed: Optional[tuple] = None,
         **kwargs,
     ) -> dict:
@@ -270,11 +267,6 @@ class Podcast:
         url = self._get_download_url(links)
         published_parsed = datetime(*published_parsed[:6])
 
-        if itunes_episode:
-            episode_number = int(itunes_episode)
-        else:
-            episode_number = None
-
         if subtitle:
             short_description = self._strip_html_and_non_ascii_characters(subtitle)
         else:
@@ -291,7 +283,6 @@ class Podcast:
             "long_description": long_description,
             "url": url,
             "created_at": published_parsed,
-            "episode_number": episode_number,
             "short_description": short_description,
             "updated_at": updated_parsed,
         }
