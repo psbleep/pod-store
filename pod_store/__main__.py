@@ -118,6 +118,7 @@ def cli(ctx):
 @click.pass_context
 @click.argument("title")
 @click.argument("feed")
+@click.option("-r", "--reverse", is_flag=True, help="Reverse order of episodes.")
 @catch_pod_store_errors
 @require_store
 @git_add_and_commit(
@@ -126,7 +127,7 @@ def cli(ctx):
     params=["title"],
 )
 @save_store_changes
-def add(ctx: click.Context, title: str, feed: str):
+def add(ctx: click.Context, title: str, feed: str, reverse: bool):
     """Add a podcast to the store.
 
     TITLE: title that will be used for tracking in the store
@@ -134,7 +135,7 @@ def add(ctx: click.Context, title: str, feed: str):
     FEED: rss url for updating podcast episode data
     """
     store = ctx.obj
-    store.podcasts.add(title=title, feed=feed)
+    store.podcasts.add(title=title, feed=feed, reverse_episode_order=reverse)
 
 
 @cli.command()
