@@ -110,8 +110,8 @@ def podcast_episode_data(now, yesterday):
             "long_description": "hello world (longer description)",
             "url": "http://foo.bar/aaa.mp3",
             "tags": ["new"],
-            "created_at": now.isoformat(),
-            "updated_at": now.isoformat(),
+            "created_at": yesterday.isoformat(),
+            "updated_at": yesterday.isoformat(),
             "downloaded_at": None,
         },
         "zzz": {
@@ -122,8 +122,8 @@ def podcast_episode_data(now, yesterday):
             "long_description": "goodbye world (longer description)",
             "url": "http://foo.bar/zzz.mp3",
             "tags": ["foo"],
-            "created_at": yesterday.isoformat(),
-            "updated_at": yesterday.isoformat(),
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat(),
             "downloaded_at": now.isoformat(),
         },
     }

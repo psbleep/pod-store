@@ -85,7 +85,7 @@ class PodcastEpisodes:
         (most recent first).
         """
         episodes = self._episodes.values()
-        return sorted(episodes, key=lambda e: e.created_at, reverse=True)
+        return sorted(episodes, key=lambda e: e.episode_number, reverse=True)
 
     def to_json(self) -> dict:
         """Provide json data for all of the podcast episodes."""
