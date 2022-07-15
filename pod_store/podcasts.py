@@ -190,9 +190,12 @@ class Podcast:
         resp = requests.get(self.feed, timeout=PODCAST_REFRESH_TIMEOUT)
         content = BytesIO(resp.content)
         feed_data = feedparser.parse(content)
+        entries = feed_data.entries
+        if self.reverse_episode_order:
+            entries.reverse()
 
-        number_of_entries = len(feed_data.entries)
-        for entry_number, raw_data in enumerate(feed_data.entries):
+        number_of_entries = len(entries)
+        for entry_number, raw_data in enumerate(entries):
             episode_data = self._parse_episode_feed_data(**raw_data)
 
             # If no episode number can be parsed from the RSS feed data, guess based
