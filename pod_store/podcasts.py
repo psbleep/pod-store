@@ -114,6 +114,7 @@ class Podcast:
         feed: str,
         episode_data: dict,
         tags: List[str] = None,
+        reverse_episode_order: bool = False,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
     ) -> None:
@@ -122,6 +123,7 @@ class Podcast:
         self.title = title
         self.feed = feed
         self.tags = tags
+        self.reverse_episode_order = reverse_episode_order
         self.created_at = created_at or datetime.utcnow()
         self.updated_at = updated_at or datetime.utcnow()
 
@@ -232,6 +234,7 @@ class Podcast:
             "title": self.title,
             "feed": self.feed,
             "tags": self.tags,
+            "reverse_episode_order": self.reverse_episode_order,
             "created_at": created_at,
             "updated_at": updated_at,
             "episode_data": self.episodes.to_json(),

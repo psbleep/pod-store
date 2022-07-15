@@ -111,6 +111,7 @@ def test_podcast_to_json(now, podcast_episode_data, podcast):
         "title": "greetings",
         "feed": "http://hello.world/rss",
         "tags": ["greetings"],
+        "reverse_episode_order": False,
         "created_at": now.isoformat(),
         "updated_at": now.isoformat(),
         "episode_data": podcast_episode_data,
