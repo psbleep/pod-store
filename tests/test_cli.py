@@ -43,6 +43,11 @@ def test_add(runner):
     assert result.exit_code == 0
 
 
+def test_add_with_reverse_episode_order(runner):
+    result = runner.invoke(cli, ["add", "-r", "hello", "https://www.hello.world/rss"])
+    assert result.exit_code == 0
+
+
 def test_download_all_new_podcast_episodes(runner):
     result = runner.invoke(cli, ["download"])
     assert result.exit_code == 0
