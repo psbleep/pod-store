@@ -12,7 +12,7 @@ EPISODE_LISTING_TEMPLATE = (
     "[{episode_number}] {title}: {short_description_msg}{downloaded_msg}{tags_msg}"
 )
 
-PODCAST_LISTING_TEMPLATE = "{title}{episodes_msg}{tags_msg}"
+PODCAST_LISTING_TEMPLATE = "{title}{episodes_msg}{tags_msg}{order_msg}"
 
 VERBOSE_EPISODE_LISTING_TEMPLATE = (
     "[{episode_number}] {title}\n"
@@ -28,6 +28,7 @@ VERBOSE_PODCAST_LISTING_TEMPLATE = (
     "{title}\n"
     "{episodes_msg}\n"
     "{tags_msg}"
+    "{order_msg}"
     "feed: {feed}\n"
     "created at: {created_at}\n"
     "updated at: {updated_at}"
@@ -179,10 +180,15 @@ def _get_verbose_podcast_listing(podcast: Podcast) -> List[str]:
         tags_msg = f"tags: {tags}\n"
     else:
         tags_msg = ""
+    if podcast.reverse_episode_order:
+        order_msg = "reverse episode order: true\n"
+    else:
+        order_msg = ""
     return VERBOSE_PODCAST_LISTING_TEMPLATE.format(
         title=podcast.title,
         episodes_msg=episodes_msg,
         tags_msg=tags_msg,
+        order_msg=order_msg,
         feed=podcast.feed,
         created_at=podcast.created_at.isoformat(),
         updated_at=podcast.updated_at.isoformat(),
@@ -200,8 +206,15 @@ def _get_podcast_listing(podcast: Podcast) -> str:
         tags_msg = f" -> {tags}"
     else:
         tags_msg = ""
+    if podcast.reverse_episode_order:
+        order_msg = " *"
+    else:
+        order_msg = ""
     return PODCAST_LISTING_TEMPLATE.format(
-        title=podcast.title, episodes_msg=episodes_msg, tags_msg=tags_msg
+        title=podcast.title,
+        episodes_msg=episodes_msg,
+        tags_msg=tags_msg,
+        order_msg=order_msg,
     )
 
 

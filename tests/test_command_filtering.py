@@ -79,7 +79,7 @@ def test_episode_filter_all_episodes(store):
     pod_store_filter = EpisodeFilter(
         store=store,
     )
-    assert _get_episode_ids(pod_store_filter.items) == ["111", "222", "aaa", "zzz"]
+    assert _get_episode_ids(pod_store_filter.items) == ["222", "111", "aaa", "zzz"]
 
 
 def test_episode_filter_new_episodes(store):

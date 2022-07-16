@@ -118,6 +118,7 @@ def cli(ctx):
 @click.pass_context
 @click.argument("title")
 @click.argument("feed")
+@click.option("-r", "--reverse", is_flag=True, help="Reverse order of episodes.")
 @catch_pod_store_errors
 @require_store
 @git_add_and_commit(
@@ -126,7 +127,7 @@ def cli(ctx):
     params=["title"],
 )
 @save_store_changes
-def add(ctx: click.Context, title: str, feed: str):
+def add(ctx: click.Context, title: str, feed: str, reverse: bool):
     """Add a podcast to the store.
 
     TITLE: title that will be used for tracking in the store
@@ -134,7 +135,7 @@ def add(ctx: click.Context, title: str, feed: str):
     FEED: rss url for updating podcast episode data
     """
     store = ctx.obj
-    store.podcasts.add(title=title, feed=feed)
+    store.podcasts.add(title=title, feed=feed, reverse_episode_order=reverse)
 
 
 @cli.command()
@@ -228,6 +229,44 @@ def download(
                         pass
         except Exception as err:
             click.secho(f"Error when downloading episode: {err}", fg="red")
+
+
+@cli.command()
+@click.pass_context
+@click.argument("podcast")
+@click.option("-f", "--feed", help="Update feed URL.")
+@click.option("-r", "--reverse", is_flag=True, help="Reverse episode order in feed.")
+@click.option(
+    "-d", "--do-not-reverse", is_flag=True, help="Do not reverse episode order in feed."
+)
+@catch_pod_store_errors
+@require_store
+@git_add_and_commit(
+    secure_git_mode_message="Added podcast.",
+    message="Edited podcast: {podcast!r}.",
+    params=["podcast"],
+)
+def edit(
+    ctx: click.Context,
+    podcast: str,
+    feed: Optional[str] = None,
+    reverse: bool = False,
+    do_not_reverse: bool = False,
+):
+    store = ctx.obj
+    podcast = store.podcasts.get(podcast)
+
+    if feed:
+        podcast.feed = feed
+        click.echo(f"Podcast feed updated: {feed}")
+
+    if reverse and not podcast.reverse_episode_order:
+        podcast.reverse_episode_order = True
+        click.echo("Podcast updated: reverse episode order.")
+
+    if do_not_reverse and podcast.reverse_episode_order:
+        podcast.reverse_episode_order = False
+        click.echo("Podcast updated: do not reverse episode order.")
 
 
 @cli.command()

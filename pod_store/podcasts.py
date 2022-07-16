@@ -85,7 +85,7 @@ class PodcastEpisodes:
         (most recent first).
         """
         episodes = self._episodes.values()
-        return sorted(episodes, key=lambda e: e.created_at, reverse=True)
+        return sorted(episodes, key=lambda e: e.episode_number, reverse=True)
 
     def to_json(self) -> dict:
         """Provide json data for all of the podcast episodes."""
@@ -114,6 +114,7 @@ class Podcast:
         feed: str,
         episode_data: dict,
         tags: List[str] = None,
+        reverse_episode_order: bool = False,
         created_at: Optional[datetime] = None,
         updated_at: Optional[datetime] = None,
     ) -> None:
@@ -122,6 +123,7 @@ class Podcast:
         self.title = title
         self.feed = feed
         self.tags = tags
+        self.reverse_episode_order = reverse_episode_order
         self.created_at = created_at or datetime.utcnow()
         self.updated_at = updated_at or datetime.utcnow()
 
@@ -188,9 +190,12 @@ class Podcast:
         resp = requests.get(self.feed, timeout=PODCAST_REFRESH_TIMEOUT)
         content = BytesIO(resp.content)
         feed_data = feedparser.parse(content)
+        entries = feed_data.entries
+        if self.reverse_episode_order:
+            entries.reverse()
 
-        number_of_entries = len(feed_data.entries)
-        for entry_number, raw_data in enumerate(feed_data.entries):
+        number_of_entries = len(entries)
+        for entry_number, raw_data in enumerate(entries):
             episode_data = self._parse_episode_feed_data(**raw_data)
 
             # If no episode number can be parsed from the RSS feed data, guess based
@@ -232,6 +237,7 @@ class Podcast:
             "title": self.title,
             "feed": self.feed,
             "tags": self.tags,
+            "reverse_episode_order": self.reverse_episode_order,
             "created_at": created_at,
             "updated_at": updated_at,
             "episode_data": self.episodes.to_json(),

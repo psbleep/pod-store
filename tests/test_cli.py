@@ -43,6 +43,11 @@ def test_add(runner):
     assert result.exit_code == 0
 
 
+def test_add_with_reverse_episode_order(runner):
+    result = runner.invoke(cli, ["add", "-r", "hello", "https://www.hello.world/rss"])
+    assert result.exit_code == 0
+
+
 def test_download_all_new_podcast_episodes(runner):
     result = runner.invoke(cli, ["download"])
     assert result.exit_code == 0
@@ -99,6 +104,26 @@ def test_download_encounters_error(timed_out_request, runner):
     result = runner.invoke(cli, ["download", "-p", "greetings"])
     assert result.exit_code == 0
     assert "error" in result.output.lower()
+
+
+def test_edit_podcast_title(runner):
+    result = runner.invoke(
+        cli, ["edit", "greetings", "--feed", "https://new.feed.com/rss"]
+    )
+    assert result.exit_code == 0
+    assert "updated: https://new.feed.com/rss" in result.output.lower()
+
+
+def test_edit_podcast_reverse_episode_order(runner):
+    result = runner.invoke(cli, ["edit", "greetings", "-r"])
+    assert result.exit_code == 0
+    assert "updated: reverse" in result.output.lower()
+
+
+def test_edit_podcast_do_not_reverse_episode_order(podcast, runner):
+    result = runner.invoke(cli, ["edit", "farewell", "-d"])
+    assert result.exit_code == 0
+    assert "updated: do not reverse" in result.output.lower()
 
 
 def test_encrypt_store(runner):

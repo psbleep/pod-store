@@ -52,7 +52,7 @@ def test_podcast_episodes_get_episode_allow_empty_returns_none_if_not_found(
     assert podcast_episodes.get("fooooo", allow_empty=True) is None
 
 
-def test_podcast_episodes_list_sorts_episodes_by_created_time(podcast_episodes):
+def test_podcast_episodes_list_sorts_by_episode_number(podcast_episodes):
     ep1, ep2 = podcast_episodes.list()
     assert ep1.id == "aaa"
     assert ep2.id == "zzz"
