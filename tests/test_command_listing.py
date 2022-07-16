@@ -42,8 +42,8 @@ def test_lister_from_command_arguments_provides_a_podcast_lister_when_indiciated
 def test_episode_lister_list(episode_lister):
     assert list(episode_lister.list_items()) == [
         "farewell",
-        "[0001] gone: 'all' -> new, bar",
         "[0002] not forgotten: 'never' -> foo, bar",
+        "[0001] gone: 'all' -> new, bar",
         "",
         "greetings",
         "[0023] hello: 'hello' -> new",
@@ -56,13 +56,6 @@ def test_episode_lister_list_verbose_mode(
 ):
     assert list(episode_lister.list_items(verbose=True)) == [
         "farewell",
-        f"""[0001] gone
-id: 111
-tags: new, bar
-created at: {now_formatted}
-updated at: {now_formatted}
-all gone (longer description)""",
-        "",
         f"""[0002] not forgotten
 id: 222
 tags: foo, bar
@@ -70,19 +63,26 @@ created at: {now_formatted}
 updated at: {now_formatted}
 never forgotten (longer description)""",
         "",
+        f"""[0001] gone
+id: 111
+tags: new, bar
+created at: {now_formatted}
+updated at: {now_formatted}
+all gone (longer description)""",
+        "",
         "greetings",
         f"""[0023] hello
 id: aaa
 tags: new
-created at: {now_formatted}
-updated at: {now_formatted}
+created at: {yesterday_formatted}
+updated at: {yesterday_formatted}
 hello world (longer description)""",
         "",
         f"""[0011] goodbye
 id: zzz
 tags: foo
-created at: {yesterday_formatted}
-updated at: {yesterday_formatted}
+created at: {now_formatted}
+updated at: {now_formatted}
 downloaded at: {now_formatted}
 goodbye world (longer description)""",
     ]
@@ -103,7 +103,7 @@ def test_episode_lister_allows_empty_long_description_in_verbose_mode(
     episode = podcast.episodes.get("111")
     episode.long_description = ""
 
-    verbose_episode_listing = list(episode_lister.list_items(verbose=True))[1]
+    verbose_episode_listing = "\n".join(list(episode_lister.list_items(verbose=True)))
     assert "(no description)" in verbose_episode_listing
 
 
