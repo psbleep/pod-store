@@ -246,6 +246,7 @@ def download(
     message="Edited podcast: {podcast!r}.",
     params=["podcast"],
 )
+@save_store_changes
 def edit(
     ctx: click.Context,
     podcast: str,
