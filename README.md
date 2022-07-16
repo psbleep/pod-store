@@ -52,6 +52,10 @@ Once your store is set up you will want to add a podcast to it. Supply the name 
 
     pod add <podcast-name> <rss feed url>
 
+Optionally podcasts can reverse the order episodes appear in the list (with the newest episode appearing last, and the oldest episode appearing first):
+
+    pod add -r <podcast-name> <rss feed url>
+
 You can list which podcasts in your store have new episodes, or list all podcasts in your store:
 
     pod ls
@@ -156,6 +160,12 @@ You can tag ranges of episodes for a podcast by specifying the starting/ending e
 Any of the tagging commands can be used to remove tags (rather than apply them) using the `untag` option:
 
     pod tag --untag --episodes -t <tag-name>
+
+The details of a podcast can be edited:
+
+    pod edit <podcast-name> -f <feed url>
+
+Feed URL and whether to reverse the episode order (or not) are configurable using this command.
 
 ## Configuration
 
