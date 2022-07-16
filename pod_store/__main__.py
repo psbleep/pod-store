@@ -233,6 +233,44 @@ def download(
 
 @cli.command()
 @click.pass_context
+@click.argument("podcast")
+@click.option("-f", "--feed", help="Update feed URL.")
+@click.option("-r", "--reverse", is_flag=True, help="Reverse episode order in feed.")
+@click.option(
+    "-d", "--do-not-reverse", is_flag=True, help="Do not reverse episode order in feed."
+)
+@catch_pod_store_errors
+@require_store
+@git_add_and_commit(
+    secure_git_mode_message="Added podcast.",
+    message="Edited podcast: {podcast!r}.",
+    params=["podcast"],
+)
+def edit(
+    ctx: click.Context,
+    podcast: str,
+    feed: Optional[str] = None,
+    reverse: bool = False,
+    do_not_reverse: bool = False,
+):
+    store = ctx.obj
+    podcast = store.podcasts.get(podcast)
+
+    if feed:
+        podcast.feed = feed
+        click.echo(f"Podcast feed updated: {feed}")
+
+    if reverse and not podcast.reverse_episode_order:
+        podcast.reverse_episode_order = True
+        click.echo("Podcast updated: reverse episode order.")
+
+    if do_not_reverse and podcast.reverse_episode_order:
+        podcast.reverse_episode_order = False
+        click.echo("Podcast updated: do not reverse episode order.")
+
+
+@cli.command()
+@click.pass_context
 @click.argument("gpg-id")
 @click.option(
     "-f",

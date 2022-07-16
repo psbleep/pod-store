@@ -175,7 +175,7 @@ def store_data(now, yesterday, podcast_episode_data, other_podcast_episode_data)
             "title": "farewell",
             "feed": "http://goodbye.world/rss",
             "tags": [],
-            "reverse_episode_order": False,
+            "reverse_episode_order": True,
             "episode_data": other_podcast_episode_data,
             "created_at": yesterday.isoformat(),
             "updated_at": now.isoformat(),
