@@ -118,7 +118,7 @@ def test_episode_lister_list_raises_exception_when_no_episodes_found(store):
 
 def test_podcast_lister_list(podcast_lister):
     assert list(podcast_lister.list_items()) == [
-        "farewell [1]",
+        "farewell [1] *",
         "other -> inactive",
         "greetings [1] -> hello",
     ]
@@ -130,6 +130,7 @@ def test_podcast_lister_list_verbose_mode(
     assert list(podcast_lister.list_items(verbose=True)) == [
         f"""farewell
 1 new episodes
+reverse episode order: true
 feed: http://goodbye.world/rss
 created at: {yesterday_formatted}
 updated at: {now_formatted}""",
