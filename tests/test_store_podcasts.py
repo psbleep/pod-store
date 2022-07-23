@@ -6,7 +6,7 @@ from pod_store.store import StorePodcasts
 
 @pytest.fixture
 def store_podcasts(store_data):
-    return StorePodcasts(podcast_data=store_data)
+    return StorePodcasts(podcast_data=store_data["podcasts"])
 
 
 def test_store_podcasts_add_podcast(store_podcasts):
@@ -62,4 +62,4 @@ def test_store_podcasts_rename_new_title_already_exists(store_podcasts):
 
 
 def test_store_podcasts_to_json(store_podcasts, store_data):
-    assert store_podcasts.to_json() == store_data
+    assert store_podcasts.to_json() == store_data["podcasts"]

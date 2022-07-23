@@ -19,6 +19,7 @@ from pod_store.exc import (
     StoreDoesNotExistError,
     StoreExistsError,
     StoreIsNotEncrypted,
+    StoreLocked,
 )
 
 
@@ -65,6 +66,7 @@ exceptions_and_error_messages = [
         "If it is, place a text file containing the GPG key used to encrypt it at: "
         "/path/to/gpg-id",
     ),
+    (StoreLocked(), "Store locked by another command."),
 ]
 
 

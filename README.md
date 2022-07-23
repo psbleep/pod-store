@@ -98,6 +98,10 @@ Download all new episodes, or new episodes for just a specific podcast, or episo
 
 By default podcast episodes will be downloaded to e.g. `/home/<username>/Podcasts/<podcast-name>/<001-episode-title>.mp3`. See the configuration section for how to adjust the download path.
 
+A rudimentary locking system prevents store data from being modified by more than one command at a time. But if a data-modifying command crashes without exiting gracefully, the lock may not get released. In that case you can always unlock the store manually:
+
+    pod unlock
+
 Sometimes you may want to mark an episode as being not-new without actually downloading it. Do that using the `mark-as-old` command. By default you will interactively choose which episodes to mark, or you can bulk-mark all episodes. Either of these strategies can be applied to _all_ new episodes, or just the episodes of a specific podcast:
 
     pod mark-as-old

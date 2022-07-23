@@ -50,3 +50,7 @@ class StoreExistsError(Exception):
 
 class StoreIsNotEncrypted(Exception):
     pass
+
+
+class StoreLocked(Exception):
+    pass

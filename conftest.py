@@ -162,32 +162,35 @@ def other_podcast_episode_data(now):
 @pytest.fixture
 def store_data(now, yesterday, podcast_episode_data, other_podcast_episode_data):
     return {
-        "greetings": {
-            "title": "greetings",
-            "feed": "http://hello.world/rss",
-            "tags": ["hello"],
-            "reverse_episode_order": False,
-            "created_at": now.isoformat(),
-            "updated_at": now.isoformat(),
-            "episode_data": podcast_episode_data,
-        },
-        "farewell": {
-            "title": "farewell",
-            "feed": "http://goodbye.world/rss",
-            "tags": [],
-            "reverse_episode_order": True,
-            "episode_data": other_podcast_episode_data,
-            "created_at": yesterday.isoformat(),
-            "updated_at": now.isoformat(),
-        },
-        "other": {
-            "title": "other",
-            "feed": "http://other.thing/rss",
-            "tags": ["inactive"],
-            "reverse_episode_order": False,
-            "episode_data": {},
-            "created_at": yesterday.isoformat(),
-            "updated_at": now.isoformat(),
+        "locked": False,
+        "podcasts": {
+            "greetings": {
+                "title": "greetings",
+                "feed": "http://hello.world/rss",
+                "tags": ["hello"],
+                "reverse_episode_order": False,
+                "created_at": now.isoformat(),
+                "updated_at": now.isoformat(),
+                "episode_data": podcast_episode_data,
+            },
+            "farewell": {
+                "title": "farewell",
+                "feed": "http://goodbye.world/rss",
+                "tags": [],
+                "reverse_episode_order": True,
+                "episode_data": other_podcast_episode_data,
+                "created_at": yesterday.isoformat(),
+                "updated_at": now.isoformat(),
+            },
+            "other": {
+                "title": "other",
+                "feed": "http://other.thing/rss",
+                "tags": ["inactive"],
+                "reverse_episode_order": False,
+                "episode_data": {},
+                "created_at": yesterday.isoformat(),
+                "updated_at": now.isoformat(),
+            },
         },
     }
 

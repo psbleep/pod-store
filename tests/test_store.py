@@ -32,6 +32,20 @@ def custom_store_file_path(mocker):
     )
 
 
+def test_store_data_without_lock_property_gets_updated_automatically(
+    store_data,
+    unencrypted_store_file_handler,
+):
+    old_store_data = store_data["podcasts"]
+    with open(TEST_STORE_FILE_PATH, "w") as f:
+        json.dump(old_store_data, f)
+
+    store = Store(
+        store_path=TEST_STORE_PATH, file_handler=unencrypted_store_file_handler
+    )
+    assert store.locked is False
+
+
 def test_init_store_creates_store_directory_and_store_file_and_downloads_path(
     start_with_no_store,
 ):
@@ -242,8 +256,21 @@ def test_unencrypt_store_raises_error_if_store_is_not_encrypted(store):
         store.unencrypt()
 
 
+def test_store_lock_saves_locked_state(store):
+    store.lock()
+    with open(TEST_STORE_FILE_PATH) as f:
+        assert json.load(f)["locked"] is True
+
+
+def test_store_unlock_saves_unlocked_state(store):
+    store.lock()
+    store.unlock()
+    with open(TEST_STORE_FILE_PATH) as f:
+        assert json.load(f)["locked"] is False
+
+
 def test_save_writes_data_to_file(store_data, store):
     store.podcasts.get("greetings").title = "updated"
     store.save()
     with open(TEST_STORE_FILE_PATH) as f:
-        assert json.load(f)["greetings"]["title"] == "updated"
+        assert json.load(f)["podcasts"]["greetings"]["title"] == "updated"
