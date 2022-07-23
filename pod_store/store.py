@@ -123,8 +123,9 @@ class Store:
         self._store_path = store_path
         self._file_handler = file_handler
 
-        podcast_data = self._file_handler.read_data()
-        self.podcasts = StorePodcasts(podcast_data=podcast_data)
+        store_data = self._file_handler.read_data()
+        self.locked = store_data["locked"]
+        self.podcasts = StorePodcasts(podcast_data=store_data["podcasts"])
 
     @classmethod
     def init(
@@ -205,7 +206,8 @@ class Store:
     def save(self) -> None:
         """Save data to the store json file."""
         podcast_data = self.podcasts.to_json()
-        self._file_handler.write_data(podcast_data)
+        store_data = {"locked": self.locked, "podcasts": podcast_data}
+        self._file_handler.write_data(store_data)
 
     @staticmethod
     def _setup_existing_repo(

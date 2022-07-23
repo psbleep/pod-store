@@ -246,4 +246,4 @@ def test_save_writes_data_to_file(store_data, store):
     store.podcasts.get("greetings").title = "updated"
     store.save()
     with open(TEST_STORE_FILE_PATH) as f:
-        assert json.load(f)["greetings"]["title"] == "updated"
+        assert json.load(f)["podcasts"]["greetings"]["title"] == "updated"

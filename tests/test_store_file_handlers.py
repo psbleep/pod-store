@@ -117,7 +117,7 @@ def test_unencrypted_store_file_handler_read_data_loads_json_from_file(
 def test_unencrypted_store_file_handler_write_data_writes_json_to_file(
     store_data, unencrypted_store_file_handler
 ):
-    store_data["greetings"]["title"] == "greetings-updated"
+    store_data["podcasts"]["greetings"]["title"] = "updated"
     unencrypted_store_file_handler.write_data(store_data)
     with open(TEST_STORE_FILE_PATH) as f:
         assert json.load(f) == store_data
