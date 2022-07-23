@@ -9,7 +9,7 @@ from typing import Any, Callable, Optional
 import click
 
 from .. import EXTREME_SECURE_GIT_MODE, SECURE_GIT_MODE, STORE_GIT_REPO
-from ..exc import ShellCommandError, StoreDoesNotExistError
+from ..exc import ShellCommandError, StoreDoesNotExistError, StoreLocked
 from ..util import run_git_command
 from .commit_messages import default_commit_message_builder
 from .helpers import display_pod_store_error_from_exception
@@ -152,6 +152,8 @@ def save_store_changes(f: Callable) -> Callable:
 
     @functools.wraps(f)
     def save_store_changes_inner(ctx: click.Context, *args, **kwargs) -> Any:
+        if ctx.obj.locked:
+            raise StoreLocked()
         resp = f(ctx, *args, **kwargs)
         ctx.obj.save()
         return resp

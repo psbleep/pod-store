@@ -6,7 +6,7 @@ import click
 import pytest
 
 from pod_store.commands import decorators
-from pod_store.exc import EpisodeDoesNotExistError, StoreDoesNotExistError
+from pod_store.exc import EpisodeDoesNotExistError, StoreDoesNotExistError, StoreLocked
 
 from . import TEST_STORE_FILE_PATH
 
@@ -16,6 +16,11 @@ fake_ctx = namedtuple("fake_ctx", ["obj", "params"])
 @pytest.fixture
 def mocked_run_git_command(mocker):
     return mocker.patch("pod_store.commands.decorators.run_git_command")
+
+
+@decorators.save_store_changes
+def saved(ctx):
+    pass
 
 
 def test_catch_pod_store_errors_decorator_aborts_command_and_displays_error_message(
@@ -173,11 +178,15 @@ def test_save_store_changes_saves_current_store_state_in_store_file(store):
     store.podcasts.delete("other")
     ctx = fake_ctx(obj=store, params=None)
 
-    @decorators.save_store_changes
-    def saved(ctx):
-        pass
-
     saved(ctx)
 
     with open(TEST_STORE_FILE_PATH) as f:
         assert "other" not in json.load(f)
+
+
+def test_save_store_changes_raises_error_if_store_is_locked(store):
+    store.locked = True
+    ctx = fake_ctx(obj=store, params=None)
+
+    with pytest.raises(StoreLocked):
+        saved(ctx)
