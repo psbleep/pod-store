@@ -214,6 +214,11 @@ class Store:
         self.locked = True
         self.save()
 
+    def unlock(self) -> None:
+        """Unlock the store to release it for other commands."""
+        self.locked = False
+        self.save()
+
     def save(self) -> None:
         """Save data to the store json file."""
         podcast_data = self.podcasts.to_json()

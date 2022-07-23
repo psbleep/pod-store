@@ -262,6 +262,13 @@ def test_store_lock_saves_locked_state(store):
         assert json.load(f)["locked"] is True
 
 
+def test_store_unlock_saves_unlocked_state(store):
+    store.lock()
+    store.unlock()
+    with open(TEST_STORE_FILE_PATH) as f:
+        assert json.load(f)["locked"] is False
+
+
 def test_save_writes_data_to_file(store_data, store):
     store.podcasts.get("greetings").title = "updated"
     store.save()
