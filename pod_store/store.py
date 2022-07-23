@@ -124,6 +124,11 @@ class Store:
         self._file_handler = file_handler
 
         store_data = self._file_handler.read_data()
+
+        # Update legacy store data created before `locked` property.
+        if "locked" not in store_data:
+            store_data = {"locked": False, "podcasts": store_data}
+
         self.locked = store_data["locked"]
         self.podcasts = StorePodcasts(podcast_data=store_data["podcasts"])
 

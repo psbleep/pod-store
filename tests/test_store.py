@@ -32,6 +32,20 @@ def custom_store_file_path(mocker):
     )
 
 
+def test_store_data_without_lock_property_gets_updated_automatically(
+    store_data,
+    unencrypted_store_file_handler,
+):
+    old_store_data = store_data["podcasts"]
+    with open(TEST_STORE_FILE_PATH, "w") as f:
+        json.dump(old_store_data, f)
+
+    store = Store(
+        store_path=TEST_STORE_PATH, file_handler=unencrypted_store_file_handler
+    )
+    assert store.locked is False
+
+
 def test_init_store_creates_store_directory_and_store_file_and_downloads_path(
     start_with_no_store,
 ):
