@@ -532,3 +532,14 @@ def test_unencrypt_store(runner):
 def test_unencrypt_aborts_if_not_confirmed(runner):
     result = runner.invoke(cli, ["unencrypt-store"], input="\n")
     assert result.exit_code == 1
+
+
+def test_unlock(runner):
+    result = runner.invoke(cli, ["unlock", "--force"])
+    assert result.exit_code == 0
+    assert result.output.endswith("Store was unlocked.\n")
+
+
+def test_unlock_aborts_if_not_confirmed(runner):
+    result = runner.invoke(cli, ["unlock"], input="\n")
+    assert result.exit_code == 1

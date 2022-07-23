@@ -903,6 +903,31 @@ def unencrypt_store(ctx: click.Context):
     click.echo("Store was unencrypted.")
 
 
+@cli.command()
+@click.pass_context
+@click.option(
+    "-f",
+    "--force",
+    is_flag=True,
+    callback=abort_if_false,
+    expose_value=False,
+    prompt="Are you sure you want to unlock the pod store?",
+    help="Skip the confirmation prompt.",
+)
+@catch_pod_store_errors
+@require_store
+@git_add_and_commit(
+    secure_git_mode_message="Unlocked the store.", message="Unlocked the store."
+)
+def unlock(ctx: click.Context):
+    """Unlock the store manually. Could be necessary if a command that modifies store
+    state crashed without exiting gracefully."""
+    store = ctx.obj
+    store.locked = False
+    store.save()
+    click.echo("Store was unlocked.")
+
+
 def main() -> None:
     """Run the Click application."""
     cli()
