@@ -923,8 +923,7 @@ def unlock(ctx: click.Context):
     """Unlock the store manually. Could be necessary if a command that modifies store
     state crashed without exiting gracefully."""
     store = ctx.obj
-    store.locked = False
-    store.save()
+    store.unlock()
     click.echo("Store was unlocked.")
 
 
