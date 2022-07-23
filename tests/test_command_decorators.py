@@ -18,6 +18,11 @@ def mocked_run_git_command(mocker):
     return mocker.patch("pod_store.commands.decorators.run_git_command")
 
 
+@pytest.fixture
+def ctx(store):
+    return fake_ctx(store, params=None)
+
+
 @decorators.save_store_changes
 def saved(ctx):
     pass
@@ -174,9 +179,8 @@ def test_require_store_raises_error_if_store_does_not_exist():
         no_store(ctx)
 
 
-def test_save_store_changes_saves_current_store_state_in_store_file(store):
+def test_save_store_changes_saves_current_store_state_in_store_file(store, ctx):
     store.podcasts.delete("other")
-    ctx = fake_ctx(obj=store, params=None)
 
     saved(ctx)
 
@@ -184,9 +188,18 @@ def test_save_store_changes_saves_current_store_state_in_store_file(store):
         assert "other" not in json.load(f)
 
 
-def test_save_store_changes_raises_error_if_store_is_locked(store):
+def test_save_store_changes_locks_and_unlocks_store(mocker, store, ctx):
+    store.lock = mocker.Mock()
+    store.unlock = mocker.Mock()
+
+    saved(ctx)
+
+    store.lock.assert_called_once()
+    store.unlock.assert_called_once()
+
+
+def test_save_store_changes_raises_error_if_store_is_locked(store, ctx):
     store.locked = True
-    ctx = fake_ctx(obj=store, params=None)
 
     with pytest.raises(StoreLocked):
         saved(ctx)

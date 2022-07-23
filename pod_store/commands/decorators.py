@@ -154,8 +154,12 @@ def save_store_changes(f: Callable) -> Callable:
     def save_store_changes_inner(ctx: click.Context, *args, **kwargs) -> Any:
         if ctx.obj.locked:
             raise StoreLocked()
+        ctx.obj.lock()
+
         resp = f(ctx, *args, **kwargs)
         ctx.obj.save()
+
+        ctx.obj.unlock()
         return resp
 
     return save_store_changes_inner
