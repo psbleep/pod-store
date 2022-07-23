@@ -15,6 +15,7 @@ from ..exc import (
     StoreDoesNotExistError,
     StoreExistsError,
     StoreIsNotEncrypted,
+    StoreLocked,
 )
 
 POD_STORE_EXCEPTIONS_AND_ERROR_MESSAGE_TEMPLATES = {
@@ -38,6 +39,7 @@ POD_STORE_EXCEPTIONS_AND_ERROR_MESSAGE_TEMPLATES = {
         "Please verify whether the store is encrypted. "
         "If it is, place a text file containing the GPG key used to encrypt it at: {}"
     ),
+    StoreLocked: "Store locked by another command.",
 }
 
 
