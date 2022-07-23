@@ -256,6 +256,12 @@ def test_unencrypt_store_raises_error_if_store_is_not_encrypted(store):
         store.unencrypt()
 
 
+def test_store_lock_saves_locked_state(store):
+    store.lock()
+    with open(TEST_STORE_FILE_PATH) as f:
+        assert json.load(f)["locked"] is True
+
+
 def test_save_writes_data_to_file(store_data, store):
     store.podcasts.get("greetings").title = "updated"
     store.save()

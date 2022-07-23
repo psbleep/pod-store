@@ -208,6 +208,12 @@ class Store:
         if existing_store_file_path != unencrypted_store_file_path:
             os.remove(existing_store_file_path)
 
+    def lock(self) -> None:
+        """Lock the store to prevent other commands from modifying data until a command
+        completes."""
+        self.locked = True
+        self.save()
+
     def save(self) -> None:
         """Save data to the store json file."""
         podcast_data = self.podcasts.to_json()
